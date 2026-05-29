@@ -313,6 +313,15 @@ export const AFFINE_FLAGS = {
     configurable: true,
     defaultState: false,
   },
+  enable_study: {
+    category: 'affine',
+    displayName:
+      'com.affine.settings.workspace.experimental-features.enable-study.name',
+    description:
+      'com.affine.settings.workspace.experimental-features.enable-study.description',
+    configurable: true,
+    defaultState: true,
+  },
 } satisfies { [key in string]: FlagInfo };
 
 // oxlint-disable-next-line no-redeclare
