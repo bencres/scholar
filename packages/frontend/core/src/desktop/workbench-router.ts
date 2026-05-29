@@ -42,6 +42,26 @@ export const workbenchRoutes = [
     lazy: () => import('./pages/workspace/journals'),
   },
   {
+    path: '/study',
+    lazy: () => import('./pages/workspace/study/index'),
+  },
+  {
+    path: '/study/generate',
+    lazy: () => import('./pages/workspace/study/generate'),
+  },
+  {
+    path: '/study/review',
+    lazy: () => import('./pages/workspace/study/review'),
+  },
+  {
+    path: '/study/review/:deckId',
+    lazy: () => import('./pages/workspace/study/review'),
+  },
+  {
+    path: '/study/decks/:deckId',
+    lazy: () => import('./pages/workspace/study/deck-detail'),
+  },
+  {
     path: '/settings',
     lazy: () => import('./pages/workspace/settings'),
   },
