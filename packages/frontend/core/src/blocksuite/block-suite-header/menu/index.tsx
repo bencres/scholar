@@ -15,8 +15,10 @@ import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
 import { useDetailPageHeaderResponsive } from '@affine/core/desktop/pages/workspace/detail-page/use-header-responsive';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { EditorService } from '@affine/core/modules/editor';
+import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { OpenInAppService } from '@affine/core/modules/open-in-app/services';
 import { GuardService } from '@affine/core/modules/permissions';
+import { StudyService } from '@affine/core/modules/study';
 import { ShareMenuContent } from '@affine/core/modules/share-menu';
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { ViewService } from '@affine/core/modules/workbench/services/view';
@@ -175,6 +177,9 @@ const PageHeaderMenuItem = ({
   }, [openSidePanel]);
 
   const workspaceDialogService = useService(WorkspaceDialogService);
+  const studyService = useServiceOptional(StudyService);
+  const featureFlagService = useService(FeatureFlagService);
+  const enableStudy = useLiveData(featureFlagService.flags.enable_study.$);
   const openInfoModal = useCallback(() => {
     track.$.header.pageInfo.open();
     workspaceDialogService.open('doc-info', { docId: pageId });
@@ -294,6 +299,21 @@ const PageHeaderMenuItem = ({
     track.$.header.docOptions.toggleFavorite();
     toggleFavorite();
   }, [toggleFavorite]);
+
+  const handleGenerateStudyDeck = useCallback(async () => {
+    if (!studyService?.enabled) return;
+    try {
+      await studyService.generateFromDoc(page);
+      workbench.open(`/study/generate?docId=${pageId}`, { at: 'active' });
+    } catch (error) {
+      console.error(error);
+      toast(
+        error instanceof Error
+          ? error.message
+          : t['com.affine.study.generate.failed']()
+      );
+    }
+  }, [page, pageId, studyService, t, workbench]);
 
   const showResponsiveMenu = hideShare;
   const ResponsiveMenuItems = (
@@ -424,6 +444,15 @@ const PageHeaderMenuItem = ({
         {t['com.affine.history.view-history-version']()}
       </MenuItem>
       <MenuSeparator />
+      {enableStudy && studyService?.enabled && currentMode === 'page' ? (
+        <MenuItem
+          prefixIcon={<TocIcon />}
+          data-testid="editor-option-menu-generate-study-deck"
+          onSelect={handleGenerateStudyDeck}
+        >
+          {t['com.affine.study.generate.menu']()}
+        </MenuItem>
+      ) : null}
       {!isJournal && (
         <MenuItem
           prefixIcon={<DuplicateIcon />}
