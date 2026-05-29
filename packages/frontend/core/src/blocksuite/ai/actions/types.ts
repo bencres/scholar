@@ -238,6 +238,9 @@ declare global {
       expandMindmap<T extends ExpandMindMap>(
         options: T
       ): Promise<AIActionTextResponse<T>>;
+      generateStudyCards<T extends AITextActionOptions>(
+        options: T
+      ): Promise<AIActionTextResponse<T>>;
 
       // presentation
       createSlides<T extends AITextActionOptions>(

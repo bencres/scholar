@@ -41,6 +41,7 @@ export const promptKeys = [
   'Remove background',
   // actions
   'mindmap.generate',
+  'study.cards.generate',
   'slides.outline',
   'image.filter.sketch',
   'image.filter.clay',

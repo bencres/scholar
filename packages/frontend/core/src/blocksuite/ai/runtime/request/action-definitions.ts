@@ -113,6 +113,19 @@ export const actionDefinitions = {
     actionVersion: 'v1',
     buildContent: options => options.input,
   },
+  generateStudyCards: {
+    id: 'generateStudyCards',
+    promptName: 'study.cards.generate',
+    responseType: 'text',
+    timeout: 180000,
+    endpoint: Endpoint.Action,
+    actionId: 'study.cards.generate',
+    actionVersion: 'v1',
+    buildContent: options => options.input,
+    buildParams: options => ({
+      focus: options.params?.focus,
+    }),
+  },
   expandMindmap: {
     ...textAction('expandMindmap', 'Expand mind map'),
     validate: options => {
