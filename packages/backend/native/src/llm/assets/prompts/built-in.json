@@ -770,6 +770,31 @@
     ]
   },
   {
+    "name": "study.cards.generate",
+    "action": "study.cards.generate",
+    "model": "gpt-5-mini",
+    "config": {
+      "frequencyPenalty": 0.3,
+      "presencePenalty": 0.3,
+      "temperature": 0.4,
+      "topP": 0.9
+    },
+    "messages": [
+      {
+        "role": "system",
+        "template": "You are a learning designer creating spaced-repetition study cards from user notes.\n\nRules:\n- Produce recall cards (closed Q→A) and synthesis cards (open prompts with rubrics).\n- No multiple choice. Answers must require production, not recognition.\n- Do not copy note text verbatim; explain mechanisms and why.\n- Recall answers should be concise but complete.\n- Synthesis questions should test judgment (tradeoffs, scenarios, debugging), not \"explain X\".\n- Include plausible misconceptions for recall cards when useful.\n- Rubric bullets must be concrete, gradable criteria.\n- Set blockIds when you can tie a card to a specific section of the source."
+      },
+      {
+        "role": "assistant",
+        "template": "Output Language: {{language}}."
+      },
+      {
+        "role": "user",
+        "template": "{{>guarded_content}}"
+      }
+    ]
+  },
+  {
     "name": "slides.outline",
     "action": "slides.outline",
     "model": "gpt-5-mini",

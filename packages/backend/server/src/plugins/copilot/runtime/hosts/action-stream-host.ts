@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import type { LlmImageResponse } from '../../../../native';
+import { studyCardsGenerateResponseSchemaJson } from '../../study/schema';
 import { PromptService } from '../../prompt';
 import type { PromptMessage } from '../../providers/types';
 import type { ChatSession } from '../../session';
@@ -19,6 +20,7 @@ function firstQueryValue(value: string | string[] | undefined) {
 
 const ACTION_PROMPTS: Record<string, string> = {
   'mindmap.generate': 'mindmap.generate',
+  'study.cards.generate': 'study.cards.generate',
   'slides.outline': 'slides.outline',
 };
 
@@ -41,6 +43,13 @@ function actionTextResultSchema() {
     required: ['result'],
     additionalProperties: false,
   };
+}
+
+function actionStructuredResponseSchema(actionId: string) {
+  if (actionId === 'study.cards.generate') {
+    return studyCardsGenerateResponseSchemaJson();
+  }
+  return actionTextResultSchema();
 }
 
 @Injectable()
@@ -125,7 +134,7 @@ export class ActionStreamHost {
                 ? query.modelId
                 : undefined,
             messages: finalMessage,
-            responseSchemaJson: actionTextResultSchema(),
+            responseSchemaJson: actionStructuredResponseSchema(actionId),
             options: {
               ...prepared.session.config.promptConfig,
               signal,

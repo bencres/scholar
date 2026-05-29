@@ -16,6 +16,7 @@ fn invalid_recipe(message: impl Into<String>) -> Error {
 pub fn built_in_recipes() -> Vec<ActionRecipe> {
   vec![
     action_recipe("mindmap.generate", "v1"),
+    action_recipe("study.cards.generate", "v1"),
     action_recipe("slides.outline", "v1"),
     action_recipe("image.filter.sketch", "v1"),
     action_recipe("image.filter.clay", "v1"),
@@ -141,6 +142,36 @@ fn action_recipe(id: &str, version: &str) -> ActionRecipe {
         state_patch: Some(json!({ "finalized": true })),
       },
     ]
+  } else if id == "study.cards.generate" {
+    vec![
+      ActionRecipeStep {
+        id: "generate-structured".to_string(),
+        kind: ActionStepKind::PromptStructured,
+        input: Some(json!({
+          "preparedRoutes": { "$state": "preparedRoutes.generate" },
+          "unwrapKey": "result",
+          "outputKey": "generated"
+        })),
+        state_patch: Some(json!({ "generatedAt": "promptStructured" })),
+      },
+      ActionRecipeStep {
+        id: "validate-json".to_string(),
+        kind: ActionStepKind::ValidateJson,
+        input: Some(json!({
+          "value": { "$state": "generated" },
+          "schema": study_cards_generate_output_schema()
+        })),
+        state_patch: None,
+      },
+      ActionRecipeStep {
+        id: "final".to_string(),
+        kind: ActionStepKind::Final,
+        input: Some(json!({
+          "copy": { "$state": "generated" }
+        })),
+        state_patch: Some(json!({ "finalized": true })),
+      },
+    ]
   } else if id == "slides.outline" {
     vec![
       ActionRecipeStep {
@@ -253,8 +284,67 @@ fn transcript_recipe(id: &str, version: &str) -> ActionRecipe {
   recipe
 }
 
+fn study_cards_generate_output_schema() -> Value {
+  json!({
+    "type": "object",
+    "properties": {
+      "deckName": { "type": "string", "minLength": 1, "maxLength": 120 },
+      "recall": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 30,
+        "items": {
+          "type": "object",
+          "properties": {
+            "question": { "type": "string", "minLength": 10 },
+            "answer": { "type": "string", "minLength": 10 },
+            "misconceptions": {
+              "type": "array",
+              "maxItems": 3,
+              "items": { "type": "string" }
+            },
+            "blockIds": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "required": ["question", "answer"],
+          "additionalProperties": false
+        }
+      },
+      "synthesis": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 30,
+        "items": {
+          "type": "object",
+          "properties": {
+            "question": { "type": "string", "minLength": 20 },
+            "rubric": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 8,
+              "items": { "type": "string", "minLength": 5 }
+            },
+            "blockIds": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "required": ["question", "rubric"],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["deckName", "recall", "synthesis"],
+    "additionalProperties": false
+  })
+}
+
 fn action_output_schema(id: &str) -> Value {
-  if id.starts_with("image.filter.") {
+  if id == "study.cards.generate" {
+    study_cards_generate_output_schema()
+  } else if id.starts_with("image.filter.") {
     json!({
       "type": "object",
       "properties": {

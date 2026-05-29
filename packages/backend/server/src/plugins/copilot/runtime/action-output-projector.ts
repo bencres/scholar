@@ -81,6 +81,18 @@ function projectTextResult(result: unknown): ProjectedAssistantTurn {
   };
 }
 
+function projectJsonResult(result: unknown): ProjectedAssistantTurn {
+  const content =
+    typeof result === 'string'
+      ? result
+      : JSON.stringify(result ?? {}, null, 2);
+  return {
+    content,
+    attachments: [],
+    metadata: metadataFromParams(result),
+  };
+}
+
 function projectImageResult(
   result: unknown,
   artifacts: unknown[]
@@ -105,8 +117,11 @@ function projectImageResult(
   };
 }
 
-function isImageAction(actionId: string) {
-  return actionId.startsWith('image.filter.');
+function messageDataFromActionResult(actionId: string, result: unknown): string {
+  if (actionId === 'study.cards.generate') {
+    return typeof result === 'string' ? result : JSON.stringify(result ?? {});
+  }
+  return textResult(result);
 }
 
 function resolveProjector(actionId: string): ActionResultProjector | null {
@@ -120,6 +135,8 @@ function resolveProjector(actionId: string): ActionResultProjector | null {
     case 'mindmap.generate':
     case 'slides.outline':
       return result => projectTextResult(result);
+    case 'study.cards.generate':
+      return result => projectJsonResult(result);
     default:
       throw new Error(`No action output projector registered for ${actionId}`);
   }
@@ -175,7 +192,7 @@ export function projectActionEventToChatEvent(
       return {
         type: 'message',
         id: messageId,
-        data: textResult(data.result),
+        data: messageDataFromActionResult(data.actionId, data.result),
       };
     }
     case 'attachment':
