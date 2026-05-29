@@ -23,6 +23,7 @@ fn validates_built_in_recipe_catalog() {
       .iter()
       .any(|step| step.kind == ActionStepKind::ValidateJson)
   );
+  assert!(catalog.iter().any(|recipe| recipe.id == "study.cards.generate"));
   let slides = catalog.iter().find(|recipe| recipe.id == "slides.outline").unwrap();
   assert!(
     slides

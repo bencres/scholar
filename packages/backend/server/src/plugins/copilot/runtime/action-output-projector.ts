@@ -124,6 +124,10 @@ function messageDataFromActionResult(actionId: string, result: unknown): string 
   return textResult(result);
 }
 
+function isImageAction(actionId: string) {
+  return actionId.startsWith('image.filter.');
+}
+
 function resolveProjector(actionId: string): ActionResultProjector | null {
   if (actionId.startsWith('transcript.audio.')) {
     return null;
