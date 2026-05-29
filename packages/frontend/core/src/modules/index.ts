@@ -25,6 +25,7 @@ import { configureDocDisplayMetaModule } from './doc-display-meta';
 import { configureDocInfoModule } from './doc-info';
 import { configureDocLinksModule } from './doc-link';
 import { configureDocSummaryModule } from './doc-summary';
+import { configureStudyModule } from './study';
 import { configureDocsSearchModule } from './docs-search';
 import { configureEditorModule } from './editor';
 import { configureEditorSettingModule } from './editor-setting';
@@ -132,6 +133,7 @@ export function configureCommonModules(framework: Framework) {
   configureIndexerEmbeddingModule(framework);
   configureCommentModule(framework);
   configureDocSummaryModule(framework);
+  configureStudyModule(framework);
   configurePaywallModule(framework);
   configureIconPickerModule(framework);
 }
