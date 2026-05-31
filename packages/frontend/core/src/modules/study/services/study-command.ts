@@ -28,6 +28,12 @@ import {
   type StudyCardsGenerateOutput,
   StudyCardsGenerateOutputSchema,
 } from '../schema/generate-output';
+import type { StudyCsvFieldMapping } from '../utils/anki-interop';
+import {
+  createApkgCompatibilityReport,
+  exportDeckToCsv,
+  importDeckFromCsv,
+} from '../utils/anki-interop';
 import {
   buildQualityGateErrorMessage,
   evaluateStudyCardSelection,
@@ -631,6 +637,39 @@ export class StudyCommandService extends Service {
     const next = { ...row, buriedUntil: until };
     await this.commandRepository.upsertScheduling(next);
     return next;
+  }
+
+  async exportDeckCsv(deckId: string, mapping?: StudyCsvFieldMapping) {
+    const decks = await this.commandRepository.listDecks();
+    const deck = decks.find(item => item.id === deckId);
+    if (!deck) {
+      throw new Error(`Deck not found: ${deckId}`);
+    }
+    return exportDeckToCsv(deck, mapping);
+  }
+
+  async importDeckCsv(input: {
+    csv: string;
+    deckName: string;
+    mapping?: StudyCsvFieldMapping;
+  }) {
+    const imported = importDeckFromCsv({
+      csv: input.csv,
+      deckName: input.deckName,
+      workspaceId: this.workspaceService.workspace.id,
+      mapping: input.mapping,
+    });
+    await this.commandRepository.upsertDeck(imported.deck);
+    await Promise.all(
+      imported.scheduling.map(row =>
+        this.commandRepository.upsertScheduling(row)
+      )
+    );
+    return imported;
+  }
+
+  getApkgCompatibilityReport() {
+    return createApkgCompatibilityReport();
   }
 
   private async evaluateSelectedCardsQuality(cards: StudyCardPreview[]) {

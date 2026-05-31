@@ -2,6 +2,7 @@ import type { Store } from '@blocksuite/affine/store';
 import { Service } from '@toeverything/infra';
 
 import type { ReviewGrade } from '../entities/card';
+import type { StudyCsvFieldMapping } from '../utils/anki-interop';
 import type {
   StudyCommandService,
   StudyGenerationOptions,
@@ -236,5 +237,21 @@ export class StudyService extends Service {
 
   statsSnapshot(deckId?: string) {
     return this.queryService.statsSnapshot(deckId);
+  }
+
+  exportDeckCsv(deckId: string, mapping?: StudyCsvFieldMapping) {
+    return this.commandService.exportDeckCsv(deckId, mapping);
+  }
+
+  importDeckCsv(input: {
+    csv: string;
+    deckName: string;
+    mapping?: StudyCsvFieldMapping;
+  }) {
+    return this.commandService.importDeckCsv(input);
+  }
+
+  getApkgCompatibilityReport() {
+    return this.commandService.getApkgCompatibilityReport();
   }
 }
