@@ -6,6 +6,7 @@ export const body = style({
   flexDirection: 'column',
   flex: 1,
   width: '100%',
+  minHeight: 0,
   containerName: 'study-body',
   containerType: 'size',
 });
@@ -13,6 +14,8 @@ export const body = style({
 export const scrollArea = style({
   height: 0,
   flex: 1,
+  minHeight: 0,
+  overflowY: 'auto',
   paddingTop: '12px',
 });
 
