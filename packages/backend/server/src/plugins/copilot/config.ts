@@ -217,6 +217,7 @@ defineModuleConfig('copilot', {
   enabled: {
     desc: 'Whether to enable the copilot plugin. <br> Document: <a href="https://docs.affine.pro/self-host-affine/administer/ai" target="_blank">https://docs.affine.pro/self-host-affine/administer/ai</a>',
     default: false,
+    env: ['COPILOT_ENABLED', 'boolean'],
   },
   'byok.enabled': {
     desc: 'Whether to enable workspace BYOK.',
@@ -251,6 +252,11 @@ defineModuleConfig('copilot', {
     },
     link: 'https://github.com/openai/openai-node',
   },
+  'providers.openai.apiKey': {
+    desc: 'OpenAI API key for Copilot (GPT models, study card generation, rerank).',
+    default: '',
+    env: 'COPILOT_OPENAI_API_KEY',
+  },
   'providers.cloudflareWorkersAi': {
     desc: 'The config for the Cloudflare Workers AI provider.',
     default: {
@@ -282,6 +288,16 @@ defineModuleConfig('copilot', {
       apiKey: '',
       baseURL: 'https://api.anthropic.com/v1',
     },
+  },
+  'providers.anthropic.apiKey': {
+    desc: 'Anthropic API key for Copilot (Claude models). Set via COPILOT_ANTHROPIC_API_KEY in .env.',
+    default: '',
+    env: 'COPILOT_ANTHROPIC_API_KEY',
+  },
+  'providers.anthropic.baseURL': {
+    desc: 'Optional Anthropic API base URL override.',
+    default: 'https://api.anthropic.com/v1',
+    env: 'COPILOT_ANTHROPIC_BASE_URL',
   },
   'providers.anthropicVertex': {
     desc: 'The config for the anthropic provider in Google Vertex AI.',

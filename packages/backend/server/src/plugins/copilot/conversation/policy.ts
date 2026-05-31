@@ -29,6 +29,9 @@ export class ConversationPolicy {
   }
 
   async hasQuota(userId: string) {
+    if (env.dev) {
+      return true;
+    }
     const { limit, used } = await this.getQuota(userId);
     return !(limit !== undefined && Number.isFinite(limit) && used >= limit);
   }

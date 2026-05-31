@@ -4,6 +4,13 @@ use crate::llm::core::contracts::{
   ModelRegistryMatchRequest, ModelRegistryMatchResponse, ModelRegistryResolveRequest, ModelRegistryResolveResponse,
   ModelRegistryVariantContract,
 };
+use crate::llm::core::extra_model_variants::scholar_extra_model_registry_variants;
+
+fn all_model_registry_variants() -> Vec<llm_adapter::core::ModelRegistryVariant> {
+  let mut variants = llm_adapter::core::default_model_registry_variants();
+  variants.extend(scholar_extra_model_registry_variants());
+  variants
+}
 
 fn to_contract_variant(variant: &llm_adapter::core::ModelRegistryVariant) -> Result<ModelRegistryVariantContract> {
   serde_json::to_value(variant)
@@ -15,7 +22,7 @@ fn to_contract_variant(variant: &llm_adapter::core::ModelRegistryVariant) -> Res
 pub fn llm_resolve_model_registry_variant(
   request: ModelRegistryResolveRequest,
 ) -> Result<ModelRegistryResolveResponse> {
-  let variants = llm_adapter::core::default_model_registry_variants();
+  let variants = all_model_registry_variants();
   let response = match llm_adapter::core::resolve_model_registry_variant(
     &variants,
     request.backend_kind.as_deref(),
@@ -38,7 +45,7 @@ pub fn llm_resolve_model_registry_variant(
 
 #[napi(catch_unwind)]
 pub fn llm_match_model_registry(request: ModelRegistryMatchRequest) -> Result<ModelRegistryMatchResponse> {
-  let variants = llm_adapter::core::default_model_registry_variants();
+  let variants = all_model_registry_variants();
   let cond = serde_json::to_value(request.cond)
     .and_then(serde_json::from_value)
     .map_err(crate::llm::map_json_error)?;
@@ -56,6 +63,29 @@ pub fn llm_match_model_registry(request: ModelRegistryMatchRequest) -> Result<Mo
 mod tests {
   use super::{llm_match_model_registry, llm_resolve_model_registry_variant};
   use crate::llm::core::contracts::{ModelConditionsContract, ModelRegistryMatchRequest, ModelRegistryResolveRequest};
+
+  #[test]
+  fn should_resolve_scholar_haiku_variant() {
+    let response = llm_resolve_model_registry_variant(ModelRegistryResolveRequest {
+      backend_kind: Some("anthropic".to_string()),
+      model_id: "claude-haiku-4-5".to_string(),
+    })
+    .unwrap();
+
+    assert_eq!(response.matched_by.as_deref(), Some("alias"));
+    assert_eq!(response.variant.unwrap().raw_model_id, "claude-haiku-4-5-20251001");
+  }
+
+  #[test]
+  fn should_resolve_scholar_opus_variant() {
+    let response = llm_resolve_model_registry_variant(ModelRegistryResolveRequest {
+      backend_kind: Some("anthropic".to_string()),
+      model_id: "claude-opus-4-6".to_string(),
+    })
+    .unwrap();
+
+    assert_eq!(response.variant.unwrap().raw_model_id, "claude-opus-4-6");
+  }
 
   #[test]
   fn should_resolve_backend_scoped_alias() {

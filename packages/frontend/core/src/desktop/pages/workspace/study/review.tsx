@@ -150,7 +150,14 @@ export const StudyReviewPage = () => {
                 </Button>
               ) : useGrading ? (
                 GRADES.map(item => (
-                  <Button key={item.grade} onClick={() => handleGrade(item.grade)}>
+                  <Button
+                    key={item.grade}
+                    onClick={() => {
+                      handleGrade(item.grade).catch(error => {
+                        console.error('[study.review] grade failed', error);
+                      });
+                    }}
+                  >
                     {t[item.labelKey]()}
                   </Button>
                 ))

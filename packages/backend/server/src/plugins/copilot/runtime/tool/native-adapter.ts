@@ -132,11 +132,39 @@ export class NativeProviderAdapter {
     this.#onUsage = options.onUsage;
   }
 
+  async #recordUsage(state: {
+    model?: string;
+    providerId?: string;
+    usage?: Extract<LlmToolLoopStreamEvent, { type: 'usage' }>['usage'];
+    recorded?: boolean;
+  }) {
+    if (state.recorded || !this.#onUsage || !state.providerId || !state.usage) {
+      return;
+    }
+    try {
+      await this.#onUsage({
+        providerId: state.providerId,
+        model: state.model,
+        usage: state.usage,
+      });
+      state.recorded = true;
+      state.usage = undefined;
+    } catch (error) {
+      this.logger.warn(
+        `Provider usage callback failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+
   async #recordUsageOnProviderSelected(
     event: { type: string; [key: string]: unknown },
     state: {
       model?: string;
+      providerId?: string;
       usage?: Extract<LlmToolLoopStreamEvent, { type: 'usage' }>['usage'];
+      recorded?: boolean;
     }
   ) {
     if (
@@ -145,20 +173,20 @@ export class NativeProviderAdapter {
     ) {
       return;
     }
-    try {
-      await this.#onUsage?.({
-        providerId: event.provider_id,
-        model: state.model,
-        usage: state.usage,
-      });
-    } catch (error) {
-      this.logger.warn(
-        `Provider usage callback failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
+    state.providerId = event.provider_id;
+    await this.#recordUsage(state);
+  }
+
+  #logDevLengthStop(
+    doneEvent: Extract<LlmToolLoopStreamEvent, { type: 'done' }>,
+    state: { model?: string; providerId?: string }
+  ) {
+    if (!env.dev || doneEvent.finish_reason !== 'length') {
+      return;
     }
-    state.usage = undefined;
+    this.logger.warn(
+      `[copilot length stop] model=${state.model ?? 'unknown'} provider=${state.providerId ?? 'unknown'}`
+    );
   }
 
   async text(
@@ -185,7 +213,9 @@ export class NativeProviderAdapter {
     let streamPartId = 0;
     const usageState: {
       model?: string;
+      providerId?: string;
       usage?: Extract<LlmToolLoopStreamEvent, { type: 'usage' }>['usage'];
+      recorded?: boolean;
     } = {};
 
     for await (const event of this.#runtime.streamEvents(
@@ -279,6 +309,7 @@ export class NativeProviderAdapter {
             LlmToolLoopStreamEvent,
             { type: 'done' }
           >;
+          this.#logDevLengthStop(doneEvent, usageState);
           usageState.usage = doneEvent.usage ?? usageState.usage;
           const footnotes = textParser?.end() ?? '';
           const citations = citationFormatter?.end() ?? '';
@@ -286,12 +317,22 @@ export class NativeProviderAdapter {
           if (tails) {
             yield `\n${tails}`;
           }
+          await this.#recordUsage(usageState);
           break;
         }
         case 'provider_selected':
           await this.#recordUsageOnProviderSelected(event, usageState);
           break;
         case 'error':
+          if (env.dev) {
+            this.logger.warn(
+              `[copilot stream error] ${
+                typeof event.message === 'string'
+                  ? event.message
+                  : 'native runtime stream error'
+              }`
+            );
+          }
           throw new Error(
             typeof event.message === 'string'
               ? event.message
@@ -301,6 +342,8 @@ export class NativeProviderAdapter {
           break;
       }
     }
+
+    await this.#recordUsage(usageState);
   }
 
   async *streamObject(
@@ -315,7 +358,9 @@ export class NativeProviderAdapter {
     let hasFootnoteReference = false;
     const usageState: {
       model?: string;
+      providerId?: string;
       usage?: Extract<LlmToolLoopStreamEvent, { type: 'usage' }>['usage'];
+      recorded?: boolean;
     } = {};
 
     for await (const event of this.#runtime.streamEvents(
@@ -393,6 +438,7 @@ export class NativeProviderAdapter {
             LlmToolLoopStreamEvent,
             { type: 'done' }
           >;
+          this.#logDevLengthStop(doneEvent, usageState);
           usageState.usage = doneEvent.usage ?? usageState.usage;
           const citations = citationFormatter?.end() ?? '';
           if (citations) {
@@ -408,12 +454,22 @@ export class NativeProviderAdapter {
               ),
             };
           }
+          await this.#recordUsage(usageState);
           break;
         }
         case 'provider_selected':
           await this.#recordUsageOnProviderSelected(event, usageState);
           break;
         case 'error':
+          if (env.dev) {
+            this.logger.warn(
+              `[copilot stream error] ${
+                typeof event.message === 'string'
+                  ? event.message
+                  : 'native runtime stream error'
+              }`
+            );
+          }
           throw new Error(
             typeof event.message === 'string'
               ? event.message
@@ -423,6 +479,8 @@ export class NativeProviderAdapter {
           break;
       }
     }
+
+    await this.#recordUsage(usageState);
   }
 }
 

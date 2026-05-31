@@ -1,5 +1,7 @@
 import { Button, Checkbox } from '@affine/component';
 import { StudyService } from '@affine/core/modules/study';
+import { StudyCardBrowseItem } from '@affine/core/modules/study/views/study-card-browse-item';
+import * as styles from '@affine/core/modules/study/views/styles.css';
 import {
   ViewBody,
   ViewHeader,
@@ -11,8 +13,6 @@ import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
 import { useCallback } from 'react';
 
-import * as styles from '@affine/core/modules/study/views/styles.css';
-
 export const StudyGeneratePage = () => {
   const t = useI18n();
   const studyService = useService(StudyService);
@@ -21,7 +21,7 @@ export const StudyGeneratePage = () => {
 
   const handleSave = useCallback(async () => {
     const deck = await studyService.savePreviewDeck();
-    workbench.open(`/study/review/${deck.id}`, { at: 'active' });
+    workbench.open(`/study/decks/${deck.id}`, { at: 'active' });
   }, [studyService, workbench]);
 
   return (
@@ -42,18 +42,28 @@ export const StudyGeneratePage = () => {
               </div>
             ) : null}
             {generationState.status === 'error' ? (
-              <div className={styles.emptyState}>{generationState.message}</div>
+              <div className={styles.emptyState}>
+                <div>{generationState.message}</div>
+                {generationState.rawResponse ? (
+                  <pre className={styles.debugResponse}>
+                    {generationState.rawResponse}
+                  </pre>
+                ) : null}
+              </div>
             ) : null}
             {generationState.status === 'preview' ? (
               <>
                 <div className={styles.sectionTitle}>
                   {generationState.output.deckName}
                 </div>
-                <div className={styles.previewGrid}>
-                  {generationState.cards.map(card => (
-                    <div key={card.id} className={styles.previewItem}>
-                      <div className={styles.previewHeader}>
-                        <span className={styles.cardLabel}>{card.type}</span>
+                <div className={styles.browseCardList}>
+                  {generationState.cards.map((card, index) => (
+                    <StudyCardBrowseItem
+                      key={card.id}
+                      index={index}
+                      card={card}
+                      defaultExpanded
+                      headerExtra={
                         <Checkbox
                           checked={card.accepted}
                           onChange={checked =>
@@ -63,23 +73,19 @@ export const StudyGeneratePage = () => {
                             )
                           }
                         />
-                      </div>
-                      <div className={styles.cardQuestion}>{card.question}</div>
-                      {card.type === 'recall' && card.answer ? (
-                        <div className={styles.cardAnswer}>{card.answer}</div>
-                      ) : null}
-                      {card.type === 'synthesis' && card.rubric ? (
-                        <ul>
-                          {card.rubric.map(item => (
-                            <li key={item}>{item}</li>
-                          ))}
-                        </ul>
-                      ) : null}
-                    </div>
+                      }
+                    />
                   ))}
                 </div>
                 <div className={styles.actionsRow}>
-                  <Button variant="primary" onClick={handleSave}>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      handleSave().catch(error => {
+                        console.error('[study.generate] save failed', error);
+                      });
+                    }}
+                  >
                     {t['com.affine.study.generate.save']()}
                   </Button>
                   <Button onClick={() => studyService.resetGeneration()}>

@@ -10,6 +10,8 @@ use serde_json::{Map, Value};
 
 static PROMPT_PARTIALS_SOURCE: &str = include_str!("assets/partials/common.json");
 static PROMPT_SPECS_SOURCE: &str = include_str!("assets/prompts/built-in.json");
+static STUDY_CARDS_GENERATE_SPEC_SOURCE: &str = include_str!("assets/prompts/study-cards-generate.json");
+static STUDY_CARDS_GENERATE_SYSTEM_SOURCE: &str = include_str!("assets/prompts/study-cards-generate-system.md");
 
 static BUILTIN_PROMPT_CATALOG: LazyLock<PromptCatalog> = LazyLock::new(|| {
   PromptCatalog::load().unwrap_or_else(|error| panic!("Failed to load built-in prompt catalog: {error}"))
@@ -116,8 +118,9 @@ impl PromptCatalog {
   fn load() -> Result<Self, String> {
     let partials: BTreeMap<String, String> =
       serde_json::from_str(PROMPT_PARTIALS_SOURCE).map_err(|error| format!("invalid prompt partials JSON: {error}"))?;
-    let specs: Vec<BuiltInPromptSpec> =
+    let mut specs: Vec<BuiltInPromptSpec> =
       serde_json::from_str(PROMPT_SPECS_SOURCE).map_err(|error| format!("invalid prompt spec JSON: {error}"))?;
+    merge_study_cards_generate_prompt(&mut specs)?;
     let prompts = specs
       .iter()
       .map(|spec| compile_prompt_spec(spec, &partials))
@@ -138,6 +141,29 @@ impl PromptCatalog {
       prompts,
     })
   }
+}
+
+fn merge_study_cards_generate_prompt(specs: &mut Vec<BuiltInPromptSpec>) -> Result<(), String> {
+  specs.retain(|spec| spec.name != "study.cards.generate");
+
+  let mut study_spec: BuiltInPromptSpec = serde_json::from_str(STUDY_CARDS_GENERATE_SPEC_SOURCE)
+    .map_err(|error| format!("invalid study.cards.generate prompt JSON: {error}"))?;
+
+  let system_template = STUDY_CARDS_GENERATE_SYSTEM_SOURCE.trim();
+  if system_template.is_empty() {
+    return Err("study.cards.generate system prompt is empty".to_string());
+  }
+
+  study_spec.messages.insert(
+    0,
+    PromptSpecMessage {
+      role: "system".to_string(),
+      template: system_template.to_string(),
+    },
+  );
+
+  specs.push(study_spec);
+  Ok(())
 }
 
 fn compile_prompt_spec(spec: &BuiltInPromptSpec, partials: &BTreeMap<String, String>) -> Result<BuiltInPrompt, String> {
@@ -333,6 +359,23 @@ fn builtin_from_token(name: &str) -> Option<PromptBuiltin> {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn should_load_study_cards_generate_prompt_from_split_files() {
+    let spec = built_in_prompt_spec("study.cards.generate").expect("study prompt spec");
+    assert_eq!(spec.model, "claude-sonnet-4-6");
+
+    let prompt = built_in_prompt("study.cards.generate").expect("study prompt");
+    let system = prompt
+      .messages
+      .iter()
+      .find(|message| message.role == "system")
+      .expect("study system message");
+
+    assert!(system.content.contains("active recall"));
+    assert!(system.content.contains("scenario / prediction / debugging"));
+    assert!(!system.content.contains("/Users/dev/Learn"));
+  }
 
   #[test]
   fn should_expand_partials_and_collect_prompt_params() {

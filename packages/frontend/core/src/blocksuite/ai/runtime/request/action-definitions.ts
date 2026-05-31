@@ -118,9 +118,7 @@ export const actionDefinitions = {
     promptName: 'study.cards.generate',
     responseType: 'text',
     timeout: 180000,
-    endpoint: Endpoint.Action,
-    actionId: 'study.cards.generate',
-    actionVersion: 'v1',
+    endpoint: Endpoint.StreamObject,
     buildContent: options => options.input,
     buildParams: options => ({
       focus: options.params?.focus,

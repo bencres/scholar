@@ -366,6 +366,7 @@ export class AIRequestService {
     );
     const transportOptions = {
       ...options,
+      stream: options.stream ?? definition.endpoint === Endpoint.Action,
       client: this.client,
       sessionId,
       content: definition.buildContent?.(options) ?? options.input,

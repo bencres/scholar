@@ -48,9 +48,9 @@ import {
 } from './index.css';
 import { InviteMembersButton } from './invite-members-button';
 import { AppSidebarJournalButton } from './journal-button';
-import { AppSidebarStudyButton } from './study-button';
 import { NotificationButton } from './notification-button';
 import { SidebarAudioPlayer } from './sidebar-audio-player';
+import { AppSidebarStudyButton } from './study-button';
 import { TemplateDocEntrance } from './template-doc-entrance';
 import { TrashButton } from './trash-button';
 import { UpdaterButton } from './updater-button';

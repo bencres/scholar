@@ -1,5 +1,6 @@
 import { Button } from '@affine/component';
 import { StudyService } from '@affine/core/modules/study';
+import { StudyDeckListItem } from '@affine/core/modules/study/views/study-deck-list-item';
 import * as styles from '@affine/core/modules/study/views/styles.css';
 import {
   ViewBody,
@@ -17,6 +18,7 @@ export const StudyHome = () => {
   const workbench = useService(WorkbenchService).workbench;
   const decks = useLiveData(studyService.decks$);
   const dueCount = useLiveData(studyService.dueCount$);
+  const dueByDeck = useLiveData(studyService.dueCountByDeck$);
 
   if (!studyService.enabled) {
     return (
@@ -35,21 +37,35 @@ export const StudyHome = () => {
       <ViewTitle title={t['com.affine.study.title']()} />
       <ViewIcon icon="today" />
       <ViewHeader>
-        <div className={styles.sectionTitle}>{t['com.affine.study.title']()}</div>
+        <div className={styles.sectionTitle}>
+          {t['com.affine.study.title']()}
+        </div>
       </ViewHeader>
       <ViewBody>
         <div className={styles.pageBody}>
           <div className={styles.content}>
-            {dueCount > 0 ? (
-              <div className={styles.actionsRow}>
-                <Button
-                  variant="primary"
-                  onClick={() => workbench.open('/study/review', { at: 'active' })}
-                >
-                  {t['com.affine.study.review-due']({ count: String(dueCount) })}
-                </Button>
+            <div className={styles.hero}>
+              <div className={styles.heroTitle}>
+                {t['com.affine.study.title']()}
               </div>
-            ) : null}
+              <div className={styles.heroSub}>
+                {t['com.affine.study.hero.subtitle']()}
+              </div>
+              {dueCount > 0 ? (
+                <div className={styles.actionsRow} style={{ marginTop: 8 }}>
+                  <Button
+                    variant="primary"
+                    onClick={() =>
+                      workbench.open('/study/review', { at: 'active' })
+                    }
+                  >
+                    {t['com.affine.study.review-due']({
+                      count: String(dueCount),
+                    })}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
             <div className={styles.sectionTitle}>
               {t['com.affine.study.decks']()}
             </div>
@@ -60,36 +76,11 @@ export const StudyHome = () => {
             ) : (
               <div className={styles.deckList}>
                 {decks.map(deck => (
-                  <div key={deck.id} className={styles.deckItem}>
-                    <div className={styles.deckMeta}>
-                      <div className={styles.deckName}>{deck.name}</div>
-                      <div className={styles.deckSub}>
-                        {t['com.affine.study.card-count']({
-                          count: String(deck.cards.length),
-                        })}
-                      </div>
-                    </div>
-                    <div className={styles.actionsRow}>
-                      <Button
-                        onClick={() =>
-                          workbench.open(`/study/review/${deck.id}`, {
-                            at: 'active',
-                          })
-                        }
-                      >
-                        {t['com.affine.study.review']()}
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          workbench.open(`/study/decks/${deck.id}`, {
-                            at: 'active',
-                          })
-                        }
-                      >
-                        {t['com.affine.study.view-deck']()}
-                      </Button>
-                    </div>
-                  </div>
+                  <StudyDeckListItem
+                    key={deck.id}
+                    deck={deck}
+                    dueCount={dueByDeck.get(deck.id) ?? 0}
+                  />
                 ))}
               </div>
             )}

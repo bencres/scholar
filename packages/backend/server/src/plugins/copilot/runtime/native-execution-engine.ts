@@ -80,7 +80,81 @@ function getUsageContext(plan: ExecutionPlan) {
     actionId: options?.actionId,
     billingUnitId: options?.billingUnitId,
     featureKind: options?.featureKind ?? requestFeatureKind,
+    requestKind: plan.request.kind,
+    modelId:
+      'cond' in plan.request && plan.request.cond
+        ? plan.request.cond.modelId
+        : undefined,
   };
+}
+
+type TokenUsageLike =
+  | LlmDispatchResponse['usage']
+  | {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      total_tokens?: number;
+      cached_tokens?: number;
+      input_tokens?: number;
+      output_tokens?: number;
+    };
+
+function normalizeTokenUsage(usage?: TokenUsageLike) {
+  if (!usage) {
+    return null;
+  }
+
+  const prompt =
+    usage.prompt_tokens ??
+    ('input_tokens' in usage ? usage.input_tokens : undefined) ??
+    0;
+  const completion =
+    usage.completion_tokens ??
+    ('output_tokens' in usage ? usage.output_tokens : undefined) ??
+    0;
+  const total = usage.total_tokens ?? prompt + completion;
+
+  return {
+    prompt,
+    completion,
+    total,
+    cached: usage.cached_tokens ?? 0,
+  };
+}
+
+function logDevCopilotTokenUsage(
+  plan: ExecutionPlan,
+  input: {
+    providerId?: string;
+    model?: string | null;
+    usage?: TokenUsageLike;
+  }
+) {
+  if (!env.dev) {
+    return;
+  }
+
+  const tokens = normalizeTokenUsage(input.usage);
+  if (!tokens) {
+    return;
+  }
+
+  const context = getUsageContext(plan);
+  const parts = [
+    `[copilot tokens] ${context.requestKind}`,
+    context.actionId ? `action=${context.actionId}` : null,
+    context.featureKind ? `feature=${context.featureKind}` : null,
+    (input.model ?? context.modelId)
+      ? `model=${input.model ?? context.modelId}`
+      : null,
+    input.providerId ? `provider=${input.providerId}` : null,
+    `prompt=${tokens.prompt}`,
+    `completion=${tokens.completion}`,
+    `total=${tokens.total}`,
+    tokens.cached ? `cached=${tokens.cached}` : null,
+  ].filter(Boolean);
+
+  logger.log(parts.join(' '));
 }
 
 async function recordByokUsage(
@@ -92,6 +166,7 @@ async function recordByokUsage(
     usage?: LlmDispatchResponse['usage'];
   }
 ) {
+  logDevCopilotTokenUsage(plan, input);
   const context = getUsageContext(plan);
   try {
     await byok.recordUsage({

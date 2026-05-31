@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import type { LlmImageResponse } from '../../../../native';
-import { studyCardsGenerateResponseSchemaJson } from '../../study/schema';
 import { PromptService } from '../../prompt';
 import type { PromptMessage } from '../../providers/types';
 import type { ChatSession } from '../../session';
+import { studyCardsGenerateResponseSchemaJson } from '../../study/schema';
 import { ChatQuerySchema } from '../../types';
 import { projectActionEventToChatEvent } from '../action-output-projector';
 import type { ActionRuntimeBridgeEvent } from '../action-runtime-bridge';
@@ -28,6 +28,10 @@ type ImageActionRoutePreparation = {
   modelId?: string;
   messages: PromptMessage[];
   options: Record<string, unknown>;
+};
+type ActionPromptPreparation = {
+  messages: PromptMessage[];
+  promptConfig?: Record<string, unknown>;
 };
 
 function isImageAction(id: string) {
@@ -54,6 +58,8 @@ function actionStructuredResponseSchema(actionId: string) {
 
 @Injectable()
 export class ActionStreamHost {
+  private readonly logger = new Logger(ActionStreamHost.name);
+
   constructor(
     private readonly conversations: ConversationHost,
     private readonly bridge: ActionRuntimeBridge,
@@ -89,7 +95,7 @@ export class ActionStreamHost {
       ...prepared.params,
       ...this.conversations.buildLatestTurnPromptParams(prepared.latestTurn),
     };
-    const finalMessage = await this.preparePromptMessages(
+    const actionPrompt = await this.prepareActionPrompt(
       actionId,
       prepared.session,
       params
@@ -133,10 +139,11 @@ export class ActionStreamHost {
               typeof query.modelId === 'string' && query.modelId
                 ? query.modelId
                 : undefined,
-            messages: finalMessage,
+            messages: actionPrompt.messages,
             responseSchemaJson: actionStructuredResponseSchema(actionId),
             options: {
               ...prepared.session.config.promptConfig,
+              ...actionPrompt.promptConfig,
               signal,
               user: userId,
               workspace: prepared.session.config.workspaceId,
@@ -157,6 +164,16 @@ export class ActionStreamHost {
       signal,
     });
 
+    if (env.dev && actionId === 'study.cards.generate') {
+      const routeOptions = {
+        ...prepared.session.config.promptConfig,
+        ...actionPrompt.promptConfig,
+      } as { maxTokens?: unknown };
+      this.logger.log(
+        `[study generate options] maxTokens=${String(routeOptions.maxTokens)}`
+      );
+    }
+
     return {
       messageId: prepared.messageId,
       actionId,
@@ -165,25 +182,28 @@ export class ActionStreamHost {
     };
   }
 
-  private async preparePromptMessages(
+  private async prepareActionPrompt(
     actionId: string,
     session: ChatSession,
     params: Record<string, unknown>
-  ): Promise<PromptMessage[]> {
+  ): Promise<ActionPromptPreparation> {
     const promptName = ACTION_PROMPTS[actionId];
     if (!promptName) {
-      return session.finish(params);
+      return { messages: session.finish(params) };
     }
 
     const prompt = await this.prompts.get(promptName);
     if (!prompt) {
       throw new Error(`Prompt ${promptName} not found`);
     }
-    return this.prompts.finish(
-      prompt,
-      params as Record<string, string>,
-      session.config.sessionId
-    );
+    return {
+      messages: this.prompts.finish(
+        prompt,
+        params as Record<string, string>,
+        session.config.sessionId
+      ),
+      promptConfig: prompt.config as Record<string, unknown> | undefined,
+    };
   }
 
   private async prepareImageRoutes(

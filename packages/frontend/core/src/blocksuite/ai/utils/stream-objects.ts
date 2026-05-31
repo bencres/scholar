@@ -1,4 +1,7 @@
-import type { StreamObject } from '../components/ai-chat-messages';
+import {
+  type StreamObject,
+  StreamObjectSchema,
+} from '../components/ai-chat-messages';
 
 export function mergeStreamObjects(chunks: StreamObject[] = []) {
   return chunks.reduce((acc, curr) => {
@@ -46,4 +49,25 @@ export function mergeStreamContent(chunks: StreamObject[]): string {
     }
     return acc;
   }, '');
+}
+
+export async function collectStreamText(
+  stream: AsyncIterable<string>
+): Promise<string> {
+  let plainText = '';
+  let streamObjects: StreamObject[] = [];
+  for await (const chunk of stream) {
+    try {
+      const parsed = StreamObjectSchema.safeParse(JSON.parse(chunk));
+      if (parsed.success) {
+        streamObjects = mergeStreamObjects([...streamObjects, parsed.data]);
+      } else {
+        plainText += chunk;
+      }
+    } catch {
+      plainText += chunk;
+    }
+  }
+  const text = mergeStreamContent(streamObjects);
+  return text || plainText;
 }
