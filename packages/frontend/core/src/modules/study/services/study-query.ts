@@ -7,6 +7,7 @@ import type { StudyReviewLog } from '../entities/review-log';
 import type { StudyQueryRepository } from '../repositories/study-query-repository';
 import { matchStudyBrowserQuery } from '../utils/card-browser-search';
 import { isDue } from '../utils/scheduling';
+import { buildStudyStatsSnapshot } from '../utils/study-stats';
 
 export class StudyQueryService extends Service {
   readonly decks$ = LiveData.from(
@@ -136,5 +137,15 @@ export class StudyQueryService extends Service {
           })
         )
       );
+  }
+
+  statsSnapshot(deckId?: string) {
+    const scheduling = deckId
+      ? this.scheduling$.value.filter(row => row.deckId === deckId)
+      : this.scheduling$.value;
+    const logs = deckId
+      ? this.reviewLogs$.value.filter(log => log.deckId === deckId)
+      : this.reviewLogs$.value;
+    return buildStudyStatsSnapshot(scheduling, logs);
   }
 }

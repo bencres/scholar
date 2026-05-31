@@ -28,6 +28,43 @@ describe('study storage migration', () => {
     expect(state.decks[0]?.id).toBe('deck-1');
   });
 
+  it('preserves advanced deck metadata fields', () => {
+    const now = Date.now();
+    const state = normalizeDeckStorageState({
+      version: STUDY_DECK_STORAGE_VERSION,
+      decks: [
+        {
+          id: 'deck-advanced',
+          name: 'Advanced Deck',
+          cards: [],
+          metadata: {
+            optionsGroupId: 'opts-default',
+            schedulingOptions: {
+              desiredRetention: 0.9,
+              easyBonus: 1.3,
+            },
+            filtered: {
+              query: 'tag:biology due:overdue',
+              limit: 30,
+            },
+            browserPresets: [
+              {
+                id: 'preset-overdue',
+                name: 'Overdue',
+                query: 'due:overdue',
+              },
+            ],
+          },
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+    });
+    expect(state.decks[0]?.metadata?.optionsGroupId).toBe('opts-default');
+    expect(state.decks[0]?.metadata?.filtered?.query).toContain('due:overdue');
+    expect(state.decks[0]?.metadata?.browserPresets).toHaveLength(1);
+  });
+
   it('migrates legacy scheduling array to versioned sidecar state', () => {
     const now = Date.now();
     const legacyScheduling = [

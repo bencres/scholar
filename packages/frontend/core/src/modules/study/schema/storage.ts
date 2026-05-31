@@ -27,6 +27,36 @@ const StudyDeckSchema: z.ZodType<StudyDeck> = z.object({
           dailyReviewLimit: z.number().int().positive().optional(),
         })
         .optional(),
+      optionsGroupId: z.string().optional(),
+      schedulingOptions: z
+        .object({
+          learningStepsMinutes: z.array(z.number().positive()).optional(),
+          relearningStepsMinutes: z.array(z.number().positive()).optional(),
+          desiredRetention: z.number().positive().max(1).optional(),
+          easyBonus: z.number().positive().optional(),
+          graduatingIntervalDays: z.number().int().positive().optional(),
+          easyIntervalDays: z.number().int().positive().optional(),
+          newCardOrder: z.enum(['position', 'random']).optional(),
+          burySiblings: z.boolean().optional(),
+          leechThreshold: z.number().int().positive().optional(),
+        })
+        .optional(),
+      filtered: z
+        .object({
+          query: z.string(),
+          limit: z.number().int().positive().optional(),
+          reschedule: z.boolean().optional(),
+        })
+        .optional(),
+      browserPresets: z
+        .array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+            query: z.string(),
+          })
+        )
+        .optional(),
     })
     .optional(),
   future: z
@@ -59,6 +89,8 @@ const StudyCardSchedulingSchema: z.ZodType<StudyCardScheduling> = z.object({
     .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
     .optional(),
   buriedUntil: z.number().optional(),
+  manualPosition: z.number().int().positive().optional(),
+  customDueDate: z.number().optional(),
 });
 
 const StudyReviewLogSchema: z.ZodType<StudyReviewLog> = z.object({
