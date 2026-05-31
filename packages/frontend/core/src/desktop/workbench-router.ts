@@ -58,6 +58,18 @@ export const workbenchRoutes = [
     lazy: () => import('./pages/workspace/study/review'),
   },
   {
+    path: '/study/flashcards',
+    lazy: () => import('./pages/workspace/study/flashcards'),
+  },
+  {
+    path: '/study/learn',
+    lazy: () => import('./pages/workspace/study/learn'),
+  },
+  {
+    path: '/study/test',
+    lazy: () => import('./pages/workspace/study/test'),
+  },
+  {
     path: '/study/decks/:deckId',
     lazy: () => import('./pages/workspace/study/deck-detail'),
   },

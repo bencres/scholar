@@ -75,6 +75,29 @@ export const StudyHome = () => {
               <div className={styles.heroSub}>
                 {t['com.affine.study.hero.subtitle']()}
               </div>
+              <div className={styles.modeGrid}>
+                <Button
+                  onClick={() =>
+                    workbench.open('/study/flashcards', { at: 'active' })
+                  }
+                >
+                  {t['com.affine.study.flashcards.title']()}
+                </Button>
+                <Button
+                  onClick={() =>
+                    workbench.open('/study/learn', { at: 'active' })
+                  }
+                >
+                  {t['com.affine.study.learn.title']()}
+                </Button>
+                <Button
+                  onClick={() =>
+                    workbench.open('/study/test', { at: 'active' })
+                  }
+                >
+                  {t['com.affine.study.test.title']()}
+                </Button>
+              </div>
               {dueCount > 0 ? (
                 <div className={styles.actionsRow} style={{ marginTop: 8 }}>
                   <Button

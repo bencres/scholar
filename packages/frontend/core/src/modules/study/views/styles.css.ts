@@ -44,6 +44,13 @@ export const heroSub = style({
   color: cssVarV2.text.secondary,
 });
 
+export const modeGrid = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+  marginTop: 6,
+});
+
 export const deckList = style({
   display: 'flex',
   flexDirection: 'column',
@@ -219,6 +226,22 @@ export const inlineActions = style({
   display: 'flex',
   alignItems: 'center',
   gap: 8,
+});
+
+export const modeOptionRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  marginTop: 12,
+  color: cssVarV2.text.secondary,
+});
+
+export const modeSummary = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
+  color: cssVarV2.text.secondary,
+  fontSize: 14,
 });
 
 export const deckPageHeader = style({
