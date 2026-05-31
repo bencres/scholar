@@ -4,6 +4,12 @@ import { map, type Observable } from 'rxjs';
 import type { CacheStorage } from '../../storage';
 import type { WorkspaceService } from '../../workspace';
 import type { StudyDeck } from '../entities/deck';
+import {
+  isDeckStorageState,
+  normalizeDeckStorageState,
+  STUDY_DECK_STORAGE_VERSION,
+  type StudyDeckStorageState,
+} from '../schema/storage';
 
 function storageKey(workspaceId: string) {
   return `study-decks:${workspaceId}`;
@@ -21,18 +27,31 @@ export class StudyDeckStore extends Store {
     return storageKey(this.workspaceService.workspace.id);
   }
 
+  private async listDeckState(): Promise<StudyDeckStorageState> {
+    const raw = await this.cacheStorage.get<unknown>(this.key);
+    const state = normalizeDeckStorageState(raw);
+    if (!isDeckStorageState(raw)) {
+      await this.cacheStorage.set(this.key, state);
+    }
+    return state;
+  }
+
   async listDecks(): Promise<StudyDeck[]> {
-    return (await this.cacheStorage.get<StudyDeck[]>(this.key)) ?? [];
+    return (await this.listDeckState()).decks;
   }
 
   watchDecks(): Observable<StudyDeck[]> {
     return this.cacheStorage
-      .watch<StudyDeck[]>(this.key)
-      .pipe(map(decks => decks ?? []));
+      .watch<unknown>(this.key)
+      .pipe(map(raw => normalizeDeckStorageState(raw).decks));
   }
 
   async saveDecks(decks: StudyDeck[]) {
-    await this.cacheStorage.set(this.key, decks);
+    const state: StudyDeckStorageState = {
+      version: STUDY_DECK_STORAGE_VERSION,
+      decks,
+    };
+    await this.cacheStorage.set(this.key, state);
   }
 
   async upsertDeck(deck: StudyDeck) {
