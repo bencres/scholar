@@ -1,7 +1,10 @@
 import { Button, Input } from '@affine/component';
+import {
+  StudyPageBody,
+  StudyPageHeader,
+} from '@affine/core/modules/study/views/study-page-shell';
 import * as styles from '@affine/core/modules/study/views/styles.css';
 import {
-  ViewBody,
   ViewHeader,
   ViewIcon,
   ViewTitle,
@@ -51,13 +54,11 @@ export const StudyTestPage = () => {
     return (
       <>
         <ViewTitle title={t['com.affine.study.test.title']()} />
-        <ViewBody>
-          <div className={styles.content}>
-            <div className={styles.emptyState}>
-              {t['com.affine.study.review.empty']()}
-            </div>
+        <StudyPageBody>
+          <div className={styles.emptyState}>
+            {t['com.affine.study.review.empty']()}
           </div>
-        </ViewBody>
+        </StudyPageBody>
       </>
     );
   }
@@ -66,27 +67,25 @@ export const StudyTestPage = () => {
     return (
       <>
         <ViewTitle title={t['com.affine.study.test.title']()} />
-        <ViewBody>
-          <div className={styles.content}>
-            <div className={styles.formCard}>
-              <div className={styles.formTitle}>
-                {t['com.affine.study.test.setup']()}
-              </div>
-              <div className={styles.formGrid}>
-                <Input
-                  value={questionCount}
-                  onChange={event => setQuestionCount(event.target.value)}
-                  placeholder={t['com.affine.study.test.count.placeholder']()}
-                />
-              </div>
-              <div className={styles.actionsRow}>
-                <Button variant="primary" onClick={startSession}>
-                  {t['com.affine.study.test.start']()}
-                </Button>
-              </div>
+        <StudyPageBody>
+          <div className={styles.formCard}>
+            <div className={styles.formTitle}>
+              {t['com.affine.study.test.setup']()}
+            </div>
+            <div className={styles.formGrid}>
+              <Input
+                value={questionCount}
+                onChange={event => setQuestionCount(event.target.value)}
+                placeholder={t['com.affine.study.test.count.placeholder']()}
+              />
+            </div>
+            <div className={styles.actionsRow}>
+              <Button variant="primary" onClick={startSession}>
+                {t['com.affine.study.test.start']()}
+              </Button>
             </div>
           </div>
-        </ViewBody>
+        </StudyPageBody>
       </>
     );
   }
@@ -95,31 +94,29 @@ export const StudyTestPage = () => {
     return (
       <>
         <ViewTitle title={t['com.affine.study.test.title']()} />
-        <ViewBody>
-          <div className={styles.content}>
-            <div className={styles.formCard}>
-              <div className={styles.formTitle}>
-                {t['com.affine.study.test.complete']()}
-              </div>
-              <div className={styles.modeSummary}>
-                {t['com.affine.study.test.score']({
-                  score: String(score),
-                  total: String(sessionCards.length),
-                })}
-              </div>
-              <div className={styles.actionsRow}>
-                <Button
-                  onClick={() => {
-                    setSessionCardIds(null);
-                    setQuestionCount(String(sessionCards.length));
-                  }}
-                >
-                  {t['com.affine.study.test.new-session']()}
-                </Button>
-              </div>
+        <StudyPageBody>
+          <div className={styles.formCard}>
+            <div className={styles.formTitle}>
+              {t['com.affine.study.test.complete']()}
+            </div>
+            <div className={styles.modeSummary}>
+              {t['com.affine.study.test.score']({
+                score: String(score),
+                total: String(sessionCards.length),
+              })}
+            </div>
+            <div className={styles.actionsRow}>
+              <Button
+                onClick={() => {
+                  setSessionCardIds(null);
+                  setQuestionCount(String(sessionCards.length));
+                }}
+              >
+                {t['com.affine.study.test.new-session']()}
+              </Button>
             </div>
           </div>
-        </ViewBody>
+        </StudyPageBody>
       </>
     );
   }
@@ -129,42 +126,43 @@ export const StudyTestPage = () => {
       <ViewTitle title={t['com.affine.study.test.title']()} />
       <ViewIcon icon="today" />
       <ViewHeader>
-        <div className={styles.sectionTitle}>
-          {t['com.affine.study.review.progress']({
-            current: String(index + 1),
-            total: String(sessionCards.length),
-          })}
-        </div>
+        <StudyPageHeader
+          title={t['com.affine.study.test.title']()}
+          actions={
+            <span className={styles.headerMeta}>
+              {t['com.affine.study.review.progress']({
+                current: String(index + 1),
+                total: String(sessionCards.length),
+              })}
+            </span>
+          }
+        />
       </ViewHeader>
-      <ViewBody>
-        <div className={styles.pageBody}>
-          <div className={styles.content}>
-            <div className={styles.cardSurface}>
-              <div className={styles.cardLabel}>{card.type}</div>
-              <div className={styles.cardQuestion}>{card.question}</div>
-              {revealed && card.answer ? (
-                <div className={styles.cardAnswer}>{card.answer}</div>
-              ) : null}
-            </div>
-            <div className={styles.actionsRow}>
-              {!revealed ? (
-                <Button variant="primary" onClick={() => setRevealed(true)}>
-                  {t['com.affine.study.reveal']()}
-                </Button>
-              ) : (
-                <>
-                  <Button onClick={() => submitAnswer(false)}>
-                    {t['com.affine.study.test.incorrect']()}
-                  </Button>
-                  <Button variant="primary" onClick={() => submitAnswer(true)}>
-                    {t['com.affine.study.test.correct']()}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+      <StudyPageBody>
+        <div className={styles.cardSurface}>
+          <div className={styles.cardLabel}>{card.type}</div>
+          <div className={styles.cardQuestion}>{card.question}</div>
+          {revealed && card.answer ? (
+            <div className={styles.cardAnswer}>{card.answer}</div>
+          ) : null}
         </div>
-      </ViewBody>
+        <div className={styles.actionsRow}>
+          {!revealed ? (
+            <Button variant="primary" onClick={() => setRevealed(true)}>
+              {t['com.affine.study.reveal']()}
+            </Button>
+          ) : (
+            <>
+              <Button onClick={() => submitAnswer(false)}>
+                {t['com.affine.study.test.incorrect']()}
+              </Button>
+              <Button variant="primary" onClick={() => submitAnswer(true)}>
+                {t['com.affine.study.test.correct']()}
+              </Button>
+            </>
+          )}
+        </div>
+      </StudyPageBody>
     </>
   );
 };

@@ -1,9 +1,12 @@
 import { Button } from '@affine/component';
 import type { StudyCardContent } from '@affine/core/modules/study';
 import { StudyService } from '@affine/core/modules/study';
+import {
+  StudyPageBody,
+  StudyPageHeader,
+} from '@affine/core/modules/study/views/study-page-shell';
 import * as styles from '@affine/core/modules/study/views/styles.css';
 import {
-  ViewBody,
   ViewHeader,
   ViewIcon,
   ViewTitle,
@@ -82,13 +85,11 @@ export const StudyReviewPage = () => {
     return (
       <>
         <ViewTitle title={t['com.affine.study.review.title']()} />
-        <ViewBody>
-          <div className={styles.content}>
-            <div className={styles.emptyState}>
-              {t['com.affine.study.review.empty']()}
-            </div>
+        <StudyPageBody>
+          <div className={styles.emptyState}>
+            {t['com.affine.study.review.empty']()}
           </div>
-        </ViewBody>
+        </StudyPageBody>
       </>
     );
   }
@@ -98,81 +99,82 @@ export const StudyReviewPage = () => {
       <ViewTitle title={t['com.affine.study.review.title']()} />
       <ViewIcon icon="today" />
       <ViewHeader>
-        <div className={styles.sectionTitle}>
-          {t['com.affine.study.review.progress']({
-            current: String(index + 1),
-            total: String(cards.length),
-          })}
-        </div>
+        <StudyPageHeader
+          title={t['com.affine.study.review.title']()}
+          actions={
+            <span className={styles.headerMeta}>
+              {t['com.affine.study.review.progress']({
+                current: String(index + 1),
+                total: String(cards.length),
+              })}
+            </span>
+          }
+        />
       </ViewHeader>
-      <ViewBody>
-        <div className={styles.pageBody}>
-          <div className={styles.content}>
-            <div className={styles.cardSurface}>
-              <div className={styles.cardLabel}>{card.type}</div>
-              <div className={styles.cardQuestion}>{card.question}</div>
-              {revealed ? (
-                <>
-                  {card.type === 'recall' && card.answer ? (
-                    <div className={styles.cardAnswer}>{card.answer}</div>
-                  ) : null}
-                  {card.type === 'recall' && card.misconceptions?.length ? (
-                    <div>
-                      <div className={styles.cardLabel}>
-                        {t['com.affine.study.misconceptions']()}
-                      </div>
-                      <ul>
-                        {card.misconceptions.map(item => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                  {card.type === 'synthesis' && card.rubric?.length ? (
-                    <div>
-                      <div className={styles.cardLabel}>
-                        {t['com.affine.study.rubric']()}
-                      </div>
-                      <ul>
-                        {card.rubric.map(item => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </>
+      <StudyPageBody>
+        <div className={styles.cardSurface}>
+          <div className={styles.cardLabel}>{card.type}</div>
+          <div className={styles.cardQuestion}>{card.question}</div>
+          {revealed ? (
+            <>
+              {card.type === 'recall' && card.answer ? (
+                <div className={styles.cardAnswer}>{card.answer}</div>
               ) : null}
-            </div>
-            <div className={styles.actionsRow}>
-              {!revealed ? (
-                <Button variant="primary" onClick={() => setRevealed(true)}>
-                  {t['com.affine.study.reveal']()}
-                </Button>
-              ) : useGrading ? (
-                GRADES.map(item => (
-                  <Button
-                    key={item.grade}
-                    onClick={() => {
-                      handleGrade(item.grade).catch(error => {
-                        console.error('[study.review] grade failed', error);
-                      });
-                    }}
-                  >
-                    {t[item.labelKey]()}
-                  </Button>
-                ))
-              ) : (
-                <Button variant="primary" onClick={goNext}>
-                  {t['com.affine.study.next']()}
-                </Button>
-              )}
-              <Button onClick={handleViewSource}>
-                {t['com.affine.study.view-source']()}
-              </Button>
-            </div>
-          </div>
+              {card.type === 'recall' && card.misconceptions?.length ? (
+                <div>
+                  <div className={styles.cardLabel}>
+                    {t['com.affine.study.misconceptions']()}
+                  </div>
+                  <ul>
+                    {card.misconceptions.map(item => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {card.type === 'synthesis' && card.rubric?.length ? (
+                <div>
+                  <div className={styles.cardLabel}>
+                    {t['com.affine.study.rubric']()}
+                  </div>
+                  <ul>
+                    {card.rubric.map(item => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </>
+          ) : null}
         </div>
-      </ViewBody>
+        <div className={styles.actionsRow}>
+          {!revealed ? (
+            <Button variant="primary" onClick={() => setRevealed(true)}>
+              {t['com.affine.study.reveal']()}
+            </Button>
+          ) : useGrading ? (
+            GRADES.map(item => (
+              <Button
+                key={item.grade}
+                onClick={() => {
+                  handleGrade(item.grade).catch(error => {
+                    console.error('[study.review] grade failed', error);
+                  });
+                }}
+              >
+                {t[item.labelKey]()}
+              </Button>
+            ))
+          ) : (
+            <Button variant="primary" onClick={goNext}>
+              {t['com.affine.study.next']()}
+            </Button>
+          )}
+          <Button onClick={handleViewSource}>
+            {t['com.affine.study.view-source']()}
+          </Button>
+        </div>
+      </StudyPageBody>
     </>
   );
 };

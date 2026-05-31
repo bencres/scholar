@@ -1,40 +1,70 @@
 import { cssVarV2 } from '@toeverything/theme/v2';
 import { style } from '@vanilla-extract/css';
 
-export const pageBody = style({
+export const body = style({
+  display: 'flex',
+  flexDirection: 'column',
+  flex: 1,
   width: '100%',
-  height: '100%',
-  borderTop: `0.5px solid ${cssVarV2.layer.insideBorder.border}`,
-  overflow: 'auto',
+  containerName: 'study-body',
+  containerType: 'size',
 });
 
-export const content = style({
-  maxWidth: 880,
-  margin: '0 auto',
-  padding: '32px 24px 48px',
+export const scrollArea = style({
+  height: 0,
+  flex: 1,
+  paddingTop: '12px',
 });
 
-export const sectionTitle = style({
-  fontSize: 20,
+export const scrollContent = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 16,
+  padding: '0 24px 32px',
+  '@container': {
+    'study-body (width <= 500px)': {
+      padding: '0 20px 32px',
+    },
+    'study-body (width <= 393px)': {
+      padding: '0 16px 32px',
+    },
+  },
+});
+
+export const toolbarArea = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  padding: '12px 24px 0',
+  '@container': {
+    'study-body (width <= 500px)': {
+      padding: '12px 20px 0',
+    },
+    'study-body (width <= 393px)': {
+      padding: '12px 16px 0',
+    },
+  },
+});
+
+export const headerTitle = style({
+  fontSize: 18,
+  lineHeight: '26px',
   fontWeight: 600,
-  marginBottom: 16,
+  paddingLeft: 8,
   color: cssVarV2.text.primary,
 });
 
-export const hero = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 8,
-  padding: '20px 24px',
-  marginBottom: 24,
-  borderRadius: 12,
-  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
-  background: cssVarV2.layer.background.secondary,
+export const headerMeta = style({
+  fontSize: 14,
+  lineHeight: '22px',
+  color: cssVarV2.text.secondary,
 });
 
-export const heroTitle = style({
-  fontSize: 22,
+export const sectionTitle = style({
+  fontSize: 18,
+  lineHeight: '26px',
   fontWeight: 600,
+  marginBottom: 12,
   color: cssVarV2.text.primary,
 });
 
@@ -271,15 +301,6 @@ export const conceptMeta = style({
   fontSize: 12,
   lineHeight: '18px',
   color: cssVarV2.text.secondary,
-});
-
-export const deckPageHeader = style({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  padding: '20px 24px 0',
-  gap: 16,
-  flexWrap: 'wrap',
 });
 
 export const breadcrumb = style({

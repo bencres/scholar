@@ -7,9 +7,9 @@ import {
   StudyDeckHeader,
   StudyDeckHeaderActions,
 } from '@affine/core/modules/study/views/study-deck-header';
+import { StudyPageBody } from '@affine/core/modules/study/views/study-page-shell';
 import * as styles from '@affine/core/modules/study/views/styles.css';
 import {
-  ViewBody,
   ViewHeader,
   ViewIcon,
   ViewTitle,
@@ -163,13 +163,11 @@ export const StudyDeckDetailPage = () => {
 
   if (!deck) {
     return (
-      <ViewBody>
-        <div className={styles.content}>
-          <div className={styles.emptyState}>
-            {t['com.affine.study.deck-not-found']()}
-          </div>
+      <StudyPageBody>
+        <div className={styles.emptyState}>
+          {t['com.affine.study.deck-not-found']()}
         </div>
-      </ViewBody>
+      </StudyPageBody>
     );
   }
 
@@ -177,323 +175,300 @@ export const StudyDeckDetailPage = () => {
     <>
       <ViewTitle title={deck.name} />
       <ViewIcon icon="today" />
-      <ViewHeader />
-      <ViewBody>
-        <div className={styles.pageBody}>
-          <StudyDeckHeader
-            deckName={deck.name}
-            actions={
-              <StudyDeckHeaderActions
-                dueCount={dueCount}
-                onReview={openReview}
-              />
-            }
-          />
-          <div className={styles.content}>
-            <div className={styles.deckStats}>
-              <span className={styles.deckStatPill}>
-                {t['com.affine.study.card-count']({
-                  count: String(activeCards.length),
-                })}
+      <ViewHeader>
+        <StudyDeckHeader
+          deckName={deck.name}
+          actions={
+            <StudyDeckHeaderActions dueCount={dueCount} onReview={openReview} />
+          }
+        />
+      </ViewHeader>
+      <StudyPageBody>
+        <div className={styles.deckStats}>
+          <span className={styles.deckStatPill}>
+            {t['com.affine.study.card-count']({
+              count: String(activeCards.length),
+            })}
+          </span>
+          {dueCount > 0 ? (
+            <span className={styles.deckStatPill}>
+              {t['com.affine.study.due-count']({ count: String(dueCount) })}
+            </span>
+          ) : null}
+          {deck.sourceDocId ? (
+            <button
+              type="button"
+              className={styles.deckStatLink}
+              onClick={openSourceDoc}
+            >
+              {t['com.affine.study.source-document']({
+                title: sourceTitle || t['Untitled'](),
+              })}
+            </button>
+          ) : null}
+        </div>
+        {learningGraph ? (
+          <div className={styles.formCard}>
+            <div className={styles.formTitle}>Concept coverage</div>
+            <div className={styles.modeSummary}>
+              <span>
+                {`Mapped cards: ${learningGraph.mappedCards}/${learningGraph.totalCards}`}
               </span>
-              {dueCount > 0 ? (
-                <span className={styles.deckStatPill}>
-                  {t['com.affine.study.due-count']({ count: String(dueCount) })}
+              {learningGraph.uncoveredCardIds.length > 0 ? (
+                <span>
+                  {`Uncovered cards: ${learningGraph.uncoveredCardIds.length}`}
                 </span>
               ) : null}
-              {deck.sourceDocId ? (
-                <button
-                  type="button"
-                  className={styles.deckStatLink}
-                  onClick={openSourceDoc}
-                >
-                  {t['com.affine.study.source-document']({
-                    title: sourceTitle || t['Untitled'](),
-                  })}
-                </button>
-              ) : null}
             </div>
-            {learningGraph ? (
-              <div className={styles.formCard}>
-                <div className={styles.formTitle}>Concept coverage</div>
-                <div className={styles.modeSummary}>
-                  <span>
-                    {`Mapped cards: ${learningGraph.mappedCards}/${learningGraph.totalCards}`}
-                  </span>
-                  {learningGraph.uncoveredCardIds.length > 0 ? (
-                    <span>
-                      {`Uncovered cards: ${learningGraph.uncoveredCardIds.length}`}
-                    </span>
-                  ) : null}
-                </div>
-                {learningGraph.concepts.length ? (
-                  <div className={styles.conceptGrid}>
-                    {learningGraph.concepts.slice(0, 6).map(concept => (
-                      <div key={concept.id} className={styles.conceptCard}>
-                        <div className={styles.conceptTitle}>
-                          {concept.label}
-                        </div>
-                        <div className={styles.conceptMeta}>
-                          {`Cards: ${concept.cardCount}`}
-                        </div>
-                        <div className={styles.conceptMeta}>
-                          {`Mastery: ${Math.round(concept.mastery * 100)}%`}
-                        </div>
-                        <div className={styles.conceptMeta}>
-                          {`Forgetting risk: ${Math.round(
-                            concept.forgettingRisk * 100
-                          )}%`}
-                        </div>
-                      </div>
-                    ))}
+            {learningGraph.concepts.length ? (
+              <div className={styles.conceptGrid}>
+                {learningGraph.concepts.slice(0, 6).map(concept => (
+                  <div key={concept.id} className={styles.conceptCard}>
+                    <div className={styles.conceptTitle}>{concept.label}</div>
+                    <div className={styles.conceptMeta}>
+                      {`Cards: ${concept.cardCount}`}
+                    </div>
+                    <div className={styles.conceptMeta}>
+                      {`Mastery: ${Math.round(concept.mastery * 100)}%`}
+                    </div>
+                    <div className={styles.conceptMeta}>
+                      {`Forgetting risk: ${Math.round(
+                        concept.forgettingRisk * 100
+                      )}%`}
+                    </div>
                   </div>
-                ) : (
-                  <div className={styles.emptyState}>
-                    No mapped concepts yet.
-                  </div>
-                )}
-              </div>
-            ) : null}
-            <div className={styles.formCard}>
-              <div className={styles.formTitle}>
-                {t['com.affine.study.deck-settings']()}
-              </div>
-              <div className={styles.formGrid}>
-                <Input
-                  value={deckName}
-                  onChange={event => setDeckName(event.target.value)}
-                  placeholder={t['com.affine.study.deck-name.placeholder']()}
-                />
-                <Input
-                  value={deckDescription}
-                  onChange={event => setDeckDescription(event.target.value)}
-                  placeholder={t[
-                    'com.affine.study.deck-description.placeholder'
-                  ]()}
-                />
-                <Input
-                  value={deckTags}
-                  onChange={event => setDeckTags(event.target.value)}
-                  placeholder={t['com.affine.study.deck-tags.placeholder']()}
-                />
-                <Input
-                  value={dailyNewLimit}
-                  onChange={event => setDailyNewLimit(event.target.value)}
-                  placeholder={t[
-                    'com.affine.study.daily-new-limit.placeholder'
-                  ]()}
-                />
-                <Input
-                  value={dailyReviewLimit}
-                  onChange={event => setDailyReviewLimit(event.target.value)}
-                  placeholder={t[
-                    'com.affine.study.daily-review-limit.placeholder'
-                  ]()}
-                />
-              </div>
-              <div className={styles.actionsRow}>
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    handleSaveDeck().catch(error => {
-                      console.error('[study.deck] update deck failed', error);
-                    });
-                  }}
-                >
-                  {t['Save']()}
-                </Button>
-                <Button
-                  onClick={() => {
-                    handleDeleteDeck().catch(error => {
-                      console.error('[study.deck] delete deck failed', error);
-                    });
-                  }}
-                >
-                  {t['Delete']()}
-                </Button>
-              </div>
-            </div>
-            <div className={styles.formCard}>
-              <div className={styles.formTitle}>
-                {editingCardId
-                  ? t['com.affine.study.edit-card']()
-                  : t['com.affine.study.add-card']()}
-              </div>
-              <div className={styles.formGrid}>
-                <div className={styles.toggleRow}>
-                  <Button
-                    variant={cardDraft.type === 'recall' ? 'primary' : 'plain'}
-                    onClick={() =>
-                      setCardDraft(current => ({ ...current, type: 'recall' }))
-                    }
-                  >
-                    {t['com.affine.study.card-type.recall']()}
-                  </Button>
-                  <Button
-                    variant={
-                      cardDraft.type === 'synthesis' ? 'primary' : 'plain'
-                    }
-                    onClick={() =>
-                      setCardDraft(current => ({
-                        ...current,
-                        type: 'synthesis',
-                      }))
-                    }
-                  >
-                    {t['com.affine.study.card-type.synthesis']()}
-                  </Button>
-                </div>
-                <Input
-                  value={cardDraft.question}
-                  onChange={event =>
-                    setCardDraft(current => ({
-                      ...current,
-                      question: event.target.value,
-                    }))
-                  }
-                  placeholder={t[
-                    'com.affine.study.card-question.placeholder'
-                  ]()}
-                />
-                <Input
-                  value={cardDraft.answer}
-                  onChange={event =>
-                    setCardDraft(current => ({
-                      ...current,
-                      answer: event.target.value,
-                    }))
-                  }
-                  placeholder={t['com.affine.study.card-answer.placeholder']()}
-                />
-                <Input
-                  value={cardDraft.concepts}
-                  onChange={event =>
-                    setCardDraft(current => ({
-                      ...current,
-                      concepts: event.target.value,
-                    }))
-                  }
-                  placeholder="Concepts (comma separated)"
-                />
-                <Input
-                  value={cardDraft.misconceptions}
-                  onChange={event =>
-                    setCardDraft(current => ({
-                      ...current,
-                      misconceptions: event.target.value,
-                    }))
-                  }
-                  placeholder={t[
-                    'com.affine.study.card-misconceptions.placeholder'
-                  ]()}
-                />
-                <Input
-                  value={cardDraft.rubric}
-                  onChange={event =>
-                    setCardDraft(current => ({
-                      ...current,
-                      rubric: event.target.value,
-                    }))
-                  }
-                  placeholder={t['com.affine.study.card-rubric.placeholder']()}
-                />
-                <Input
-                  value={cardDraft.tags}
-                  onChange={event =>
-                    setCardDraft(current => ({
-                      ...current,
-                      tags: event.target.value,
-                    }))
-                  }
-                  placeholder={t['com.affine.study.card-tags.placeholder']()}
-                />
-              </div>
-              <div className={styles.actionsRow}>
-                <Button
-                  variant="primary"
-                  disabled={!cardDraft.question.trim()}
-                  onClick={() => {
-                    handleSubmitCard().catch(error => {
-                      console.error('[study.deck] save card failed', error);
-                    });
-                  }}
-                >
-                  {editingCardId
-                    ? t['Save']()
-                    : t['com.affine.study.add-card']()}
-                </Button>
-                {editingCardId ? (
-                  <Button onClick={resetCardDraft}>{t['Cancel']()}</Button>
-                ) : null}
-              </div>
-            </div>
-            <div className={styles.sectionTitle}>
-              {t['com.affine.study.browse-cards']()}
-            </div>
-            {activeCards.length === 0 ? (
-              <div className={styles.emptyState}>
-                {t['com.affine.study.review.empty']()}
-              </div>
-            ) : (
-              <div className={styles.browseCardList}>
-                {deck.cards.map((card, index) => (
-                  <StudyCardBrowseItem
-                    key={card.id}
-                    index={index}
-                    card={card}
-                    headerExtra={
-                      <div className={styles.inlineActions}>
-                        <Checkbox
-                          checked={!card.suspended}
-                          onChange={checked => {
-                            studyService
-                              .updateCard(card.id, { suspended: !checked })
-                              .catch(error => {
-                                console.error(
-                                  '[study.deck] toggle suspended failed',
-                                  error
-                                );
-                              });
-                          }}
-                        />
-                        <Button
-                          size="small"
-                          onClick={() => handleEditCard(card)}
-                        >
-                          {t['Edit']()}
-                        </Button>
-                        <Button
-                          size="small"
-                          onClick={() => {
-                            studyService.deleteCard(card.id).catch(error => {
-                              console.error(
-                                '[study.deck] delete card failed',
-                                error
-                              );
-                            });
-                          }}
-                        >
-                          {t['Delete']()}
-                        </Button>
-                      </div>
-                    }
-                    onViewSource={
-                      card.provenance.docId === 'manual'
-                        ? undefined
-                        : () =>
-                            workbench.openDoc({
-                              docId: card.provenance.docId,
-                              mode: 'page',
-                              blockIds: card.provenance.blockIds,
-                            })
-                    }
-                  />
                 ))}
               </div>
+            ) : (
+              <div className={styles.emptyState}>No mapped concepts yet.</div>
             )}
           </div>
+        ) : null}
+        <div className={styles.formCard}>
+          <div className={styles.formTitle}>
+            {t['com.affine.study.deck-settings']()}
+          </div>
+          <div className={styles.formGrid}>
+            <Input
+              value={deckName}
+              onChange={event => setDeckName(event.target.value)}
+              placeholder={t['com.affine.study.deck-name.placeholder']()}
+            />
+            <Input
+              value={deckDescription}
+              onChange={event => setDeckDescription(event.target.value)}
+              placeholder={t['com.affine.study.deck-description.placeholder']()}
+            />
+            <Input
+              value={deckTags}
+              onChange={event => setDeckTags(event.target.value)}
+              placeholder={t['com.affine.study.deck-tags.placeholder']()}
+            />
+            <Input
+              value={dailyNewLimit}
+              onChange={event => setDailyNewLimit(event.target.value)}
+              placeholder={t['com.affine.study.daily-new-limit.placeholder']()}
+            />
+            <Input
+              value={dailyReviewLimit}
+              onChange={event => setDailyReviewLimit(event.target.value)}
+              placeholder={t[
+                'com.affine.study.daily-review-limit.placeholder'
+              ]()}
+            />
+          </div>
+          <div className={styles.actionsRow}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                handleSaveDeck().catch(error => {
+                  console.error('[study.deck] update deck failed', error);
+                });
+              }}
+            >
+              {t['Save']()}
+            </Button>
+            <Button
+              onClick={() => {
+                handleDeleteDeck().catch(error => {
+                  console.error('[study.deck] delete deck failed', error);
+                });
+              }}
+            >
+              {t['Delete']()}
+            </Button>
+          </div>
         </div>
-      </ViewBody>
+        <div className={styles.formCard}>
+          <div className={styles.formTitle}>
+            {editingCardId
+              ? t['com.affine.study.edit-card']()
+              : t['com.affine.study.add-card']()}
+          </div>
+          <div className={styles.formGrid}>
+            <div className={styles.toggleRow}>
+              <Button
+                variant={cardDraft.type === 'recall' ? 'primary' : 'plain'}
+                onClick={() =>
+                  setCardDraft(current => ({ ...current, type: 'recall' }))
+                }
+              >
+                {t['com.affine.study.card-type.recall']()}
+              </Button>
+              <Button
+                variant={cardDraft.type === 'synthesis' ? 'primary' : 'plain'}
+                onClick={() =>
+                  setCardDraft(current => ({
+                    ...current,
+                    type: 'synthesis',
+                  }))
+                }
+              >
+                {t['com.affine.study.card-type.synthesis']()}
+              </Button>
+            </div>
+            <Input
+              value={cardDraft.question}
+              onChange={event =>
+                setCardDraft(current => ({
+                  ...current,
+                  question: event.target.value,
+                }))
+              }
+              placeholder={t['com.affine.study.card-question.placeholder']()}
+            />
+            <Input
+              value={cardDraft.answer}
+              onChange={event =>
+                setCardDraft(current => ({
+                  ...current,
+                  answer: event.target.value,
+                }))
+              }
+              placeholder={t['com.affine.study.card-answer.placeholder']()}
+            />
+            <Input
+              value={cardDraft.concepts}
+              onChange={event =>
+                setCardDraft(current => ({
+                  ...current,
+                  concepts: event.target.value,
+                }))
+              }
+              placeholder="Concepts (comma separated)"
+            />
+            <Input
+              value={cardDraft.misconceptions}
+              onChange={event =>
+                setCardDraft(current => ({
+                  ...current,
+                  misconceptions: event.target.value,
+                }))
+              }
+              placeholder={t[
+                'com.affine.study.card-misconceptions.placeholder'
+              ]()}
+            />
+            <Input
+              value={cardDraft.rubric}
+              onChange={event =>
+                setCardDraft(current => ({
+                  ...current,
+                  rubric: event.target.value,
+                }))
+              }
+              placeholder={t['com.affine.study.card-rubric.placeholder']()}
+            />
+            <Input
+              value={cardDraft.tags}
+              onChange={event =>
+                setCardDraft(current => ({
+                  ...current,
+                  tags: event.target.value,
+                }))
+              }
+              placeholder={t['com.affine.study.card-tags.placeholder']()}
+            />
+          </div>
+          <div className={styles.actionsRow}>
+            <Button
+              variant="primary"
+              disabled={!cardDraft.question.trim()}
+              onClick={() => {
+                handleSubmitCard().catch(error => {
+                  console.error('[study.deck] save card failed', error);
+                });
+              }}
+            >
+              {editingCardId ? t['Save']() : t['com.affine.study.add-card']()}
+            </Button>
+            {editingCardId ? (
+              <Button onClick={resetCardDraft}>{t['Cancel']()}</Button>
+            ) : null}
+          </div>
+        </div>
+        <div className={styles.sectionTitle}>
+          {t['com.affine.study.browse-cards']()}
+        </div>
+        {activeCards.length === 0 ? (
+          <div className={styles.emptyState}>
+            {t['com.affine.study.review.empty']()}
+          </div>
+        ) : (
+          <div className={styles.browseCardList}>
+            {deck.cards.map((card, index) => (
+              <StudyCardBrowseItem
+                key={card.id}
+                index={index}
+                card={card}
+                headerExtra={
+                  <div className={styles.inlineActions}>
+                    <Checkbox
+                      checked={!card.suspended}
+                      onChange={checked => {
+                        studyService
+                          .updateCard(card.id, { suspended: !checked })
+                          .catch(error => {
+                            console.error(
+                              '[study.deck] toggle suspended failed',
+                              error
+                            );
+                          });
+                      }}
+                    />
+                    <Button size="small" onClick={() => handleEditCard(card)}>
+                      {t['Edit']()}
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        studyService.deleteCard(card.id).catch(error => {
+                          console.error(
+                            '[study.deck] delete card failed',
+                            error
+                          );
+                        });
+                      }}
+                    >
+                      {t['Delete']()}
+                    </Button>
+                  </div>
+                }
+                onViewSource={
+                  card.provenance.docId === 'manual'
+                    ? undefined
+                    : () =>
+                        workbench.openDoc({
+                          docId: card.provenance.docId,
+                          mode: 'page',
+                          blockIds: card.provenance.blockIds,
+                        })
+                }
+              />
+            ))}
+          </div>
+        )}
+      </StudyPageBody>
     </>
   );
 };

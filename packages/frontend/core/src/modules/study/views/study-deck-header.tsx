@@ -1,4 +1,5 @@
 import { Button } from '@affine/component';
+import { Header } from '@affine/core/components/pure/header';
 import { WorkbenchLink } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
 import { TodayIcon } from '@blocksuite/icons/rc';
@@ -16,21 +17,25 @@ export const StudyDeckHeader = ({
   const t = useI18n();
 
   return (
-    <header className={styles.deckPageHeader}>
-      <div className={styles.breadcrumb}>
-        <div className={styles.breadcrumbItem}>
-          <WorkbenchLink to="/study" className={styles.breadcrumbLink}>
-            {t['com.affine.study.title']()}
-          </WorkbenchLink>
+    <Header
+      left={
+        <div className={styles.breadcrumb}>
+          <div className={styles.breadcrumbItem}>
+            <WorkbenchLink to="/study" className={styles.breadcrumbLink}>
+              {t['com.affine.study.title']()}
+            </WorkbenchLink>
+          </div>
+          <div className={styles.breadcrumbSeparator}>/</div>
+          <div className={styles.breadcrumbItem} data-active={true}>
+            <TodayIcon className={styles.breadcrumbIcon} />
+            {deckName}
+          </div>
         </div>
-        <div className={styles.breadcrumbSeparator}>/</div>
-        <div className={styles.breadcrumbItem} data-active={true}>
-          <TodayIcon className={styles.breadcrumbIcon} />
-          {deckName}
-        </div>
-      </div>
-      {actions ? <div className={styles.headerActions}>{actions}</div> : null}
-    </header>
+      }
+      right={
+        actions ? <div className={styles.headerActions}>{actions}</div> : null
+      }
+    />
   );
 };
 

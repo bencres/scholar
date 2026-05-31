@@ -1,7 +1,10 @@
 import { Button } from '@affine/component';
+import {
+  StudyPageBody,
+  StudyPageHeader,
+} from '@affine/core/modules/study/views/study-page-shell';
 import * as styles from '@affine/core/modules/study/views/styles.css';
 import {
-  ViewBody,
   ViewHeader,
   ViewIcon,
   ViewTitle,
@@ -41,13 +44,11 @@ export const StudyLearnPage = () => {
     return (
       <>
         <ViewTitle title={t['com.affine.study.learn.title']()} />
-        <ViewBody>
-          <div className={styles.content}>
-            <div className={styles.emptyState}>
-              {t['com.affine.study.review.empty']()}
-            </div>
+        <StudyPageBody>
+          <div className={styles.emptyState}>
+            {t['com.affine.study.review.empty']()}
           </div>
-        </ViewBody>
+        </StudyPageBody>
       </>
     );
   }
@@ -56,36 +57,34 @@ export const StudyLearnPage = () => {
     return (
       <>
         <ViewTitle title={t['com.affine.study.learn.title']()} />
-        <ViewBody>
-          <div className={styles.content}>
-            <div className={styles.formCard}>
-              <div className={styles.formTitle}>
-                {t['com.affine.study.learn.done']()}
-              </div>
-              <div className={styles.modeSummary}>
-                <span>
-                  {t['com.affine.study.learn.correct']({
-                    count: String(correct),
-                  })}
-                </span>
-                <span>
-                  {t['com.affine.study.learn.retry']({ count: String(retry) })}
-                </span>
-              </div>
-              <div className={styles.actionsRow}>
-                <Button
-                  onClick={() => {
-                    setQueue(cards.map(item => item.id));
-                    setCorrect(0);
-                    setRetry(0);
-                  }}
-                >
-                  {t['com.affine.study.learn.restart']()}
-                </Button>
-              </div>
+        <StudyPageBody>
+          <div className={styles.formCard}>
+            <div className={styles.formTitle}>
+              {t['com.affine.study.learn.done']()}
+            </div>
+            <div className={styles.modeSummary}>
+              <span>
+                {t['com.affine.study.learn.correct']({
+                  count: String(correct),
+                })}
+              </span>
+              <span>
+                {t['com.affine.study.learn.retry']({ count: String(retry) })}
+              </span>
+            </div>
+            <div className={styles.actionsRow}>
+              <Button
+                onClick={() => {
+                  setQueue(cards.map(item => item.id));
+                  setCorrect(0);
+                  setRetry(0);
+                }}
+              >
+                {t['com.affine.study.learn.restart']()}
+              </Button>
             </div>
           </div>
-        </ViewBody>
+        </StudyPageBody>
       </>
     );
   }
@@ -95,41 +94,42 @@ export const StudyLearnPage = () => {
       <ViewTitle title={t['com.affine.study.learn.title']()} />
       <ViewIcon icon="today" />
       <ViewHeader>
-        <div className={styles.sectionTitle}>
-          {t['com.affine.study.learn.progress']({
-            remaining: String(activeQueue.length),
-          })}
-        </div>
+        <StudyPageHeader
+          title={t['com.affine.study.learn.title']()}
+          actions={
+            <span className={styles.headerMeta}>
+              {t['com.affine.study.learn.progress']({
+                remaining: String(activeQueue.length),
+              })}
+            </span>
+          }
+        />
       </ViewHeader>
-      <ViewBody>
-        <div className={styles.pageBody}>
-          <div className={styles.content}>
-            <div className={styles.cardSurface}>
-              <div className={styles.cardLabel}>{card.type}</div>
-              <div className={styles.cardQuestion}>{card.question}</div>
-              {revealed && card.answer ? (
-                <div className={styles.cardAnswer}>{card.answer}</div>
-              ) : null}
-            </div>
-            <div className={styles.actionsRow}>
-              {!revealed ? (
-                <Button variant="primary" onClick={() => setRevealed(true)}>
-                  {t['com.affine.study.reveal']()}
-                </Button>
-              ) : (
-                <>
-                  <Button onClick={() => submitResult(false)}>
-                    {t['com.affine.study.learn.retry-action']()}
-                  </Button>
-                  <Button variant="primary" onClick={() => submitResult(true)}>
-                    {t['com.affine.study.learn.got-it']()}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+      <StudyPageBody>
+        <div className={styles.cardSurface}>
+          <div className={styles.cardLabel}>{card.type}</div>
+          <div className={styles.cardQuestion}>{card.question}</div>
+          {revealed && card.answer ? (
+            <div className={styles.cardAnswer}>{card.answer}</div>
+          ) : null}
         </div>
-      </ViewBody>
+        <div className={styles.actionsRow}>
+          {!revealed ? (
+            <Button variant="primary" onClick={() => setRevealed(true)}>
+              {t['com.affine.study.reveal']()}
+            </Button>
+          ) : (
+            <>
+              <Button onClick={() => submitResult(false)}>
+                {t['com.affine.study.learn.retry-action']()}
+              </Button>
+              <Button variant="primary" onClick={() => submitResult(true)}>
+                {t['com.affine.study.learn.got-it']()}
+              </Button>
+            </>
+          )}
+        </div>
+      </StudyPageBody>
     </>
   );
 };

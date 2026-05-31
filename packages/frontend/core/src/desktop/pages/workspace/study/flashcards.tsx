@@ -1,8 +1,11 @@
 import { Button, Checkbox } from '@affine/component';
 import { StudyService } from '@affine/core/modules/study';
+import {
+  StudyPageBody,
+  StudyPageHeader,
+} from '@affine/core/modules/study/views/study-page-shell';
 import * as styles from '@affine/core/modules/study/views/styles.css';
 import {
-  ViewBody,
   ViewHeader,
   ViewIcon,
   ViewTitle,
@@ -46,13 +49,11 @@ export const StudyFlashcardsPage = () => {
     return (
       <>
         <ViewTitle title={t['com.affine.study.flashcards.title']()} />
-        <ViewBody>
-          <div className={styles.content}>
-            <div className={styles.emptyState}>
-              {t['com.affine.study.review.empty']()}
-            </div>
+        <StudyPageBody>
+          <div className={styles.emptyState}>
+            {t['com.affine.study.review.empty']()}
           </div>
-        </ViewBody>
+        </StudyPageBody>
       </>
     );
   }
@@ -62,50 +63,51 @@ export const StudyFlashcardsPage = () => {
       <ViewTitle title={t['com.affine.study.flashcards.title']()} />
       <ViewIcon icon="today" />
       <ViewHeader>
-        <div className={styles.sectionTitle}>
-          {t['com.affine.study.review.progress']({
-            current: String(index + 1),
-            total: String(cards.length),
-          })}
-        </div>
+        <StudyPageHeader
+          title={t['com.affine.study.flashcards.title']()}
+          actions={
+            <span className={styles.headerMeta}>
+              {t['com.affine.study.review.progress']({
+                current: String(index + 1),
+                total: String(cards.length),
+              })}
+            </span>
+          }
+        />
       </ViewHeader>
-      <ViewBody>
-        <div className={styles.pageBody}>
-          <div className={styles.content}>
-            <div className={styles.cardSurface}>
-              <div className={styles.cardLabel}>{card.type}</div>
-              <div className={styles.cardQuestion}>{card.question}</div>
-              {revealed && card.answer ? (
-                <div className={styles.cardAnswer}>{card.answer}</div>
-              ) : null}
-            </div>
-            <div className={styles.actionsRow}>
-              {!revealed ? (
-                <Button variant="primary" onClick={() => setRevealed(true)}>
-                  {t['com.affine.study.reveal']()}
-                </Button>
-              ) : (
-                GRADES.map(item => (
-                  <Button
-                    key={item.grade}
-                    onClick={() => {
-                      gradeCard(item.grade).catch(error => {
-                        console.error('[study.flashcards] grade failed', error);
-                      });
-                    }}
-                  >
-                    {t[item.key]()}
-                  </Button>
-                ))
-              )}
-            </div>
-            <div className={styles.modeOptionRow}>
-              <Checkbox checked={trackProgress} onChange={setTrackProgress} />
-              <span>{t['com.affine.study.flashcards.track-progress']()}</span>
-            </div>
-          </div>
+      <StudyPageBody>
+        <div className={styles.cardSurface}>
+          <div className={styles.cardLabel}>{card.type}</div>
+          <div className={styles.cardQuestion}>{card.question}</div>
+          {revealed && card.answer ? (
+            <div className={styles.cardAnswer}>{card.answer}</div>
+          ) : null}
         </div>
-      </ViewBody>
+        <div className={styles.actionsRow}>
+          {!revealed ? (
+            <Button variant="primary" onClick={() => setRevealed(true)}>
+              {t['com.affine.study.reveal']()}
+            </Button>
+          ) : (
+            GRADES.map(item => (
+              <Button
+                key={item.grade}
+                onClick={() => {
+                  gradeCard(item.grade).catch(error => {
+                    console.error('[study.flashcards] grade failed', error);
+                  });
+                }}
+              >
+                {t[item.key]()}
+              </Button>
+            ))
+          )}
+        </div>
+        <div className={styles.modeOptionRow}>
+          <Checkbox checked={trackProgress} onChange={setTrackProgress} />
+          <span>{t['com.affine.study.flashcards.track-progress']()}</span>
+        </div>
+      </StudyPageBody>
     </>
   );
 };
