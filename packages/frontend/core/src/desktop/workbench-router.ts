@@ -70,6 +70,10 @@ export const workbenchRoutes = [
     lazy: () => import('./pages/workspace/study/test'),
   },
   {
+    path: '/study/graph',
+    lazy: () => import('./pages/workspace/study/graph'),
+  },
+  {
     path: '/study/decks/:deckId',
     lazy: () => import('./pages/workspace/study/deck-detail'),
   },

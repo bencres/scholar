@@ -16,12 +16,23 @@ export interface StudyLearningGraphConcept {
   label: string;
   cardCount: number;
   dueCount: number;
+  coverageShare: number;
   forgettingRisk: number;
   mastery: number;
+  prerequisiteReadiness: number;
   recentMisses: number;
   prerequisites: string[];
   misconceptions: string[];
   deckIds: string[];
+}
+
+export interface StudyLearningGraphDeckCoverage {
+  deckId: string;
+  deckName: string;
+  totalCards: number;
+  mappedCards: number;
+  mappedRatio: number;
+  dueMappedCards: number;
 }
 
 export interface StudyLearningGraphSnapshot {
@@ -31,6 +42,7 @@ export interface StudyLearningGraphSnapshot {
   uncoveredCardIds: string[];
   concepts: StudyLearningGraphConcept[];
   edges: StudyLearningGraphEdge[];
+  coverageByDeck: StudyLearningGraphDeckCoverage[];
 }
 
 type BuildInput = {
@@ -75,22 +87,31 @@ export function buildStudyLearningGraphSnapshot({
   let totalCards = 0;
   let mappedCards = 0;
   const uncoveredCardIds: string[] = [];
+  const coverageByDeck: StudyLearningGraphDeckCoverage[] = [];
 
   for (const deck of decks) {
+    let deckTotalCards = 0;
+    let deckMappedCards = 0;
+    let deckDueMappedCards = 0;
     for (const card of deck.cards) {
       totalCards += 1;
+      deckTotalCards += 1;
       const conceptIds = extractConceptIds(card);
       if (!conceptIds.length) {
         uncoveredCardIds.push(card.id);
         continue;
       }
       mappedCards += 1;
+      deckMappedCards += 1;
       const row = schedulingByCardId.get(card.id);
       const cardLogs = logsByCardId.get(card.id) ?? [];
       const cardMastery = scoreCardMastery(row, cardLogs, now);
       const cardRisk = scoreForgettingRisk(row, now);
       const cardMisses = countRecentMisses(cardLogs, now);
       const due = row && row.due <= now ? 1 : 0;
+      if (due) {
+        deckDueMappedCards += 1;
+      }
       const prereq = extractPrefixedTags(card.tags, 'prereq:');
       const misconceptions = extractMisconceptions(card);
 
@@ -116,20 +137,53 @@ export function buildStudyLearningGraphSnapshot({
         }
       }
     }
+    coverageByDeck.push({
+      deckId: deck.id,
+      deckName: deck.name,
+      totalCards: deckTotalCards,
+      mappedCards: deckMappedCards,
+      mappedRatio:
+        deckTotalCards > 0
+          ? Number((deckMappedCards / deckTotalCards).toFixed(3))
+          : 0,
+      dueMappedCards: deckDueMappedCards,
+    });
   }
 
   const concepts = [...conceptMap.values()]
     .map(concept => {
       const cardCount = concept.cardIds.size || 1;
+      const prerequisiteReadiness = concept.prerequisites.size
+        ? average(
+            [...concept.prerequisites].map(prerequisiteId => {
+              const prerequisiteConcept = conceptMap.get(prerequisiteId);
+              if (
+                !prerequisiteConcept ||
+                prerequisiteConcept.cardIds.size === 0
+              ) {
+                return 0.5;
+              }
+              return (
+                prerequisiteConcept.masteryTotal /
+                Math.max(1, prerequisiteConcept.cardIds.size)
+              );
+            })
+          )
+        : 1;
       return {
         id: concept.id,
         label: concept.label,
         cardCount: concept.cardIds.size,
         dueCount: concept.dueCount,
+        coverageShare:
+          mappedCards > 0
+            ? Number((concept.cardIds.size / mappedCards).toFixed(3))
+            : 0,
         forgettingRisk: Number(
           (concept.forgettingRiskTotal / cardCount).toFixed(3)
         ),
         mastery: Number((concept.masteryTotal / cardCount).toFixed(3)),
+        prerequisiteReadiness: Number(prerequisiteReadiness.toFixed(3)),
         recentMisses: concept.recentMisses,
         prerequisites: [...concept.prerequisites].sort(),
         misconceptions: [...concept.misconceptions].sort(),
@@ -171,6 +225,9 @@ export function buildStudyLearningGraphSnapshot({
     uncoveredCardIds,
     concepts,
     edges,
+    coverageByDeck: coverageByDeck.sort((a, b) =>
+      a.deckName.localeCompare(b.deckName)
+    ),
   };
 }
 
@@ -296,4 +353,11 @@ function clamp01(value: number) {
   if (value < 0) return 0;
   if (value > 1) return 1;
   return Number(value.toFixed(3));
+}
+
+function average(values: number[]) {
+  if (!values.length) {
+    return 0;
+  }
+  return clamp01(values.reduce((sum, value) => sum + value, 0) / values.length);
 }

@@ -102,6 +102,13 @@ export const StudyHome = () => {
                 >
                   {t['com.affine.study.test.title']()}
                 </Button>
+                <Button
+                  onClick={() =>
+                    workbench.open('/study/graph', { at: 'active' })
+                  }
+                >
+                  Learning graph
+                </Button>
               </div>
               {dueCount > 0 ? (
                 <div className={styles.actionsRow} style={{ marginTop: 8 }}>

@@ -110,5 +110,10 @@ describe('study learning graph', () => {
           edge.to === 'cell-respiration'
       )
     ).toBeTruthy();
+    expect(graph.coverageByDeck[0]?.mappedRatio).toBeCloseTo(0.667, 2);
+    expect(
+      graph.concepts.find(item => item.id === 'cell-respiration')
+        ?.prerequisiteReadiness
+    ).toBeGreaterThan(0);
   });
 });
