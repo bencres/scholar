@@ -13,11 +13,7 @@ import {
   isStudyGenerateModelId,
   STUDY_GENERATE_MODEL_STORAGE_KEY,
 } from '../constants/generate-models';
-import type {
-  ReviewGrade,
-  StudyCardContent,
-  StudyCardScheduling,
-} from '../entities/card';
+import type { ReviewGrade, StudyCardContent } from '../entities/card';
 import type {
   StudyDeck,
   StudyDeckMetadata,
@@ -37,8 +33,10 @@ import {
 import { extractDocMarkdown } from '../utils/extract-doc-text';
 import { parseStudyCardsGenerateJson } from '../utils/parse-generate-json';
 import {
+  burySiblingScheduling,
   createInitialScheduling,
   scheduleAfterReview,
+  shouldMarkLeech,
 } from '../utils/scheduling';
 
 const studyGenerateLogger = new DebugLogger('study.cards.generate');
@@ -493,15 +491,26 @@ export class StudyCommandService extends Service {
     grade: ReviewGrade,
     durationMs?: number
   ) {
-    const row = await this.findSchedulingRow(card.id);
+    const rows = await this.commandRepository.listScheduling();
+    const row = rows.find(item => item.cardId === card.id);
     if (!row) return;
-    const updated = scheduleAfterReview(row, grade);
-    await this.commandRepository.upsertScheduling(updated);
+    const now = Date.now();
+    let updated = scheduleAfterReview(row, grade, now);
+    if (shouldMarkLeech(updated)) {
+      updated = { ...updated, leech: true };
+      await this.updateCard(card.id, { suspended: true });
+    }
+    const postReviewRows = burySiblingScheduling(rows, row.cardId, now).map(
+      item => (item.cardId === updated.cardId ? updated : item)
+    );
+    await Promise.all(
+      postReviewRows.map(item => this.commandRepository.upsertScheduling(item))
+    );
     const reviewLog: StudyReviewLog = {
       id: nanoid(),
       deckId: row.deckId,
       cardId: row.cardId,
-      reviewedAt: updated.lastReviewAt ?? Date.now(),
+      reviewedAt: updated.lastReviewAt ?? now,
       grade,
       schedulingStateBefore: row.state,
       schedulingStateAfter: updated.state,
@@ -510,13 +519,6 @@ export class StudyCommandService extends Service {
       durationMs,
     };
     await this.commandRepository.appendReviewLog(reviewLog);
-  }
-
-  private async findSchedulingRow(
-    cardId: string
-  ): Promise<StudyCardScheduling | undefined> {
-    const rows = await this.commandRepository.listScheduling();
-    return rows.find(item => item.cardId === cardId);
   }
 
   private toPreviewCards(output: StudyCardsGenerateOutput): StudyCardPreview[] {

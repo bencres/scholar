@@ -52,6 +52,8 @@ const StudyCardSchedulingSchema: z.ZodType<StudyCardScheduling> = z.object({
   scheduledDays: z.number(),
   reps: z.number(),
   lapses: z.number(),
+  learningStep: z.number().int().nonnegative().optional(),
+  leech: z.boolean().optional(),
   lastReviewAt: z.number().optional(),
   lastGrade: z
     .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])

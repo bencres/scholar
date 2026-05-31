@@ -51,6 +51,8 @@ export interface StudyCardScheduling {
   scheduledDays: number;
   reps: number;
   lapses: number;
+  learningStep?: number;
+  leech?: boolean;
   lastReviewAt?: number;
   lastGrade?: ReviewGrade;
   buriedUntil?: number;
