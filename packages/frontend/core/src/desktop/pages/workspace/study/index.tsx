@@ -11,7 +11,7 @@ import {
 } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export const StudyHome = () => {
   const t = useI18n();
@@ -23,6 +23,11 @@ export const StudyHome = () => {
   const [deckName, setDeckName] = useState('');
   const [deckDescription, setDeckDescription] = useState('');
   const [deckTags, setDeckTags] = useState('');
+  const learningGraph = studyService.learningGraphSnapshot();
+  const weakestConcepts = useMemo(
+    () => learningGraph.concepts.slice(0, 5),
+    [learningGraph.concepts]
+  );
 
   const canCreateDeck = deckName.trim().length > 0;
 
@@ -115,6 +120,32 @@ export const StudyHome = () => {
             </div>
             <div className={styles.sectionTitle}>
               {t['com.affine.study.decks']()}
+            </div>
+            <div className={styles.formCard}>
+              <div className={styles.formTitle}>Learning graph overview</div>
+              <div className={styles.modeSummary}>
+                <span>
+                  {`Mapped cards: ${learningGraph.mappedCards}/${learningGraph.totalCards}`}
+                </span>
+                <span>{`Concept links: ${learningGraph.edges.length}`}</span>
+              </div>
+              {weakestConcepts.length ? (
+                <div className={styles.conceptGrid}>
+                  {weakestConcepts.map(concept => (
+                    <div key={concept.id} className={styles.conceptCard}>
+                      <div className={styles.conceptTitle}>{concept.label}</div>
+                      <div className={styles.conceptMeta}>
+                        {`Mastery: ${Math.round(concept.mastery * 100)}%`}
+                      </div>
+                      <div className={styles.conceptMeta}>
+                        {`Risk: ${Math.round(concept.forgettingRisk * 100)}%`}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyState}>No mapped concepts yet.</div>
+              )}
             </div>
             <div className={styles.formCard}>
               <div className={styles.formTitle}>

@@ -6,6 +6,7 @@ import type { StudyDeck } from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
 import type { StudyQueryRepository } from '../repositories/study-query-repository';
 import { matchStudyBrowserQuery } from '../utils/card-browser-search';
+import { buildStudyLearningGraphSnapshot } from '../utils/learning-graph';
 import { isDue } from '../utils/scheduling';
 import { buildStudyStatsSnapshot } from '../utils/study-stats';
 
@@ -147,5 +148,21 @@ export class StudyQueryService extends Service {
       ? this.reviewLogs$.value.filter(log => log.deckId === deckId)
       : this.reviewLogs$.value;
     return buildStudyStatsSnapshot(scheduling, logs);
+  }
+
+  learningGraphSnapshot(deckId?: string) {
+    const decks = deckId
+      ? this.decks$.value.filter(deck => deck.id === deckId)
+      : this.decks$.value;
+    const deckIds = new Set(decks.map(deck => deck.id));
+    const scheduling = this.scheduling$.value.filter(row =>
+      deckIds.has(row.deckId)
+    );
+    const logs = this.reviewLogs$.value.filter(log => deckIds.has(log.deckId));
+    return buildStudyLearningGraphSnapshot({
+      decks,
+      scheduling,
+      reviewLogs: logs,
+    });
   }
 }

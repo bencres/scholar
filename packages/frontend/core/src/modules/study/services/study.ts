@@ -2,7 +2,13 @@ import type { Store } from '@blocksuite/affine/store';
 import { Service } from '@toeverything/infra';
 
 import type { ReviewGrade } from '../entities/card';
-import type { StudyCsvFieldMapping } from '../utils/anki-interop';
+import type { StudyDeckMetadata } from '../entities/deck';
+import type {
+  StudyApkgExportResult,
+  StudyApkgImportResult,
+  StudyCsvFieldMapping,
+} from '../utils/anki-interop';
+import type { StudyLearningGraphSnapshot } from '../utils/learning-graph';
 import type {
   StudyCommandService,
   StudyGenerationOptions,
@@ -83,38 +89,7 @@ export class StudyService extends Service {
   createDeck(input: {
     name: string;
     sourceDocId?: string;
-    metadata?: {
-      description?: string;
-      tags?: string[];
-      sourceLinks?: string[];
-      sortPolicy?: 'created-desc' | 'created-asc' | 'due-asc';
-      limits?: {
-        dailyNewLimit?: number;
-        dailyReviewLimit?: number;
-      };
-      optionsGroupId?: string;
-      schedulingOptions?: {
-        learningStepsMinutes?: number[];
-        relearningStepsMinutes?: number[];
-        desiredRetention?: number;
-        easyBonus?: number;
-        graduatingIntervalDays?: number;
-        easyIntervalDays?: number;
-        newCardOrder?: 'position' | 'random';
-        burySiblings?: boolean;
-        leechThreshold?: number;
-      };
-      filtered?: {
-        query: string;
-        limit?: number;
-        reschedule?: boolean;
-      };
-      browserPresets?: Array<{
-        id: string;
-        name: string;
-        query: string;
-      }>;
-    };
+    metadata?: StudyDeckMetadata;
   }) {
     return this.commandService.createDeck(input);
   }
@@ -123,38 +98,7 @@ export class StudyService extends Service {
     deckId: string,
     patch: {
       name?: string;
-      metadata?: {
-        description?: string;
-        tags?: string[];
-        sourceLinks?: string[];
-        sortPolicy?: 'created-desc' | 'created-asc' | 'due-asc';
-        limits?: {
-          dailyNewLimit?: number;
-          dailyReviewLimit?: number;
-        };
-        optionsGroupId?: string;
-        schedulingOptions?: {
-          learningStepsMinutes?: number[];
-          relearningStepsMinutes?: number[];
-          desiredRetention?: number;
-          easyBonus?: number;
-          graduatingIntervalDays?: number;
-          easyIntervalDays?: number;
-          newCardOrder?: 'position' | 'random';
-          burySiblings?: boolean;
-          leechThreshold?: number;
-        };
-        filtered?: {
-          query: string;
-          limit?: number;
-          reschedule?: boolean;
-        };
-        browserPresets?: Array<{
-          id: string;
-          name: string;
-          query: string;
-        }>;
-      };
+      metadata?: StudyDeckMetadata;
     }
   ) {
     return this.commandService.updateDeck(deckId, patch);
@@ -170,6 +114,17 @@ export class StudyService extends Service {
       type: 'recall' | 'synthesis';
       question: string;
       answer?: string;
+      concepts?: string[];
+      noteTypeId?: string;
+      templateId?: string;
+      noteFields?: Record<string, string>;
+      clozeOrdinal?: number;
+      imageOcclusion?: {
+        imageAssetId: string;
+        occlusionId: string;
+        prompt?: string;
+        answer?: string;
+      };
       misconceptions?: string[];
       rubric?: string[];
       tags?: string[];
@@ -184,6 +139,17 @@ export class StudyService extends Service {
       type?: 'recall' | 'synthesis';
       question?: string;
       answer?: string;
+      concepts?: string[];
+      noteTypeId?: string;
+      templateId?: string;
+      noteFields?: Record<string, string>;
+      clozeOrdinal?: number;
+      imageOcclusion?: {
+        imageAssetId: string;
+        occlusionId: string;
+        prompt?: string;
+        answer?: string;
+      };
       misconceptions?: string[];
       rubric?: string[];
       tags?: string[];
@@ -239,6 +205,10 @@ export class StudyService extends Service {
     return this.queryService.statsSnapshot(deckId);
   }
 
+  learningGraphSnapshot(deckId?: string): StudyLearningGraphSnapshot {
+    return this.queryService.learningGraphSnapshot(deckId);
+  }
+
   exportDeckCsv(deckId: string, mapping?: StudyCsvFieldMapping) {
     return this.commandService.exportDeckCsv(deckId, mapping);
   }
@@ -253,5 +223,16 @@ export class StudyService extends Service {
 
   getApkgCompatibilityReport() {
     return this.commandService.getApkgCompatibilityReport();
+  }
+
+  exportDeckApkg(deckId: string): Promise<StudyApkgExportResult> {
+    return this.commandService.exportDeckApkg(deckId);
+  }
+
+  importDeckApkg(input: {
+    fileName: string;
+    bytes: Uint8Array;
+  }): Promise<StudyApkgImportResult> {
+    return this.commandService.importDeckApkg(input);
   }
 }

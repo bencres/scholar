@@ -57,6 +57,7 @@ export interface StudyCardContent {
   id: string;
   deckId: string;
   type: CardType;
+  concepts?: string[];
   noteTypeId?: string;
   templateId?: string;
   noteFields?: Record<string, string>;

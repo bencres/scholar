@@ -244,6 +244,35 @@ export const modeSummary = style({
   fontSize: 14,
 });
 
+export const conceptGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+  gap: 10,
+  marginTop: 12,
+});
+
+export const conceptCard = style({
+  padding: 12,
+  borderRadius: 10,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.secondary,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 4,
+});
+
+export const conceptTitle = style({
+  fontSize: 13,
+  fontWeight: 600,
+  color: cssVarV2.text.primary,
+});
+
+export const conceptMeta = style({
+  fontSize: 12,
+  lineHeight: '18px',
+  color: cssVarV2.text.secondary,
+});
+
 export const deckPageHeader = style({
   display: 'flex',
   justifyContent: 'space-between',

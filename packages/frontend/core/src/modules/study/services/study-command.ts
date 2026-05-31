@@ -13,7 +13,11 @@ import {
   isStudyGenerateModelId,
   STUDY_GENERATE_MODEL_STORAGE_KEY,
 } from '../constants/generate-models';
-import type { ReviewGrade, StudyCardContent } from '../entities/card';
+import type {
+  ReviewGrade,
+  StudyCardContent,
+  StudyNoteType,
+} from '../entities/card';
 import type {
   StudyDeck,
   StudyDeckBrowserPreset,
@@ -28,10 +32,16 @@ import {
   type StudyCardsGenerateOutput,
   StudyCardsGenerateOutputSchema,
 } from '../schema/generate-output';
-import type { StudyCsvFieldMapping } from '../utils/anki-interop';
+import type {
+  StudyApkgExportResult,
+  StudyApkgImportResult,
+  StudyCsvFieldMapping,
+} from '../utils/anki-interop';
 import {
   createApkgCompatibilityReport,
+  exportDeckToApkg,
   exportDeckToCsv,
+  importDeckFromApkg,
   importDeckFromCsv,
 } from '../utils/anki-interop';
 import {
@@ -406,6 +416,12 @@ export class StudyCommandService extends Service {
       type: StudyCardContent['type'];
       question: string;
       answer?: string;
+      concepts?: string[];
+      noteTypeId?: string;
+      templateId?: string;
+      noteFields?: Record<string, string>;
+      clozeOrdinal?: number;
+      imageOcclusion?: StudyCardContent['imageOcclusion'];
       misconceptions?: string[];
       rubric?: string[];
       tags?: string[];
@@ -423,6 +439,12 @@ export class StudyCommandService extends Service {
       type: input.type,
       question: input.question.trim(),
       answer: input.answer?.trim() || undefined,
+      concepts: cleanList(input.concepts),
+      noteTypeId: input.noteTypeId?.trim() || undefined,
+      templateId: input.templateId?.trim() || undefined,
+      noteFields: sanitizeNoteFields(input.noteFields),
+      clozeOrdinal: sanitizeClozeOrdinal(input.clozeOrdinal),
+      imageOcclusion: sanitizeImageOcclusion(input.imageOcclusion),
       misconceptions: cleanList(input.misconceptions),
       rubric: cleanList(input.rubric),
       tags: cleanList(input.tags),
@@ -451,6 +473,12 @@ export class StudyCommandService extends Service {
       type?: StudyCardContent['type'];
       question?: string;
       answer?: string;
+      concepts?: string[];
+      noteTypeId?: string;
+      templateId?: string;
+      noteFields?: Record<string, string>;
+      clozeOrdinal?: number;
+      imageOcclusion?: StudyCardContent['imageOcclusion'];
       misconceptions?: string[];
       rubric?: string[];
       tags?: string[];
@@ -472,6 +500,30 @@ export class StudyCommandService extends Service {
           patch.answer !== undefined
             ? patch.answer.trim() || undefined
             : current.answer,
+        concepts:
+          patch.concepts !== undefined
+            ? cleanList(patch.concepts)
+            : current.concepts,
+        noteTypeId:
+          patch.noteTypeId !== undefined
+            ? patch.noteTypeId.trim() || undefined
+            : current.noteTypeId,
+        templateId:
+          patch.templateId !== undefined
+            ? patch.templateId.trim() || undefined
+            : current.templateId,
+        noteFields:
+          patch.noteFields !== undefined
+            ? sanitizeNoteFields(patch.noteFields)
+            : current.noteFields,
+        clozeOrdinal:
+          patch.clozeOrdinal !== undefined
+            ? sanitizeClozeOrdinal(patch.clozeOrdinal)
+            : current.clozeOrdinal,
+        imageOcclusion:
+          patch.imageOcclusion !== undefined
+            ? sanitizeImageOcclusion(patch.imageOcclusion)
+            : current.imageOcclusion,
         misconceptions:
           patch.misconceptions !== undefined
             ? cleanList(patch.misconceptions)
@@ -672,6 +724,33 @@ export class StudyCommandService extends Service {
     return createApkgCompatibilityReport();
   }
 
+  async exportDeckApkg(deckId: string): Promise<StudyApkgExportResult> {
+    const decks = await this.commandRepository.listDecks();
+    const deck = decks.find(item => item.id === deckId);
+    if (!deck) {
+      throw new Error(`Deck not found: ${deckId}`);
+    }
+    return exportDeckToApkg(deck);
+  }
+
+  async importDeckApkg(input: {
+    fileName: string;
+    bytes: Uint8Array;
+  }): Promise<StudyApkgImportResult> {
+    const imported = await importDeckFromApkg({
+      fileName: input.fileName,
+      bytes: input.bytes,
+      workspaceId: this.workspaceService.workspace.id,
+    });
+    await this.commandRepository.upsertDeck(imported.deck);
+    await Promise.all(
+      imported.scheduling.map(row =>
+        this.commandRepository.upsertScheduling(row)
+      )
+    );
+    return imported;
+  }
+
   private async evaluateSelectedCardsQuality(cards: StudyCardPreview[]) {
     try {
       return await evaluateStudyCardSelection(cards, {
@@ -726,6 +805,7 @@ function sanitizeDeckMetadata(
   const description = metadata.description?.trim() || undefined;
   const tags = cleanList(metadata.tags);
   const sourceLinks = cleanList(metadata.sourceLinks);
+  const noteTypes = sanitizeNoteTypes(metadata.noteTypes);
   const dailyNewLimit = toPositiveLimit(metadata.limits?.dailyNewLimit);
   const dailyReviewLimit = toPositiveLimit(metadata.limits?.dailyReviewLimit);
   const sortPolicy = isSortPolicy(metadata.sortPolicy)
@@ -748,6 +828,7 @@ function sanitizeDeckMetadata(
     !description &&
     !tags &&
     !sourceLinks &&
+    !noteTypes &&
     !limits &&
     !sortPolicy &&
     !optionsGroupId &&
@@ -761,6 +842,7 @@ function sanitizeDeckMetadata(
     description,
     tags,
     sourceLinks,
+    noteTypes,
     sortPolicy,
     limits,
     optionsGroupId,
@@ -882,6 +964,75 @@ function sanitizeBrowserPresets(
     }))
     .filter(preset => preset.id && preset.name && preset.query);
   return normalized.length ? normalized : undefined;
+}
+
+function sanitizeNoteTypes(
+  noteTypes?: StudyNoteType[]
+): StudyNoteType[] | undefined {
+  if (!noteTypes?.length) {
+    return undefined;
+  }
+  const normalized = noteTypes
+    .map(noteType => ({
+      id: noteType.id.trim(),
+      name: noteType.name.trim(),
+      kind: noteType.kind,
+      fieldNames: noteType.fieldNames
+        .map(field => field.trim())
+        .filter(Boolean),
+      templates: noteType.templates
+        .map(template => ({
+          id: template.id.trim(),
+          name: template.name.trim(),
+          front: template.front.trim(),
+          back: template.back.trim(),
+        }))
+        .filter(template => template.id && template.name),
+    }))
+    .filter(noteType => noteType.id && noteType.name);
+  return normalized.length ? normalized : undefined;
+}
+
+function sanitizeNoteFields(
+  fields?: Record<string, string>
+): Record<string, string> | undefined {
+  if (!fields) {
+    return undefined;
+  }
+  const entries = Object.entries(fields)
+    .map(([key, value]) => [key.trim(), value.trim()] as const)
+    .filter(([key, value]) => key && value);
+  if (!entries.length) {
+    return undefined;
+  }
+  return Object.fromEntries(entries);
+}
+
+function sanitizeClozeOrdinal(ordinal?: number): number | undefined {
+  if (!Number.isFinite(ordinal)) {
+    return undefined;
+  }
+  const rounded = Math.floor(ordinal as number);
+  return rounded > 0 ? rounded : undefined;
+}
+
+function sanitizeImageOcclusion(
+  value?: StudyCardContent['imageOcclusion']
+): StudyCardContent['imageOcclusion'] | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const imageAssetId = value.imageAssetId?.trim() || '';
+  const occlusionId = value.occlusionId?.trim() || '';
+  if (!imageAssetId || !occlusionId) {
+    return undefined;
+  }
+  return {
+    imageAssetId,
+    occlusionId,
+    prompt: value.prompt?.trim() || undefined,
+    answer: value.answer?.trim() || undefined,
+  };
 }
 
 function sanitizePositiveNumbers(values?: number[]) {

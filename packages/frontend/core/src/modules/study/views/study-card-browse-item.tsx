@@ -11,6 +11,7 @@ export type StudyCardBrowseData = {
   type: CardType;
   question: string;
   answer?: string;
+  concepts?: string[];
   misconceptions?: string[];
   rubric?: string[];
 };
@@ -62,6 +63,11 @@ export const StudyCardBrowseItem = ({
         <div className={styles.browseCardHeaderMain}>
           <div className={styles.browseCardMeta}>
             <span className={styles.cardTypeBadge}>{typeLabel}</span>
+            {card.concepts?.length ? (
+              <span className={styles.cardTypeBadge}>
+                {card.concepts.slice(0, 2).join(', ')}
+              </span>
+            ) : null}
           </div>
           <div className={styles.cardQuestion}>{card.question}</div>
         </div>
