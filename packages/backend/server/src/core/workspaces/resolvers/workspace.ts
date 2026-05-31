@@ -8,6 +8,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { GraphQLJSONObject } from 'graphql-scalars';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 
 import type { FileUpload } from '../../../base';
@@ -55,6 +56,18 @@ export class WorkspaceRolePermissions {
 
   @Field(() => WorkspacePermissions)
   permissions!: Record<DotToUnderline<WorkspaceAction>, boolean>;
+}
+
+@ObjectType()
+export class WorkspaceStudyStorageStateType {
+  @Field(() => GraphQLJSONObject)
+  decks!: Record<string, unknown>;
+
+  @Field(() => GraphQLJSONObject)
+  sidecar!: Record<string, unknown>;
+
+  @Field(() => Date)
+  updatedAt!: Date;
 }
 
 /**
@@ -125,6 +138,35 @@ export class WorkspaceResolver {
       .permissions();
 
     return mapPermissionsToGraphqlPermissions(permissions);
+  }
+
+  @ResolveField(() => WorkspaceStudyStorageStateType, {
+    description:
+      'Current user study storage state for this workspace, persisted on server',
+    nullable: true,
+  })
+  async studyStorage(
+    @CurrentUser() user: CurrentUser,
+    @Parent() workspace: WorkspaceType
+  ) {
+    await this.ac
+      .user(user.id)
+      .workspace(workspace.id)
+      .assert('Workspace.Read');
+
+    const state = await this.models.studyStorageState.get(
+      workspace.id,
+      user.id
+    );
+    if (!state) {
+      return null;
+    }
+
+    return {
+      decks: state.decks,
+      sidecar: state.sidecar,
+      updatedAt: state.updatedAt,
+    };
   }
 
   @ResolveField(() => WorkspaceQuotaType, {
@@ -265,6 +307,27 @@ export class WorkspaceResolver {
 
     await this.models.workspace.delete(id);
 
+    return true;
+  }
+
+  @Mutation(() => Boolean, {
+    description: 'Upsert current user study storage state for workspace',
+  })
+  async upsertWorkspaceStudyStorage(
+    @CurrentUser() user: CurrentUser,
+    @Args('workspaceId') workspaceId: string,
+    @Args('decks', { type: () => GraphQLJSONObject })
+    decks: Record<string, unknown>,
+    @Args('sidecar', { type: () => GraphQLJSONObject })
+    sidecar: Record<string, unknown>
+  ) {
+    await this.ac.user(user.id).workspace(workspaceId).assert('Workspace.Read');
+    await this.models.studyStorageState.upsert({
+      workspaceId,
+      userId: user.id,
+      decks,
+      sidecar,
+    });
     return true;
   }
 }

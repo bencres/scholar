@@ -40,6 +40,7 @@ import {
 } from './permission-write';
 import { MODELS_SYMBOL } from './provider';
 import { SessionModel } from './session';
+import { StudyStorageStateModel } from './study-storage-state';
 import { UserModel } from './user';
 import { UserDocModel } from './user-doc';
 import { UserFeatureModel } from './user-feature';
@@ -84,6 +85,7 @@ const MODELS = {
   copilotWorkspaceByokConfig: CopilotWorkspaceByokConfigModel,
   copilotJob: CopilotJobModel,
   appConfig: AppConfigModel,
+  studyStorageState: StudyStorageStateModel,
   comment: CommentModel,
   commentAttachment: CommentAttachmentModel,
   blob: BlobModel,
@@ -169,6 +171,7 @@ export * from './notification';
 export * from './permission-projection';
 export * from './permission-write';
 export * from './session';
+export * from './study-storage-state';
 export * from './user';
 export * from './user-doc';
 export * from './user-feature';

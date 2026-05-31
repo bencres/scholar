@@ -1746,6 +1746,9 @@ type Mutation {
   """Upload a comment attachment and return the access url"""
   uploadCommentAttachment(attachment: Upload!, docId: String!, workspaceId: String!): String!
   upsertWorkspaceByokConfig(input: UpsertWorkspaceByokConfigInput!): WorkspaceByokKeyConfigType!
+
+  """Upsert current user study storage state for workspace"""
+  upsertWorkspaceStudyStorage(decks: JSONObject!, sidecar: JSONObject!, workspaceId: String!): Boolean!
   verifyEmail(token: String!): Boolean!
 }
 
@@ -2844,6 +2847,12 @@ type WorkspaceRolePermissions {
   role: Permission!
 }
 
+type WorkspaceStudyStorageStateType {
+  decks: JSONObject!
+  sidecar: JSONObject!
+  updatedAt: DateTime!
+}
+
 type WorkspaceType {
   """Search a specific table with aggregate"""
   aggregate(input: AggregateInput!): AggregateResultObjectType!
@@ -2936,6 +2945,11 @@ type WorkspaceType {
 
   """Search docs by keyword"""
   searchDocs(input: SearchDocsInput!): [SearchDocObjectType!]!
+
+  """
+  Current user study storage state for this workspace, persisted on server
+  """
+  studyStorage: WorkspaceStudyStorageStateType
 
   """The team subscription of the workspace, if exists."""
   subscription: SubscriptionType
