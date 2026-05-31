@@ -1,5 +1,6 @@
 import type { Framework } from '@toeverything/infra';
 
+import { WorkspaceServerService } from '../cloud';
 import { FeatureFlagService } from '../feature-flag';
 import { CacheStorage, GlobalStateService } from '../storage';
 import { WorkspaceScope, WorkspaceService } from '../workspace';
@@ -34,6 +35,18 @@ export function configureStudyModule(framework: Framework) {
       GlobalStateService,
     ])
     .service(StudyService, [StudyQueryService, StudyCommandService])
-    .store(StudyDeckStore, [WorkspaceService, CacheStorage])
-    .store(StudySidecarStore, [WorkspaceService, CacheStorage]);
+    .store(StudyDeckStore, f => {
+      return new StudyDeckStore(
+        f.get(WorkspaceService),
+        f.get(CacheStorage),
+        f.getOptional(WorkspaceServerService)
+      );
+    })
+    .store(StudySidecarStore, f => {
+      return new StudySidecarStore(
+        f.get(WorkspaceService),
+        f.get(CacheStorage),
+        f.getOptional(WorkspaceServerService)
+      );
+    });
 }
