@@ -5,3 +5,7 @@ export function studyDeckStorageKey(workspaceId: string) {
 export function studySidecarStorageKey(workspaceId: string) {
   return `study-scheduling:${workspaceId}`;
 }
+
+export function studyDailyReminderStorageKey(workspaceId: string) {
+  return `study-daily-reminder:${workspaceId}`;
+}

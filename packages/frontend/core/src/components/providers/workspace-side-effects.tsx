@@ -11,6 +11,7 @@ import {
 import { useRegisterFindInPageCommands } from '@affine/core/components/hooks/affine/use-register-find-in-page-commands';
 import { useRegisterWorkspaceCommands } from '@affine/core/components/hooks/use-register-workspace-commands';
 import { OverCapacityNotification } from '@affine/core/components/over-capacity';
+import { StudyDailyReminder } from '@affine/core/components/study-daily-reminder';
 import {
   AuthService,
   EventSourceService,
@@ -173,6 +174,7 @@ export const WorkspaceSideEffects = () => {
     <>
       <QuickSearchContainer />
       <OverCapacityNotification />
+      <StudyDailyReminder />
     </>
   );
 };
