@@ -17,6 +17,10 @@ import {
   fetchRemoteStudyStorageState,
   upsertRemoteStudyStorageState,
 } from './study-storage-remote';
+import {
+  patchStudySyncMeta,
+  readStudySyncMeta,
+} from './study-storage-sync-meta';
 
 export class StudyDeckStore extends Store {
   private remoteHydrationPromise: Promise<void> | null = null;
@@ -44,17 +48,85 @@ export class StudyDeckStore extends Store {
     return this.workspaceServerService?.server ?? null;
   }
 
+  private get workspaceId() {
+    return this.workspaceService.workspace.id;
+  }
+
+  private async readLocalDeckState() {
+    return normalizeDeckStorageState(
+      await this.cacheStorage.get<unknown>(this.key)
+    );
+  }
+
+  private async readLocalSidecarState() {
+    return normalizeSidecarStorageState(
+      await this.cacheStorage.get<unknown>(this.sidecarKey)
+    );
+  }
+
+  private hasLocalStudyData(input: {
+    decks: StudyDeckStorageState;
+    sidecar: ReturnType<typeof normalizeSidecarStorageState>;
+  }) {
+    return (
+      input.decks.decks.length > 0 ||
+      input.sidecar.scheduling.length > 0 ||
+      input.sidecar.reviewLogs.length > 0
+    );
+  }
+
   private async ensureHydratedFromRemote() {
     const server = this.server;
     if (!server) {
       return;
     }
     this.remoteHydrationPromise ??= (async () => {
-      const remote = await fetchRemoteStudyStorageState(
-        server,
-        this.workspaceService.workspace.id
-      );
+      const [localDeckState, localSidecarState, syncMeta, remote] =
+        await Promise.all([
+          this.readLocalDeckState(),
+          this.readLocalSidecarState(),
+          readStudySyncMeta(this.cacheStorage, this.workspaceId),
+          fetchRemoteStudyStorageState(server, this.workspaceId),
+        ]);
+
+      const localHasData = this.hasLocalStudyData({
+        decks: localDeckState,
+        sidecar: localSidecarState,
+      });
+
       if (!remote) {
+        // Import existing browser-side study state on first cloud hydration.
+        if (localHasData) {
+          await upsertRemoteStudyStorageState(
+            server,
+            this.workspaceId,
+            localDeckState as unknown as Record<string, unknown>,
+            localSidecarState as unknown as Record<string, unknown>
+          );
+          await patchStudySyncMeta(this.cacheStorage, this.workspaceId, {
+            lastRemoteWriteAt: Date.now(),
+          });
+        }
+        return;
+      }
+
+      const remoteUpdatedAt = remote.updatedAt
+        ? Date.parse(remote.updatedAt)
+        : 0;
+      const localDirtyAt = syncMeta.lastLocalWriteAt ?? 0;
+      const keepLocalAndRePush = localHasData && localDirtyAt > remoteUpdatedAt;
+
+      // Last-write-wins: if this device has newer unsynced writes, push local back.
+      if (keepLocalAndRePush) {
+        await upsertRemoteStudyStorageState(
+          server,
+          this.workspaceId,
+          localDeckState as unknown as Record<string, unknown>,
+          localSidecarState as unknown as Record<string, unknown>
+        );
+        await patchStudySyncMeta(this.cacheStorage, this.workspaceId, {
+          lastRemoteWriteAt: Date.now(),
+        });
         return;
       }
 
@@ -70,6 +142,9 @@ export class StudyDeckStore extends Store {
           normalizeSidecarStorageState(remote.sidecar)
         );
       }
+      await patchStudySyncMeta(this.cacheStorage, this.workspaceId, {
+        lastRemoteSeenUpdatedAt: remoteUpdatedAt || undefined,
+      });
     })();
 
     try {
@@ -103,22 +178,27 @@ export class StudyDeckStore extends Store {
   }
 
   async saveDecks(decks: StudyDeck[]) {
+    const now = Date.now();
     const state: StudyDeckStorageState = {
       version: STUDY_DECK_STORAGE_VERSION,
       decks,
     };
+    await patchStudySyncMeta(this.cacheStorage, this.workspaceId, {
+      lastLocalWriteAt: now,
+    });
 
     if (this.server) {
       try {
-        const sidecar = normalizeSidecarStorageState(
-          await this.cacheStorage.get<unknown>(this.sidecarKey)
-        );
+        const sidecar = await this.readLocalSidecarState();
         await upsertRemoteStudyStorageState(
           this.server,
-          this.workspaceService.workspace.id,
+          this.workspaceId,
           state as unknown as Record<string, unknown>,
           sidecar as unknown as Record<string, unknown>
         );
+        await patchStudySyncMeta(this.cacheStorage, this.workspaceId, {
+          lastRemoteWriteAt: now,
+        });
       } catch (error) {
         console.error('[study] failed to persist decks to server', error);
       }
