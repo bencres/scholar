@@ -188,6 +188,39 @@ export const actionsRow = style({
   marginTop: 16,
 });
 
+export const formCard = style({
+  padding: 16,
+  borderRadius: 10,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.primary,
+  marginBottom: 16,
+});
+
+export const formTitle = style({
+  fontSize: 14,
+  fontWeight: 600,
+  color: cssVarV2.text.primary,
+  marginBottom: 10,
+});
+
+export const formGrid = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+});
+
+export const toggleRow = style({
+  display: 'flex',
+  gap: 8,
+  flexWrap: 'wrap',
+});
+
+export const inlineActions = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+});
+
 export const deckPageHeader = style({
   display: 'flex',
   justifyContent: 'space-between',

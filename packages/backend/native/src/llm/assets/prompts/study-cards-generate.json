@@ -14,6 +14,22 @@
     "topP": 0.9,
     "maxTokens": 8192
   },
+  "params": {
+    "qualityProfile": {
+      "default": "balanced",
+      "enum": ["balanced", "strict"]
+    },
+    "targetRecallCount": {
+      "default": "10"
+    },
+    "targetSynthesisCount": {
+      "default": "7"
+    },
+    "includeCardMetadata": {
+      "default": "true",
+      "enum": ["true", "false"]
+    }
+  },
   "messages": [
     {
       "role": "assistant",
@@ -21,7 +37,7 @@
     },
     {
       "role": "user",
-      "template": "{{#focus}}Focus on this topic within the notes:\n{{focus}}\n\n{{/focus}}{{>guarded_content}}"
+      "template": "{{#focus}}Focus on this topic within the notes:\n{{focus}}\n\n{{/focus}}{{#qualityProfile}}Generation quality profile: {{qualityProfile}}\n{{/qualityProfile}}{{#targetRecallCount}}Target recall card count: {{targetRecallCount}}\n{{/targetRecallCount}}{{#targetSynthesisCount}}Target synthesis card count: {{targetSynthesisCount}}\n{{/targetSynthesisCount}}{{#includeCardMetadata}}Include card metadata fields when confidence is high: {{includeCardMetadata}}\n{{/includeCardMetadata}}\n{{>guarded_content}}"
     }
   ]
 }

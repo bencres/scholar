@@ -12,8 +12,8 @@ Return JSON only (no markdown wrapper, no code fences, no commentary). Fields: `
 
 Keep answers and rubrics concise so the full deck fits in one response.
 
-- **Recall:** closed Q→A. Optional `misconceptions` (1–2 strings). Optional `blockIds` when a card maps to a section.
-- **Synthesis:** open prompt + `rubric` (3–4 checkable strings). Optional `blockIds`.
+- **Recall:** closed Q→A. Optional `misconceptions` (1–2 strings). Optional `blockIds` when a card maps to a section. Optional `metadata` when it materially helps downstream study modes.
+- **Synthesis:** open prompt + `rubric` (3–4 checkable strings). Optional `blockIds`. Optional `metadata` when it materially helps downstream study modes.
 
 ## Card types
 
@@ -64,6 +64,7 @@ Draw from lenses such as:
 - Do not copy note text verbatim.
 - Cut low-value trivia; card transferable knowledge only.
 - Set `blockIds` when you can tie a card to a identifiable section of the source.
+- Include `metadata` only when confidence is high and it is genuinely useful for routing/review quality checks.
 - `deckName`: short, descriptive title for the deck (from topic of the notes).
 
 ## Response format
@@ -78,17 +79,29 @@ Return **only** a single raw JSON object matching this shape. Do not wrap it in 
       "question": "string",
       "answer": "string",
       "misconceptions": ["string"],
-      "blockIds": ["string"]
+      "blockIds": ["string"],
+      "metadata": {
+        "noteTypeHint": "basic | reversed | cloze | scenario",
+        "cognitiveLevel": "remember | understand | apply | analyze | evaluate",
+        "reasoningType": "mechanism | tradeoff | comparison | scenario | debugging | transfer",
+        "difficulty": "intro | intermediate | advanced"
+      }
     }
   ],
   "synthesis": [
     {
       "question": "string",
       "rubric": ["string"],
-      "blockIds": ["string"]
+      "blockIds": ["string"],
+      "metadata": {
+        "noteTypeHint": "basic | reversed | cloze | scenario",
+        "cognitiveLevel": "remember | understand | apply | analyze | evaluate",
+        "reasoningType": "mechanism | tradeoff | comparison | scenario | debugging | transfer",
+        "difficulty": "intro | intermediate | advanced"
+      }
     }
   ]
 }
 ```
 
-`misconceptions`, `blockIds`, and rubric items are optional where noted above; `deckName`, `recall`, and `synthesis` are required.
+`misconceptions`, `blockIds`, `metadata`, and rubric items are optional where noted above; `deckName`, `recall`, and `synthesis` are required.

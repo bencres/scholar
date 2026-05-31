@@ -7,11 +7,14 @@ import type { StudyDeckStore } from '../stores/study-deck';
 import type { StudySidecarStore } from '../stores/study-sidecar';
 
 export interface StudyWriteRepository {
+  listDecks(): Promise<StudyDeck[]>;
+  saveDecks(decks: StudyDeck[]): Promise<void>;
   listScheduling(): Promise<StudyCardScheduling[]>;
   upsertDeck(deck: StudyDeck): Promise<void>;
   upsertScheduling(row: StudyCardScheduling): Promise<void>;
   appendReviewLog(log: StudyReviewLog): Promise<void>;
   removeSchedulingForDeck(deckId: string): Promise<void>;
+  removeSchedulingForCard(cardId: string): Promise<void>;
 }
 
 export class StudyCommandRepository extends Store {
@@ -24,6 +27,14 @@ export class StudyCommandRepository extends Store {
 
   listScheduling() {
     return this.sidecarStore.listScheduling();
+  }
+
+  listDecks() {
+    return this.deckStore.listDecks();
+  }
+
+  saveDecks(decks: StudyDeck[]) {
+    return this.deckStore.saveDecks(decks);
   }
 
   upsertDeck(deck: StudyDeck) {
@@ -40,5 +51,9 @@ export class StudyCommandRepository extends Store {
 
   removeSchedulingForDeck(deckId: string) {
     return this.sidecarStore.removeSchedulingForDeck(deckId);
+  }
+
+  removeSchedulingForCard(cardId: string) {
+    return this.sidecarStore.removeSchedulingForCard(cardId);
   }
 }

@@ -1,4 +1,4 @@
-import { Button } from '@affine/component';
+import { Button, Input } from '@affine/component';
 import { StudyService } from '@affine/core/modules/study';
 import { StudyDeckListItem } from '@affine/core/modules/study/views/study-deck-list-item';
 import * as styles from '@affine/core/modules/study/views/styles.css';
@@ -11,6 +11,7 @@ import {
 } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
+import { useState } from 'react';
 
 export const StudyHome = () => {
   const t = useI18n();
@@ -19,6 +20,29 @@ export const StudyHome = () => {
   const decks = useLiveData(studyService.decks$);
   const dueCount = useLiveData(studyService.dueCount$);
   const dueByDeck = useLiveData(studyService.dueCountByDeck$);
+  const [deckName, setDeckName] = useState('');
+  const [deckDescription, setDeckDescription] = useState('');
+  const [deckTags, setDeckTags] = useState('');
+
+  const canCreateDeck = deckName.trim().length > 0;
+
+  const handleCreateDeck = async () => {
+    if (!canCreateDeck) return;
+    const deck = await studyService.createDeck({
+      name: deckName,
+      metadata: {
+        description: deckDescription,
+        tags: deckTags
+          .split(',')
+          .map(item => item.trim())
+          .filter(Boolean),
+      },
+    });
+    setDeckName('');
+    setDeckDescription('');
+    setDeckTags('');
+    workbench.open(`/study/decks/${deck.id}`, { at: 'active' });
+  };
 
   if (!studyService.enabled) {
     return (
@@ -68,6 +92,50 @@ export const StudyHome = () => {
             </div>
             <div className={styles.sectionTitle}>
               {t['com.affine.study.decks']()}
+            </div>
+            <div className={styles.formCard}>
+              <div className={styles.formTitle}>
+                {t['com.affine.study.create-deck']()}
+              </div>
+              <div className={styles.formGrid}>
+                <Input
+                  value={deckName}
+                  onChange={event => setDeckName(event.target.value)}
+                  placeholder={t['com.affine.study.deck-name.placeholder']()}
+                />
+                <Input
+                  value={deckDescription}
+                  onChange={event => setDeckDescription(event.target.value)}
+                  placeholder={t[
+                    'com.affine.study.deck-description.placeholder'
+                  ]()}
+                />
+                <Input
+                  value={deckTags}
+                  onChange={event => setDeckTags(event.target.value)}
+                  placeholder={t['com.affine.study.deck-tags.placeholder']()}
+                />
+              </div>
+              <div className={styles.actionsRow}>
+                <Button
+                  variant="primary"
+                  disabled={!canCreateDeck}
+                  onClick={() => {
+                    handleCreateDeck().catch(error => {
+                      console.error('[study.home] create deck failed', error);
+                    });
+                  }}
+                >
+                  {t['com.affine.study.create-deck']()}
+                </Button>
+                <Button
+                  onClick={() =>
+                    workbench.open('/study/generate', { at: 'active' })
+                  }
+                >
+                  {t['com.affine.study.generate.title']()}
+                </Button>
+              </div>
             </div>
             {decks.length === 0 ? (
               <div className={styles.emptyState}>

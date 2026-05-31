@@ -122,6 +122,10 @@ export const actionDefinitions = {
     buildContent: options => options.input,
     buildParams: options => ({
       focus: options.params?.focus,
+      qualityProfile: options.params?.qualityProfile,
+      targetRecallCount: options.params?.targetRecallCount,
+      targetSynthesisCount: options.params?.targetSynthesisCount,
+      includeCardMetadata: options.params?.includeCardMetadata,
     }),
   },
   expandMindmap: {

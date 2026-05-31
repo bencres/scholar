@@ -70,6 +70,79 @@ export class StudyService extends Service {
     return this.commandService.savePreviewDeck();
   }
 
+  createDeck(input: {
+    name: string;
+    sourceDocId?: string;
+    metadata?: {
+      description?: string;
+      tags?: string[];
+      sourceLinks?: string[];
+      sortPolicy?: 'created-desc' | 'created-asc' | 'due-asc';
+      limits?: {
+        dailyNewLimit?: number;
+        dailyReviewLimit?: number;
+      };
+    };
+  }) {
+    return this.commandService.createDeck(input);
+  }
+
+  updateDeck(
+    deckId: string,
+    patch: {
+      name?: string;
+      metadata?: {
+        description?: string;
+        tags?: string[];
+        sourceLinks?: string[];
+        sortPolicy?: 'created-desc' | 'created-asc' | 'due-asc';
+        limits?: {
+          dailyNewLimit?: number;
+          dailyReviewLimit?: number;
+        };
+      };
+    }
+  ) {
+    return this.commandService.updateDeck(deckId, patch);
+  }
+
+  deleteDeck(deckId: string) {
+    return this.commandService.deleteDeck(deckId);
+  }
+
+  createCard(
+    deckId: string,
+    input: {
+      type: 'recall' | 'synthesis';
+      question: string;
+      answer?: string;
+      misconceptions?: string[];
+      rubric?: string[];
+      tags?: string[];
+    }
+  ) {
+    return this.commandService.createCard(deckId, input);
+  }
+
+  updateCard(
+    cardId: string,
+    patch: {
+      type?: 'recall' | 'synthesis';
+      question?: string;
+      answer?: string;
+      misconceptions?: string[];
+      rubric?: string[];
+      tags?: string[];
+      suspended?: boolean;
+    }
+  ) {
+    return this.commandService.updateCard(cardId, patch);
+  }
+
+  deleteCard(cardId: string) {
+    return this.commandService.deleteCard(cardId);
+  }
+
   async gradeCard(cardId: string, grade: ReviewGrade, durationMs?: number) {
     const card = this.queryService.findCardById(cardId);
     if (!card) return;

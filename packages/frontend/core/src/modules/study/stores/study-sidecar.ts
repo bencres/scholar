@@ -98,6 +98,15 @@ export class StudySidecarStore extends Store {
     });
   }
 
+  async removeSchedulingForCard(cardId: string) {
+    const state = await this.listSidecarState();
+    await this.saveSidecarState({
+      ...state,
+      scheduling: state.scheduling.filter(row => row.cardId !== cardId),
+      reviewLogs: state.reviewLogs.filter(log => log.cardId !== cardId),
+    });
+  }
+
   private async saveSidecarState(state: StudySidecarStorageState) {
     await this.cacheStorage.set(this.key, {
       version: STUDY_SIDECAR_STORAGE_VERSION,

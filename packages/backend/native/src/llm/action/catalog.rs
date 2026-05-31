@@ -306,6 +306,35 @@ fn study_cards_generate_output_schema() -> Value {
             "blockIds": {
               "type": "array",
               "items": { "type": "string" }
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "noteTypeHint": {
+                  "type": "string",
+                  "enum": ["basic", "reversed", "cloze", "scenario"]
+                },
+                "cognitiveLevel": {
+                  "type": "string",
+                  "enum": ["remember", "understand", "apply", "analyze", "evaluate"]
+                },
+                "reasoningType": {
+                  "type": "string",
+                  "enum": [
+                    "mechanism",
+                    "tradeoff",
+                    "comparison",
+                    "scenario",
+                    "debugging",
+                    "transfer"
+                  ]
+                },
+                "difficulty": {
+                  "type": "string",
+                  "enum": ["intro", "intermediate", "advanced"]
+                }
+              },
+              "additionalProperties": false
             }
           },
           "required": ["question", "answer"],
@@ -329,6 +358,35 @@ fn study_cards_generate_output_schema() -> Value {
             "blockIds": {
               "type": "array",
               "items": { "type": "string" }
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "noteTypeHint": {
+                  "type": "string",
+                  "enum": ["basic", "reversed", "cloze", "scenario"]
+                },
+                "cognitiveLevel": {
+                  "type": "string",
+                  "enum": ["remember", "understand", "apply", "analyze", "evaluate"]
+                },
+                "reasoningType": {
+                  "type": "string",
+                  "enum": [
+                    "mechanism",
+                    "tradeoff",
+                    "comparison",
+                    "scenario",
+                    "debugging",
+                    "transfer"
+                  ]
+                },
+                "difficulty": {
+                  "type": "string",
+                  "enum": ["intro", "intermediate", "advanced"]
+                }
+              },
+              "additionalProperties": false
             }
           },
           "required": ["question", "rubric"],

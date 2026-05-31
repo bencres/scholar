@@ -11,6 +11,19 @@ export interface StudyCardProvenance {
   chunkId?: string;
 }
 
+export interface StudyCardGenerationMetadata {
+  noteTypeHint?: 'basic' | 'reversed' | 'cloze' | 'scenario';
+  cognitiveLevel?: 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate';
+  reasoningType?:
+    | 'mechanism'
+    | 'tradeoff'
+    | 'comparison'
+    | 'scenario'
+    | 'debugging'
+    | 'transfer';
+  difficulty?: 'intro' | 'intermediate' | 'advanced';
+}
+
 export interface StudyCardContent {
   id: string;
   deckId: string;
@@ -19,6 +32,7 @@ export interface StudyCardContent {
   answer?: string;
   misconceptions?: string[];
   rubric?: string[];
+  metadata?: StudyCardGenerationMetadata;
   tags?: string[];
   provenance: StudyCardProvenance;
   createdAt: number;

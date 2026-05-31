@@ -18,7 +18,11 @@ import type {
   StudyCardContent,
   StudyCardScheduling,
 } from '../entities/card';
-import type { StudyDeck } from '../entities/deck';
+import type {
+  StudyDeck,
+  StudyDeckMetadata,
+  StudyDeckSortPolicy,
+} from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
 import type { StudyCommandRepository } from '../repositories/study-command-repository';
 import {
@@ -26,6 +30,10 @@ import {
   type StudyCardsGenerateOutput,
   StudyCardsGenerateOutputSchema,
 } from '../schema/generate-output';
+import {
+  buildQualityGateErrorMessage,
+  evaluateStudyCardSelection,
+} from '../utils/card-quality-evaluator';
 import { extractDocMarkdown } from '../utils/extract-doc-text';
 import { parseStudyCardsGenerateJson } from '../utils/parse-generate-json';
 import {
@@ -252,6 +260,16 @@ export class StudyCommandService extends Service {
     if (!accepted.length) {
       throw new Error('Select at least one card');
     }
+    const quality = await evaluateStudyCardSelection(accepted);
+    if (quality.blocking.length) {
+      throw new Error(buildQualityGateErrorMessage(accepted, quality.blocking));
+    }
+    if (quality.warnings.length) {
+      logStudyGenerateDebug('Saving deck with quality warnings', {
+        warningCount: quality.warnings.length,
+        warnings: quality.warnings,
+      });
+    }
 
     const deckId = nanoid();
     const now = Date.now();
@@ -264,6 +282,7 @@ export class StudyCommandService extends Service {
       answer: card.answer,
       misconceptions: card.misconceptions,
       rubric: card.rubric,
+      metadata: card.metadata,
       provenance: {
         workspaceId,
         docId: state.docId,
@@ -293,6 +312,180 @@ export class StudyCommandService extends Service {
     );
     this.resetGeneration();
     return deck;
+  }
+
+  async createDeck(input: {
+    name: string;
+    sourceDocId?: string;
+    metadata?: StudyDeckMetadata;
+  }) {
+    const now = Date.now();
+    const deck: StudyDeck = {
+      id: nanoid(),
+      name: input.name.trim(),
+      sourceDocId: input.sourceDocId,
+      cards: [],
+      metadata: sanitizeDeckMetadata(input.metadata),
+      createdAt: now,
+      updatedAt: now,
+    };
+    await this.commandRepository.upsertDeck(deck);
+    return deck;
+  }
+
+  async updateDeck(
+    deckId: string,
+    patch: {
+      name?: string;
+      metadata?: StudyDeckMetadata;
+    }
+  ) {
+    const decks = await this.commandRepository.listDecks();
+    const deck = decks.find(item => item.id === deckId);
+    if (!deck) {
+      throw new Error(`Deck not found: ${deckId}`);
+    }
+    const nextName = patch.name?.trim();
+    const nextDeck: StudyDeck = {
+      ...deck,
+      name: nextName && nextName.length ? nextName : deck.name,
+      metadata: sanitizeDeckMetadata(patch.metadata) ?? deck.metadata,
+      updatedAt: Date.now(),
+    };
+    await this.commandRepository.upsertDeck(nextDeck);
+    return nextDeck;
+  }
+
+  async deleteDeck(deckId: string) {
+    const decks = await this.commandRepository.listDecks();
+    const nextDecks = decks.filter(deck => deck.id !== deckId);
+    if (nextDecks.length === decks.length) {
+      return;
+    }
+    await this.commandRepository.saveDecks(nextDecks);
+    await this.commandRepository.removeSchedulingForDeck(deckId);
+  }
+
+  async createCard(
+    deckId: string,
+    input: {
+      type: StudyCardContent['type'];
+      question: string;
+      answer?: string;
+      misconceptions?: string[];
+      rubric?: string[];
+      tags?: string[];
+    }
+  ) {
+    const decks = await this.commandRepository.listDecks();
+    const deck = decks.find(item => item.id === deckId);
+    if (!deck) {
+      throw new Error(`Deck not found: ${deckId}`);
+    }
+    const now = Date.now();
+    const card: StudyCardContent = {
+      id: nanoid(),
+      deckId,
+      type: input.type,
+      question: input.question.trim(),
+      answer: input.answer?.trim() || undefined,
+      misconceptions: cleanList(input.misconceptions),
+      rubric: cleanList(input.rubric),
+      tags: cleanList(input.tags),
+      provenance: {
+        workspaceId: this.workspaceService.workspace.id,
+        docId: deck.sourceDocId ?? 'manual',
+      },
+      createdAt: now,
+      updatedAt: now,
+      suspended: false,
+    };
+    await this.commandRepository.upsertDeck({
+      ...deck,
+      cards: [...deck.cards, card],
+      updatedAt: now,
+    });
+    await this.commandRepository.upsertScheduling(
+      createInitialScheduling(card.id, deckId, now)
+    );
+    return card;
+  }
+
+  async updateCard(
+    cardId: string,
+    patch: {
+      type?: StudyCardContent['type'];
+      question?: string;
+      answer?: string;
+      misconceptions?: string[];
+      rubric?: string[];
+      tags?: string[];
+      suspended?: boolean;
+    }
+  ) {
+    const decks = await this.commandRepository.listDecks();
+    const now = Date.now();
+    let updatedCard: StudyCardContent | undefined;
+    const nextDecks = decks.map(deck => {
+      const cardIndex = deck.cards.findIndex(card => card.id === cardId);
+      if (cardIndex < 0) return deck;
+      const current = deck.cards[cardIndex];
+      const nextCard: StudyCardContent = {
+        ...current,
+        type: patch.type ?? current.type,
+        question: patch.question?.trim() || current.question,
+        answer:
+          patch.answer !== undefined
+            ? patch.answer.trim() || undefined
+            : current.answer,
+        misconceptions:
+          patch.misconceptions !== undefined
+            ? cleanList(patch.misconceptions)
+            : current.misconceptions,
+        rubric:
+          patch.rubric !== undefined ? cleanList(patch.rubric) : current.rubric,
+        tags: patch.tags !== undefined ? cleanList(patch.tags) : current.tags,
+        suspended: patch.suspended ?? current.suspended,
+        updatedAt: now,
+      };
+      const cards = [...deck.cards];
+      cards[cardIndex] = nextCard;
+      updatedCard = nextCard;
+      return {
+        ...deck,
+        cards,
+        updatedAt: now,
+      };
+    });
+    if (!updatedCard) {
+      throw new Error(`Card not found: ${cardId}`);
+    }
+    await this.commandRepository.saveDecks(nextDecks);
+    return updatedCard;
+  }
+
+  async deleteCard(cardId: string) {
+    const decks = await this.commandRepository.listDecks();
+    const now = Date.now();
+    let targetDeckId: string | undefined;
+    const nextDecks = decks.map(deck => {
+      const before = deck.cards.length;
+      const cards = deck.cards.filter(card => card.id !== cardId);
+      if (cards.length === before) {
+        return deck;
+      }
+      targetDeckId = deck.id;
+      return {
+        ...deck,
+        cards,
+        updatedAt: now,
+      };
+    });
+    if (!targetDeckId) {
+      return;
+    }
+    await this.commandRepository.saveDecks(nextDecks);
+    await this.commandRepository.removeSchedulingForCard(cardId);
   }
 
   async gradeCard(
@@ -335,6 +528,7 @@ export class StudyCommandService extends Service {
         answer: item.answer,
         misconceptions: item.misconceptions,
         blockIds: item.blockIds,
+        metadata: item.metadata,
         accepted: true,
       })),
       ...output.synthesis.map(item => ({
@@ -343,8 +537,60 @@ export class StudyCommandService extends Service {
         question: item.question,
         rubric: item.rubric,
         blockIds: item.blockIds,
+        metadata: item.metadata,
         accepted: true,
       })),
     ];
   }
+}
+
+function cleanList(input?: string[]) {
+  if (!input) return undefined;
+  const values = input.map(item => item.trim()).filter(Boolean);
+  return values.length ? values : undefined;
+}
+
+function sanitizeDeckMetadata(
+  metadata?: StudyDeckMetadata
+): StudyDeckMetadata | undefined {
+  if (!metadata) return undefined;
+  const description = metadata.description?.trim() || undefined;
+  const tags = cleanList(metadata.tags);
+  const sourceLinks = cleanList(metadata.sourceLinks);
+  const dailyNewLimit = toPositiveLimit(metadata.limits?.dailyNewLimit);
+  const dailyReviewLimit = toPositiveLimit(metadata.limits?.dailyReviewLimit);
+  const sortPolicy = isSortPolicy(metadata.sortPolicy)
+    ? metadata.sortPolicy
+    : undefined;
+  const limits =
+    dailyNewLimit !== undefined || dailyReviewLimit !== undefined
+      ? {
+          dailyNewLimit,
+          dailyReviewLimit,
+        }
+      : undefined;
+  if (!description && !tags && !sourceLinks && !limits && !sortPolicy) {
+    return undefined;
+  }
+  return {
+    description,
+    tags,
+    sourceLinks,
+    sortPolicy,
+    limits,
+  };
+}
+
+function toPositiveLimit(limit?: number) {
+  if (!Number.isFinite(limit)) {
+    return undefined;
+  }
+  const rounded = Math.floor(limit as number);
+  return rounded > 0 ? rounded : undefined;
+}
+
+function isSortPolicy(value?: string): value is StudyDeckSortPolicy {
+  return (
+    value === 'created-asc' || value === 'created-desc' || value === 'due-asc'
+  );
 }

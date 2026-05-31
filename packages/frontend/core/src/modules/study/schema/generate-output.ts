@@ -1,5 +1,25 @@
 import { z } from 'zod';
 
+const StudyCardGenerationMetadataSchema = z
+  .object({
+    noteTypeHint: z.enum(['basic', 'reversed', 'cloze', 'scenario']).optional(),
+    cognitiveLevel: z
+      .enum(['remember', 'understand', 'apply', 'analyze', 'evaluate'])
+      .optional(),
+    reasoningType: z
+      .enum([
+        'mechanism',
+        'tradeoff',
+        'comparison',
+        'scenario',
+        'debugging',
+        'transfer',
+      ])
+      .optional(),
+    difficulty: z.enum(['intro', 'intermediate', 'advanced']).optional(),
+  })
+  .strict();
+
 export const StudyCardsGenerateOutputSchema = z.object({
   deckName: z.string().min(1).max(120),
   recall: z
@@ -9,6 +29,7 @@ export const StudyCardsGenerateOutputSchema = z.object({
         answer: z.string().min(10),
         misconceptions: z.array(z.string()).max(3).optional(),
         blockIds: z.array(z.string()).optional(),
+        metadata: StudyCardGenerationMetadataSchema.optional(),
       })
     )
     .min(1)
@@ -19,6 +40,7 @@ export const StudyCardsGenerateOutputSchema = z.object({
         question: z.string().min(20),
         rubric: z.array(z.string().min(5)).min(2).max(8),
         blockIds: z.array(z.string()).optional(),
+        metadata: StudyCardGenerationMetadataSchema.optional(),
       })
     )
     .min(1)
@@ -27,6 +49,9 @@ export const StudyCardsGenerateOutputSchema = z.object({
 
 export type StudyCardsGenerateOutput = z.infer<
   typeof StudyCardsGenerateOutputSchema
+>;
+export type StudyCardGenerationMetadata = z.infer<
+  typeof StudyCardGenerationMetadataSchema
 >;
 
 export type StudyCardPreview = {
@@ -37,5 +62,6 @@ export type StudyCardPreview = {
   misconceptions?: string[];
   rubric?: string[];
   blockIds?: string[];
+  metadata?: StudyCardGenerationMetadata;
   accepted: boolean;
 };
