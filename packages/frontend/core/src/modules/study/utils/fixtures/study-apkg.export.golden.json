@@ -1,0 +1,20 @@
+{
+  "manifest": {
+    "format": "affine-study-apkg",
+    "version": 1
+  },
+  "deck": {
+    "name": "APKG Biology"
+  },
+  "cards": [
+    {
+      "type": "recall",
+      "question": "What is ATP?",
+      "noteTypeId": "basic",
+      "templateId": "basic-forward"
+    }
+  ],
+  "mediaMap": {
+    "0": "asset-1"
+  }
+}

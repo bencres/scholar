@@ -1,0 +1,50 @@
+{
+  "manifest": {
+    "format": "affine-study-apkg",
+    "version": 1,
+    "exportedAt": 1710000000000
+  },
+  "deck": {
+    "name": "Fixture Deck",
+    "metadata": {
+      "description": "Fixture parity payload",
+      "tags": ["fixture", "parity"]
+    }
+  },
+  "cards": [
+    {
+      "type": "recall",
+      "question": "What is ATP?",
+      "answer": "Energy currency",
+      "concepts": ["cell biology"],
+      "noteTypeId": "basic",
+      "templateId": "basic-forward",
+      "noteFields": {
+        "Front": "What is ATP?",
+        "Back": "Energy currency"
+      },
+      "clozeOrdinal": 1,
+      "misconceptions": ["ATP is a vitamin"],
+      "tags": ["bio"],
+      "suspended": false
+    },
+    {
+      "type": "recall",
+      "question": "Label the organelle",
+      "answer": "Mitochondrion",
+      "noteTypeId": "image-occlusion",
+      "templateId": "image-occlusion-default",
+      "imageOcclusion": {
+        "imageAssetId": "asset-1",
+        "occlusionId": "mask-1",
+        "prompt": "Identify this structure",
+        "answer": "Mitochondrion"
+      },
+      "tags": ["occlusion"],
+      "suspended": false
+    }
+  ],
+  "mediaMap": {
+    "0": "asset-1"
+  }
+}
