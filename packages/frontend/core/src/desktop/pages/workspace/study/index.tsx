@@ -116,6 +116,13 @@ export const StudyHome = () => {
                 >
                   Adaptive tutor
                 </Button>
+                <Button
+                  onClick={() =>
+                    workbench.open('/study/dashboard', { at: 'active' })
+                  }
+                >
+                  Intelligence dashboard
+                </Button>
               </div>
               {dueCount > 0 ? (
                 <div className={styles.actionsRow} style={{ marginTop: 8 }}>

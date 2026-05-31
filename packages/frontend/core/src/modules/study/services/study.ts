@@ -13,6 +13,12 @@ import type {
   StudyApkgImportResult,
   StudyCsvFieldMapping,
 } from '../utils/anki-interop';
+import {
+  buildStudyGoalPlan,
+  type StudyGoalPlan,
+  type StudyGoalPlanInput,
+  type StudyIntelligenceDashboardSnapshot,
+} from '../utils/intelligence-dashboard';
 import type { StudyLearningGraphSnapshot } from '../utils/learning-graph';
 import type {
   StudyCommandService,
@@ -237,6 +243,14 @@ export class StudyService extends Service {
       };
     }
     return evaluateTeachBackResponse(card, response);
+  }
+
+  intelligenceDashboardSnapshot(): StudyIntelligenceDashboardSnapshot {
+    return this.queryService.intelligenceDashboardSnapshot();
+  }
+
+  planStudyGoal(input: StudyGoalPlanInput): StudyGoalPlan {
+    return buildStudyGoalPlan(input, this.intelligenceDashboardSnapshot());
   }
 
   exportDeckCsv(deckId: string, mapping?: StudyCsvFieldMapping) {

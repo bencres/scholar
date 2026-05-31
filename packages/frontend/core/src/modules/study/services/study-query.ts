@@ -7,6 +7,7 @@ import type { StudyReviewLog } from '../entities/review-log';
 import type { StudyQueryRepository } from '../repositories/study-query-repository';
 import { buildAdaptiveTutorSnapshot } from '../utils/adaptive-tutor';
 import { matchStudyBrowserQuery } from '../utils/card-browser-search';
+import { buildIntelligenceDashboardSnapshot } from '../utils/intelligence-dashboard';
 import { buildStudyLearningGraphSnapshot } from '../utils/learning-graph';
 import { isDue } from '../utils/scheduling';
 import { buildStudyStatsSnapshot } from '../utils/study-stats';
@@ -174,6 +175,15 @@ export class StudyQueryService extends Service {
       reviewLogs: this.reviewLogs$.value,
       learningGraph: this.learningGraphSnapshot(),
       targetCount,
+    });
+  }
+
+  intelligenceDashboardSnapshot() {
+    return buildIntelligenceDashboardSnapshot({
+      learningGraph: this.learningGraphSnapshot(),
+      tutor: this.adaptiveTutorSnapshot(),
+      stats: this.statsSnapshot(),
+      scheduling: this.scheduling$.value,
     });
   }
 }
