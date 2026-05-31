@@ -20,6 +20,30 @@ const StudyDeckSchema: z.ZodType<StudyDeck> = z.object({
       description: z.string().optional(),
       tags: z.array(z.string()).optional(),
       sourceLinks: z.array(z.string()).optional(),
+      noteTypes: z
+        .array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+            kind: z.enum([
+              'basic',
+              'basic-reversed',
+              'cloze',
+              'image-occlusion',
+              'custom',
+            ]),
+            fieldNames: z.array(z.string()),
+            templates: z.array(
+              z.object({
+                id: z.string(),
+                name: z.string(),
+                front: z.string(),
+                back: z.string(),
+              })
+            ),
+          })
+        )
+        .optional(),
       sortPolicy: StudyDeckSortPolicySchema.optional(),
       limits: z
         .object({

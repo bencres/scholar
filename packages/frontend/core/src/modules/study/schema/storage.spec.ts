@@ -54,6 +54,22 @@ describe('study storage migration', () => {
                 query: 'due:overdue',
               },
             ],
+            noteTypes: [
+              {
+                id: 'custom-basic',
+                name: 'Custom Basic',
+                kind: 'custom',
+                fieldNames: ['Front', 'Back'],
+                templates: [
+                  {
+                    id: 'custom-tmpl',
+                    name: 'Card 1',
+                    front: '{{Front}}',
+                    back: '{{Front}}\n\n{{Back}}',
+                  },
+                ],
+              },
+            ],
           },
           createdAt: now,
           updatedAt: now,
@@ -63,6 +79,7 @@ describe('study storage migration', () => {
     expect(state.decks[0]?.metadata?.optionsGroupId).toBe('opts-default');
     expect(state.decks[0]?.metadata?.filtered?.query).toContain('due:overdue');
     expect(state.decks[0]?.metadata?.browserPresets).toHaveLength(1);
+    expect(state.decks[0]?.metadata?.noteTypes).toHaveLength(1);
   });
 
   it('migrates legacy scheduling array to versioned sidecar state', () => {
