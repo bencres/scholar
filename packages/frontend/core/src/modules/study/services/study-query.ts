@@ -5,6 +5,7 @@ import type { StudyCardContent, StudyCardScheduling } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
 import type { StudyQueryRepository } from '../repositories/study-query-repository';
+import { matchStudyBrowserQuery } from '../utils/card-browser-search';
 import { isDue } from '../utils/scheduling';
 
 export class StudyQueryService extends Service {
@@ -110,5 +111,30 @@ export class StudyQueryService extends Service {
       if (card) return card;
     }
     return undefined;
+  }
+
+  searchCards(query: string, deckId?: string) {
+    const schedulingByCardId = new Map(
+      this.scheduling$.value.map(row => [row.cardId, row])
+    );
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) {
+      return (
+        deckId
+          ? this.decks$.value.filter(deck => deck.id === deckId)
+          : this.decks$.value
+      ).flatMap(deck => deck.cards);
+    }
+    return this.decks$.value
+      .filter(deck => (deckId ? deck.id === deckId : true))
+      .flatMap(deck =>
+        deck.cards.filter(card =>
+          matchStudyBrowserQuery(normalizedQuery, {
+            deck,
+            card,
+            scheduling: schedulingByCardId.get(card.id),
+          })
+        )
+      );
   }
 }

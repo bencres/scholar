@@ -4,6 +4,35 @@ export type ReviewGrade = 1 | 2 | 3 | 4;
 
 export type CardState = 'new' | 'learning' | 'review' | 'relearning';
 
+export type StudyNoteTypeKind =
+  | 'basic'
+  | 'basic-reversed'
+  | 'cloze'
+  | 'image-occlusion'
+  | 'custom';
+
+export interface StudyCardTemplate {
+  id: string;
+  name: string;
+  front: string;
+  back: string;
+}
+
+export interface StudyNoteType {
+  id: string;
+  name: string;
+  kind: StudyNoteTypeKind;
+  fieldNames: string[];
+  templates: StudyCardTemplate[];
+}
+
+export interface StudyImageOcclusion {
+  imageAssetId: string;
+  occlusionId: string;
+  prompt?: string;
+  answer?: string;
+}
+
 export interface StudyCardProvenance {
   workspaceId: string;
   docId: string;
@@ -28,6 +57,11 @@ export interface StudyCardContent {
   id: string;
   deckId: string;
   type: CardType;
+  noteTypeId?: string;
+  templateId?: string;
+  noteFields?: Record<string, string>;
+  clozeOrdinal?: number;
+  imageOcclusion?: StudyImageOcclusion;
   question: string;
   answer?: string;
   misconceptions?: string[];
@@ -56,4 +90,6 @@ export interface StudyCardScheduling {
   lastReviewAt?: number;
   lastGrade?: ReviewGrade;
   buriedUntil?: number;
+  manualPosition?: number;
+  customDueDate?: number;
 }
