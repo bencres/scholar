@@ -16,7 +16,9 @@ import {
 import type { ReviewGrade, StudyCardContent } from '../entities/card';
 import type {
   StudyDeck,
+  StudyDeckBrowserPreset,
   StudyDeckMetadata,
+  StudyDeckSchedulingOptions,
   StudyDeckSortPolicy,
 } from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
@@ -29,12 +31,14 @@ import {
 import {
   buildQualityGateErrorMessage,
   evaluateStudyCardSelection,
+  type StudyCardQualityAiEvaluator,
 } from '../utils/card-quality-evaluator';
 import { extractDocMarkdown } from '../utils/extract-doc-text';
 import { parseStudyCardsGenerateJson } from '../utils/parse-generate-json';
 import {
   burySiblingScheduling,
   createInitialScheduling,
+  endOfDay,
   scheduleAfterReview,
   shouldMarkLeech,
 } from '../utils/scheduling';
@@ -48,6 +52,13 @@ export type StudyGenerationDebug = {
   stage: 'stream' | 'parse' | 'validate' | 'unknown';
   error: string;
   rawResponse?: string;
+};
+
+export type StudyGenerationOptions = {
+  qualityProfile?: 'balanced' | 'strict';
+  targetRecallCount?: number;
+  targetSynthesisCount?: number;
+  includeCardMetadata?: boolean;
 };
 
 declare global {
@@ -110,6 +121,7 @@ export type StudyGenerationState =
 
 export class StudyCommandService extends Service {
   lastGenerationDebug: StudyGenerationDebug | null = null;
+  private qualityAiEvaluator?: StudyCardQualityAiEvaluator;
 
   readonly generationState$ = new LiveData<StudyGenerationState>({
     status: 'idle',
@@ -145,7 +157,16 @@ export class StudyCommandService extends Service {
     );
   }
 
-  async generateFromDoc(doc: Store, focus?: string, modelId?: string) {
+  setQualityAiEvaluator(evaluator?: StudyCardQualityAiEvaluator) {
+    this.qualityAiEvaluator = evaluator;
+  }
+
+  async generateFromDoc(
+    doc: Store,
+    focus?: string,
+    modelId?: string,
+    options?: StudyGenerationOptions
+  ) {
     if (!this.enabled) {
       throw new Error('Study is disabled');
     }
@@ -180,7 +201,16 @@ export class StudyCommandService extends Service {
           input: content,
           docId,
           workspaceId,
-          params: { focus },
+          params: {
+            focus,
+            qualityProfile: options?.qualityProfile,
+            targetRecallCount: toPromptCount(options?.targetRecallCount),
+            targetSynthesisCount: toPromptCount(options?.targetSynthesisCount),
+            includeCardMetadata:
+              options?.includeCardMetadata === undefined
+                ? undefined
+                : String(options.includeCardMetadata),
+          },
           modelId: selectedModel,
           stream: true,
         }
@@ -258,7 +288,7 @@ export class StudyCommandService extends Service {
     if (!accepted.length) {
       throw new Error('Select at least one card');
     }
-    const quality = await evaluateStudyCardSelection(accepted);
+    const quality = await this.evaluateSelectedCardsQuality(accepted);
     if (quality.blocking.length) {
       throw new Error(buildQualityGateErrorMessage(accepted, quality.blocking));
     }
@@ -521,6 +551,104 @@ export class StudyCommandService extends Service {
     await this.commandRepository.appendReviewLog(reviewLog);
   }
 
+  async rescheduleCard(cardId: string, scheduledDays: number) {
+    const rows = await this.commandRepository.listScheduling();
+    const row = rows.find(item => item.cardId === cardId);
+    if (!row) {
+      throw new Error(`Scheduling not found for card: ${cardId}`);
+    }
+    const days = Math.max(0, Math.floor(scheduledDays));
+    const now = Date.now();
+    const due = now + days * 24 * 60 * 60 * 1000;
+    const next = {
+      ...row,
+      state: 'review' as const,
+      due,
+      scheduledDays: days,
+      customDueDate: due,
+      learningStep: undefined,
+    };
+    await this.commandRepository.upsertScheduling(next);
+    return next;
+  }
+
+  async setCardDueDate(cardId: string, due: number) {
+    const rows = await this.commandRepository.listScheduling();
+    const row = rows.find(item => item.cardId === cardId);
+    if (!row) {
+      throw new Error(`Scheduling not found for card: ${cardId}`);
+    }
+    const next = {
+      ...row,
+      due,
+      customDueDate: due,
+      scheduledDays: Math.max(0, Math.round((due - Date.now()) / 86_400_000)),
+    };
+    await this.commandRepository.upsertScheduling(next);
+    return next;
+  }
+
+  async forgetCard(cardId: string) {
+    const rows = await this.commandRepository.listScheduling();
+    const row = rows.find(item => item.cardId === cardId);
+    if (!row) {
+      throw new Error(`Scheduling not found for card: ${cardId}`);
+    }
+    const next = createInitialScheduling(row.cardId, row.deckId, Date.now());
+    await this.commandRepository.upsertScheduling(next);
+    return next;
+  }
+
+  async repositionCards(
+    deckId: string,
+    orderedCardIds: string[],
+    startPosition = 1
+  ) {
+    const rows = await this.commandRepository.listScheduling();
+    const rowMap = new Map(rows.map(row => [row.cardId, row]));
+    const deckCardIds = new Set(
+      rows.filter(row => row.deckId === deckId).map(row => row.cardId)
+    );
+    const validIds = orderedCardIds.filter(cardId => deckCardIds.has(cardId));
+    await Promise.all(
+      validIds.map((cardId, index) => {
+        const row = rowMap.get(cardId);
+        if (!row) return Promise.resolve();
+        return this.commandRepository.upsertScheduling({
+          ...row,
+          manualPosition: Math.max(1, startPosition + index),
+        });
+      })
+    );
+  }
+
+  async buryCard(cardId: string, until = endOfDay()) {
+    const rows = await this.commandRepository.listScheduling();
+    const row = rows.find(item => item.cardId === cardId);
+    if (!row) {
+      throw new Error(`Scheduling not found for card: ${cardId}`);
+    }
+    const next = { ...row, buriedUntil: until };
+    await this.commandRepository.upsertScheduling(next);
+    return next;
+  }
+
+  private async evaluateSelectedCardsQuality(cards: StudyCardPreview[]) {
+    try {
+      return await evaluateStudyCardSelection(cards, {
+        aiEvaluator: this.qualityAiEvaluator,
+      });
+    } catch (error) {
+      logStudyGenerateDebug(
+        'Quality AI evaluator failed, using heuristics only',
+        {
+          error: error instanceof Error ? error.message : String(error),
+        }
+      );
+      return evaluateStudyCardSelection(cards);
+    }
+  }
+
   private toPreviewCards(output: StudyCardsGenerateOutput): StudyCardPreview[] {
     return [
       ...output.recall.map(item => ({
@@ -564,6 +692,12 @@ function sanitizeDeckMetadata(
   const sortPolicy = isSortPolicy(metadata.sortPolicy)
     ? metadata.sortPolicy
     : undefined;
+  const optionsGroupId = metadata.optionsGroupId?.trim() || undefined;
+  const schedulingOptions = sanitizeSchedulingOptions(
+    metadata.schedulingOptions
+  );
+  const filtered = sanitizeFilteredDeckConfig(metadata.filtered);
+  const browserPresets = sanitizeBrowserPresets(metadata.browserPresets);
   const limits =
     dailyNewLimit !== undefined || dailyReviewLimit !== undefined
       ? {
@@ -571,7 +705,17 @@ function sanitizeDeckMetadata(
           dailyReviewLimit,
         }
       : undefined;
-  if (!description && !tags && !sourceLinks && !limits && !sortPolicy) {
+  if (
+    !description &&
+    !tags &&
+    !sourceLinks &&
+    !limits &&
+    !sortPolicy &&
+    !optionsGroupId &&
+    !schedulingOptions &&
+    !filtered &&
+    !browserPresets
+  ) {
     return undefined;
   }
   return {
@@ -580,6 +724,10 @@ function sanitizeDeckMetadata(
     sourceLinks,
     sortPolicy,
     limits,
+    optionsGroupId,
+    schedulingOptions,
+    filtered,
+    browserPresets,
   };
 }
 
@@ -591,8 +739,118 @@ function toPositiveLimit(limit?: number) {
   return rounded > 0 ? rounded : undefined;
 }
 
+function toPromptCount(value?: number) {
+  if (!Number.isFinite(value)) {
+    return undefined;
+  }
+  const rounded = Math.floor(value as number);
+  return rounded > 0 ? String(rounded) : undefined;
+}
+
 function isSortPolicy(value?: string): value is StudyDeckSortPolicy {
   return (
     value === 'created-asc' || value === 'created-desc' || value === 'due-asc'
   );
+}
+
+function sanitizeSchedulingOptions(
+  options?: StudyDeckSchedulingOptions
+): StudyDeckSchedulingOptions | undefined {
+  if (!options) return undefined;
+  const learningStepsMinutes = sanitizePositiveNumbers(
+    options.learningStepsMinutes
+  );
+  const relearningStepsMinutes = sanitizePositiveNumbers(
+    options.relearningStepsMinutes
+  );
+  const desiredRetention =
+    options.desiredRetention &&
+    Number.isFinite(options.desiredRetention) &&
+    options.desiredRetention > 0 &&
+    options.desiredRetention <= 1
+      ? Number(options.desiredRetention.toFixed(3))
+      : undefined;
+  const easyBonus =
+    options.easyBonus &&
+    Number.isFinite(options.easyBonus) &&
+    options.easyBonus > 0
+      ? Number(options.easyBonus.toFixed(3))
+      : undefined;
+  const graduatingIntervalDays = toPositiveLimit(
+    options.graduatingIntervalDays
+  );
+  const easyIntervalDays = toPositiveLimit(options.easyIntervalDays);
+  const newCardOrder =
+    options.newCardOrder === 'position' || options.newCardOrder === 'random'
+      ? options.newCardOrder
+      : undefined;
+  const burySiblings =
+    typeof options.burySiblings === 'boolean'
+      ? options.burySiblings
+      : undefined;
+  const leechThreshold = toPositiveLimit(options.leechThreshold);
+  if (
+    !learningStepsMinutes &&
+    !relearningStepsMinutes &&
+    desiredRetention === undefined &&
+    easyBonus === undefined &&
+    graduatingIntervalDays === undefined &&
+    easyIntervalDays === undefined &&
+    !newCardOrder &&
+    burySiblings === undefined &&
+    leechThreshold === undefined
+  ) {
+    return undefined;
+  }
+  return {
+    learningStepsMinutes,
+    relearningStepsMinutes,
+    desiredRetention,
+    easyBonus,
+    graduatingIntervalDays,
+    easyIntervalDays,
+    newCardOrder,
+    burySiblings,
+    leechThreshold,
+  };
+}
+
+function sanitizeFilteredDeckConfig(filtered?: StudyDeckMetadata['filtered']) {
+  if (!filtered?.query?.trim()) {
+    return undefined;
+  }
+  return {
+    query: filtered.query.trim(),
+    limit: toPositiveLimit(filtered.limit),
+    reschedule:
+      typeof filtered.reschedule === 'boolean'
+        ? filtered.reschedule
+        : undefined,
+  };
+}
+
+function sanitizeBrowserPresets(
+  presets?: StudyDeckBrowserPreset[]
+): StudyDeckBrowserPreset[] | undefined {
+  if (!presets?.length) {
+    return undefined;
+  }
+  const normalized = presets
+    .map(preset => ({
+      id: preset.id.trim(),
+      name: preset.name.trim(),
+      query: preset.query.trim(),
+    }))
+    .filter(preset => preset.id && preset.name && preset.query);
+  return normalized.length ? normalized : undefined;
+}
+
+function sanitizePositiveNumbers(values?: number[]) {
+  if (!values?.length) {
+    return undefined;
+  }
+  const normalized = values
+    .filter(value => Number.isFinite(value) && value > 0)
+    .map(value => Number(value.toFixed(3)));
+  return normalized.length ? normalized : undefined;
 }

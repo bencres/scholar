@@ -2,11 +2,15 @@ import type { Store } from '@blocksuite/affine/store';
 import { Service } from '@toeverything/infra';
 
 import type { ReviewGrade } from '../entities/card';
-import type { StudyCommandService } from './study-command';
+import type {
+  StudyCommandService,
+  StudyGenerationOptions,
+} from './study-command';
 import type { StudyQueryService } from './study-query';
 
 export {
   type StudyGenerationDebug,
+  type StudyGenerationOptions,
   type StudyGenerationState,
 } from './study-command';
 
@@ -54,8 +58,13 @@ export class StudyService extends Service {
     this.commandService.setGenerateModel(modelId);
   }
 
-  generateFromDoc(doc: Store, focus?: string, modelId?: string) {
-    return this.commandService.generateFromDoc(doc, focus, modelId);
+  generateFromDoc(
+    doc: Store,
+    focus?: string,
+    modelId?: string,
+    options?: StudyGenerationOptions
+  ) {
+    return this.commandService.generateFromDoc(doc, focus, modelId, options);
   }
 
   setPreviewCardAccepted(cardId: string, accepted: boolean) {
@@ -82,6 +91,28 @@ export class StudyService extends Service {
         dailyNewLimit?: number;
         dailyReviewLimit?: number;
       };
+      optionsGroupId?: string;
+      schedulingOptions?: {
+        learningStepsMinutes?: number[];
+        relearningStepsMinutes?: number[];
+        desiredRetention?: number;
+        easyBonus?: number;
+        graduatingIntervalDays?: number;
+        easyIntervalDays?: number;
+        newCardOrder?: 'position' | 'random';
+        burySiblings?: boolean;
+        leechThreshold?: number;
+      };
+      filtered?: {
+        query: string;
+        limit?: number;
+        reschedule?: boolean;
+      };
+      browserPresets?: Array<{
+        id: string;
+        name: string;
+        query: string;
+      }>;
     };
   }) {
     return this.commandService.createDeck(input);
@@ -100,6 +131,28 @@ export class StudyService extends Service {
           dailyNewLimit?: number;
           dailyReviewLimit?: number;
         };
+        optionsGroupId?: string;
+        schedulingOptions?: {
+          learningStepsMinutes?: number[];
+          relearningStepsMinutes?: number[];
+          desiredRetention?: number;
+          easyBonus?: number;
+          graduatingIntervalDays?: number;
+          easyIntervalDays?: number;
+          newCardOrder?: 'position' | 'random';
+          burySiblings?: boolean;
+          leechThreshold?: number;
+        };
+        filtered?: {
+          query: string;
+          limit?: number;
+          reschedule?: boolean;
+        };
+        browserPresets?: Array<{
+          id: string;
+          name: string;
+          query: string;
+        }>;
       };
     }
   ) {
@@ -151,5 +204,37 @@ export class StudyService extends Service {
 
   getDeckById(deckId: string) {
     return this.queryService.getDeckById(deckId);
+  }
+
+  searchCards(query: string, deckId?: string) {
+    return this.queryService.searchCards(query, deckId);
+  }
+
+  rescheduleCard(cardId: string, scheduledDays: number) {
+    return this.commandService.rescheduleCard(cardId, scheduledDays);
+  }
+
+  setCardDueDate(cardId: string, due: number) {
+    return this.commandService.setCardDueDate(cardId, due);
+  }
+
+  forgetCard(cardId: string) {
+    return this.commandService.forgetCard(cardId);
+  }
+
+  repositionCards(deckId: string, orderedCardIds: string[], startPosition = 1) {
+    return this.commandService.repositionCards(
+      deckId,
+      orderedCardIds,
+      startPosition
+    );
+  }
+
+  buryCard(cardId: string, until?: number) {
+    return this.commandService.buryCard(cardId, until);
+  }
+
+  statsSnapshot(deckId?: string) {
+    return this.queryService.statsSnapshot(deckId);
   }
 }
