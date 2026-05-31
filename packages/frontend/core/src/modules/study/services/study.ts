@@ -4,6 +4,11 @@ import { Service } from '@toeverything/infra';
 import type { ReviewGrade } from '../entities/card';
 import type { StudyDeckMetadata } from '../entities/deck';
 import type {
+  StudyAdaptiveTutorSnapshot,
+  StudyTeachBackEvaluation,
+} from '../utils/adaptive-tutor';
+import { evaluateTeachBackResponse } from '../utils/adaptive-tutor';
+import type {
   StudyApkgExportResult,
   StudyApkgImportResult,
   StudyCsvFieldMapping,
@@ -115,6 +120,11 @@ export class StudyService extends Service {
       question: string;
       answer?: string;
       concepts?: string[];
+      provenance?: {
+        docId?: string;
+        blockIds?: string[];
+        chunkId?: string;
+      };
       noteTypeId?: string;
       templateId?: string;
       noteFields?: Record<string, string>;
@@ -207,6 +217,26 @@ export class StudyService extends Service {
 
   learningGraphSnapshot(deckId?: string): StudyLearningGraphSnapshot {
     return this.queryService.learningGraphSnapshot(deckId);
+  }
+
+  adaptiveTutorSnapshot(targetCount?: number): StudyAdaptiveTutorSnapshot {
+    return this.queryService.adaptiveTutorSnapshot(targetCount);
+  }
+
+  evaluateTeachBack(
+    cardId: string,
+    response: string
+  ): StudyTeachBackEvaluation {
+    const card = this.queryService.findCardById(cardId);
+    if (!card) {
+      return {
+        score: 0,
+        maxScore: 5,
+        missingKeywords: [],
+        feedback: ['Card not found for teach-back evaluation.'],
+      };
+    }
+    return evaluateTeachBackResponse(card, response);
   }
 
   exportDeckCsv(deckId: string, mapping?: StudyCsvFieldMapping) {

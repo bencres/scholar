@@ -109,6 +109,13 @@ export const StudyHome = () => {
                 >
                   Learning graph
                 </Button>
+                <Button
+                  onClick={() =>
+                    workbench.open('/study/tutor', { at: 'active' })
+                  }
+                >
+                  Adaptive tutor
+                </Button>
               </div>
               {dueCount > 0 ? (
                 <div className={styles.actionsRow} style={{ marginTop: 8 }}>

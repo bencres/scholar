@@ -417,6 +417,11 @@ export class StudyCommandService extends Service {
       question: string;
       answer?: string;
       concepts?: string[];
+      provenance?: {
+        docId?: string;
+        blockIds?: string[];
+        chunkId?: string;
+      };
       noteTypeId?: string;
       templateId?: string;
       noteFields?: Record<string, string>;
@@ -450,7 +455,9 @@ export class StudyCommandService extends Service {
       tags: cleanList(input.tags),
       provenance: {
         workspaceId: this.workspaceService.workspace.id,
-        docId: deck.sourceDocId ?? 'manual',
+        docId: input.provenance?.docId?.trim() || deck.sourceDocId || 'manual',
+        blockIds: cleanList(input.provenance?.blockIds),
+        chunkId: input.provenance?.chunkId?.trim() || undefined,
       },
       createdAt: now,
       updatedAt: now,

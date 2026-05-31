@@ -5,6 +5,7 @@ import type { StudyCardContent, StudyCardScheduling } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
 import type { StudyQueryRepository } from '../repositories/study-query-repository';
+import { buildAdaptiveTutorSnapshot } from '../utils/adaptive-tutor';
 import { matchStudyBrowserQuery } from '../utils/card-browser-search';
 import { buildStudyLearningGraphSnapshot } from '../utils/learning-graph';
 import { isDue } from '../utils/scheduling';
@@ -163,6 +164,16 @@ export class StudyQueryService extends Service {
       decks,
       scheduling,
       reviewLogs: logs,
+    });
+  }
+
+  adaptiveTutorSnapshot(targetCount = 8) {
+    return buildAdaptiveTutorSnapshot({
+      decks: this.decks$.value,
+      scheduling: this.scheduling$.value,
+      reviewLogs: this.reviewLogs$.value,
+      learningGraph: this.learningGraphSnapshot(),
+      targetCount,
     });
   }
 }
