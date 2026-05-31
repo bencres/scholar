@@ -124,7 +124,7 @@ export const StudyCardBrowseItem = ({
           ) : null}
           {onViewSource ? (
             <div className={styles.browseCardFooter}>
-              <Button size="small" onClick={onViewSource}>
+              <Button onClick={onViewSource}>
                 {t['com.affine.study.view-source']()}
               </Button>
             </div>

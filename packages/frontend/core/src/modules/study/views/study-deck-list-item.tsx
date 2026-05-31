@@ -62,9 +62,7 @@ export const StudyDeckListItem = ({
             {t['com.affine.study.due-count']({ count: String(dueCount) })}
           </span>
         ) : null}
-        <Button size="small" onClick={openReview}>
-          {t['com.affine.study.review']()}
-        </Button>
+        <Button onClick={openReview}>{t['com.affine.study.review']()}</Button>
       </div>
     </div>
   );

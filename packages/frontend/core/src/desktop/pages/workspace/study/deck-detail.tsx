@@ -436,11 +436,10 @@ export const StudyDeckDetailPage = () => {
                           });
                       }}
                     />
-                    <Button size="small" onClick={() => handleEditCard(card)}>
+                    <Button onClick={() => handleEditCard(card)}>
                       {t['Edit']()}
                     </Button>
                     <Button
-                      size="small"
                       onClick={() => {
                         studyService.deleteCard(card.id).catch(error => {
                           console.error(
