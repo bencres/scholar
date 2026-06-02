@@ -404,6 +404,30 @@ export const browseCard = style({
   overflow: 'hidden',
 });
 
+export const browseCardEditing = style({
+  borderColor: cssVarV2.layer.insideBorder.primaryBorder,
+  boxShadow: `0 0 0 1px ${cssVarV2.layer.insideBorder.primaryBorder}`,
+});
+
+export const browseCardEditHeader = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 12,
+  padding: '14px 16px 0',
+});
+
+export const browseCardEditHeaderMain = style({
+  flex: 1,
+  minWidth: 0,
+});
+
+export const browseCardEditBody = style({
+  padding: '12px 16px 16px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+});
+
 export const browseCardHeader = style({
   display: 'flex',
   alignItems: 'flex-start',

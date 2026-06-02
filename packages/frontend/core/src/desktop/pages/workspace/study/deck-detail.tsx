@@ -1,8 +1,16 @@
-import { Button, Checkbox, Input } from '@affine/component';
+import { Button, Input } from '@affine/component';
 import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
 import { StudyService } from '@affine/core/modules/study';
 import type { StudyCardContent } from '@affine/core/modules/study/entities/card';
-import { StudyCardBrowseItem } from '@affine/core/modules/study/views/study-card-browse-item';
+import {
+  type CardDraft,
+  cardDraftToPayload,
+  DEFAULT_CARD_DRAFT,
+  parseCsvInput,
+  toCardDraft,
+} from '@affine/core/modules/study/views/study-card-draft';
+import { StudyCardEditableBrowseItem } from '@affine/core/modules/study/views/study-card-editable-browse-item';
+import { StudyCardFormFields } from '@affine/core/modules/study/views/study-card-form-fields';
 import {
   StudyDeckHeader,
   StudyDeckHeaderActions,
@@ -19,45 +27,6 @@ import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-
-type CardDraft = {
-  type: StudyCardContent['type'];
-  question: string;
-  answer: string;
-  concepts: string;
-  misconceptions: string;
-  rubric: string;
-  tags: string;
-};
-
-const DEFAULT_CARD_DRAFT: CardDraft = {
-  type: 'recall',
-  question: '',
-  answer: '',
-  concepts: '',
-  misconceptions: '',
-  rubric: '',
-  tags: '',
-};
-
-function parseCsvInput(value: string) {
-  return value
-    .split(',')
-    .map(item => item.trim())
-    .filter(Boolean);
-}
-
-function toCardDraft(card: StudyCardContent): CardDraft {
-  return {
-    type: card.type,
-    question: card.question,
-    answer: card.answer ?? '',
-    concepts: (card.concepts ?? []).join(', '),
-    misconceptions: (card.misconceptions ?? []).join(', '),
-    rubric: (card.rubric ?? []).join(', '),
-    tags: (card.tags ?? []).join(', '),
-  };
-}
 
 export const StudyDeckDetailPage = () => {
   const t = useI18n();
@@ -77,7 +46,10 @@ export const StudyDeckDetailPage = () => {
   const [dailyNewLimit, setDailyNewLimit] = useState('');
   const [dailyReviewLimit, setDailyReviewLimit] = useState('');
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
-  const [cardDraft, setCardDraft] = useState<CardDraft>(DEFAULT_CARD_DRAFT);
+  const [editingCardDraft, setEditingCardDraft] =
+    useState<CardDraft>(DEFAULT_CARD_DRAFT);
+  const [newCardDraft, setNewCardDraft] =
+    useState<CardDraft>(DEFAULT_CARD_DRAFT);
 
   const activeCards = useMemo(
     () => deck?.cards.filter(card => !card.suspended) ?? [],
@@ -98,9 +70,9 @@ export const StudyDeckDetailPage = () => {
     workbench.openDoc({ docId: deck.sourceDocId, mode: 'page' });
   }, [deck?.sourceDocId, workbench]);
 
-  const resetCardDraft = () => {
+  const cancelCardEdit = () => {
     setEditingCardId(null);
-    setCardDraft(DEFAULT_CARD_DRAFT);
+    setEditingCardDraft(DEFAULT_CARD_DRAFT);
   };
 
   const syncDeckDraft = useCallback(() => {
@@ -137,28 +109,24 @@ export const StudyDeckDetailPage = () => {
     workbench.open('/study', { at: 'active' });
   };
 
-  const handleSubmitCard = async () => {
-    if (!deck || !cardDraft.question.trim()) return;
-    const payload = {
-      type: cardDraft.type,
-      question: cardDraft.question,
-      answer: cardDraft.answer,
-      concepts: parseCsvInput(cardDraft.concepts),
-      misconceptions: parseCsvInput(cardDraft.misconceptions),
-      rubric: parseCsvInput(cardDraft.rubric),
-      tags: parseCsvInput(cardDraft.tags),
-    };
-    if (editingCardId) {
-      await studyService.updateCard(editingCardId, payload);
-    } else {
-      await studyService.createCard(deck.id, payload);
-    }
-    resetCardDraft();
+  const handleAddCard = async () => {
+    if (!deck || !newCardDraft.question.trim()) return;
+    await studyService.createCard(deck.id, cardDraftToPayload(newCardDraft));
+    setNewCardDraft(DEFAULT_CARD_DRAFT);
   };
 
-  const handleEditCard = (card: StudyCardContent) => {
+  const handleSaveCardEdit = async () => {
+    if (!editingCardId || !editingCardDraft.question.trim()) return;
+    await studyService.updateCard(
+      editingCardId,
+      cardDraftToPayload(editingCardDraft)
+    );
+    cancelCardEdit();
+  };
+
+  const handleStartCardEdit = (card: StudyCardContent) => {
     setEditingCardId(card.id);
-    setCardDraft(toCardDraft(card));
+    setEditingCardDraft(toCardDraft(card));
   };
 
   if (!deck) {
@@ -299,160 +267,48 @@ export const StudyDeckDetailPage = () => {
             </Button>
           </div>
         </div>
-        <div className={styles.formCard}>
-          <div className={styles.formTitle}>
-            {editingCardId
-              ? t['com.affine.study.edit-card']()
-              : t['com.affine.study.add-card']()}
-          </div>
-          <div className={styles.formGrid}>
-            <div className={styles.toggleRow}>
-              <Button
-                variant={cardDraft.type === 'recall' ? 'primary' : 'plain'}
-                onClick={() =>
-                  setCardDraft(current => ({ ...current, type: 'recall' }))
-                }
-              >
-                {t['com.affine.study.card-type.recall']()}
-              </Button>
-              <Button
-                variant={cardDraft.type === 'synthesis' ? 'primary' : 'plain'}
-                onClick={() =>
-                  setCardDraft(current => ({
-                    ...current,
-                    type: 'synthesis',
-                  }))
-                }
-              >
-                {t['com.affine.study.card-type.synthesis']()}
-              </Button>
-            </div>
-            <Input
-              value={cardDraft.question}
-              onChange={event =>
-                setCardDraft(current => ({
-                  ...current,
-                  question: event.target.value,
-                }))
-              }
-              placeholder={t['com.affine.study.card-question.placeholder']()}
-            />
-            <Input
-              value={cardDraft.answer}
-              onChange={event =>
-                setCardDraft(current => ({
-                  ...current,
-                  answer: event.target.value,
-                }))
-              }
-              placeholder={t['com.affine.study.card-answer.placeholder']()}
-            />
-            <Input
-              value={cardDraft.concepts}
-              onChange={event =>
-                setCardDraft(current => ({
-                  ...current,
-                  concepts: event.target.value,
-                }))
-              }
-              placeholder="Concepts (comma separated)"
-            />
-            <Input
-              value={cardDraft.misconceptions}
-              onChange={event =>
-                setCardDraft(current => ({
-                  ...current,
-                  misconceptions: event.target.value,
-                }))
-              }
-              placeholder={t[
-                'com.affine.study.card-misconceptions.placeholder'
-              ]()}
-            />
-            <Input
-              value={cardDraft.rubric}
-              onChange={event =>
-                setCardDraft(current => ({
-                  ...current,
-                  rubric: event.target.value,
-                }))
-              }
-              placeholder={t['com.affine.study.card-rubric.placeholder']()}
-            />
-            <Input
-              value={cardDraft.tags}
-              onChange={event =>
-                setCardDraft(current => ({
-                  ...current,
-                  tags: event.target.value,
-                }))
-              }
-              placeholder={t['com.affine.study.card-tags.placeholder']()}
-            />
-          </div>
-          <div className={styles.actionsRow}>
-            <Button
-              variant="primary"
-              disabled={!cardDraft.question.trim()}
-              onClick={() => {
-                handleSubmitCard().catch(error => {
-                  console.error('[study.deck] save card failed', error);
-                });
-              }}
-            >
-              {editingCardId ? t['Save']() : t['com.affine.study.add-card']()}
-            </Button>
-            {editingCardId ? (
-              <Button onClick={resetCardDraft}>{t['Cancel']()}</Button>
-            ) : null}
-          </div>
-        </div>
         <div className={styles.sectionTitle}>
           {t['com.affine.study.browse-cards']()}
         </div>
-        {activeCards.length === 0 ? (
+        {deck.cards.length === 0 ? (
           <div className={styles.emptyState}>
             {t['com.affine.study.review.empty']()}
           </div>
         ) : (
           <div className={styles.browseCardList}>
             {deck.cards.map((card, index) => (
-              <StudyCardBrowseItem
+              <StudyCardEditableBrowseItem
                 key={card.id}
                 index={index}
                 card={card}
-                headerExtra={
-                  <div className={styles.inlineActions}>
-                    <Checkbox
-                      checked={!card.suspended}
-                      onChange={checked => {
-                        studyService
-                          .updateCard(card.id, { suspended: !checked })
-                          .catch(error => {
-                            console.error(
-                              '[study.deck] toggle suspended failed',
-                              error
-                            );
-                          });
-                      }}
-                    />
-                    <Button onClick={() => handleEditCard(card)}>
-                      {t['Edit']()}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        studyService.deleteCard(card.id).catch(error => {
-                          console.error(
-                            '[study.deck] delete card failed',
-                            error
-                          );
-                        });
-                      }}
-                    >
-                      {t['Delete']()}
-                    </Button>
-                  </div>
-                }
+                editing={editingCardId === card.id}
+                draft={editingCardDraft}
+                onDraftChange={setEditingCardDraft}
+                onSave={() => {
+                  handleSaveCardEdit().catch(error => {
+                    console.error('[study.deck] save card failed', error);
+                  });
+                }}
+                onCancel={cancelCardEdit}
+                onStartEdit={() => handleStartCardEdit(card)}
+                onDelete={() => {
+                  if (editingCardId === card.id) {
+                    cancelCardEdit();
+                  }
+                  studyService.deleteCard(card.id).catch(error => {
+                    console.error('[study.deck] delete card failed', error);
+                  });
+                }}
+                onToggleSuspended={active => {
+                  studyService
+                    .updateCard(card.id, { suspended: !active })
+                    .catch(error => {
+                      console.error(
+                        '[study.deck] toggle suspended failed',
+                        error
+                      );
+                    });
+                }}
                 onViewSource={
                   card.provenance.docId === 'manual'
                     ? undefined
@@ -467,6 +323,28 @@ export const StudyDeckDetailPage = () => {
             ))}
           </div>
         )}
+        <div className={styles.formCard}>
+          <div className={styles.formTitle}>
+            {t['com.affine.study.add-card']()}
+          </div>
+          <StudyCardFormFields
+            draft={newCardDraft}
+            onDraftChange={setNewCardDraft}
+          />
+          <div className={styles.actionsRow}>
+            <Button
+              variant="primary"
+              disabled={!newCardDraft.question.trim()}
+              onClick={() => {
+                handleAddCard().catch(error => {
+                  console.error('[study.deck] add card failed', error);
+                });
+              }}
+            >
+              {t['com.affine.study.add-card']()}
+            </Button>
+          </div>
+        </div>
       </StudyPageBody>
     </>
   );
