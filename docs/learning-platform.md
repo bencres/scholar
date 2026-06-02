@@ -281,25 +281,32 @@ Follow the pattern used by `mindmap.generate` (streaming action + output project
 ```typescript
 {
   deckName: string;
+  deckConcepts?: string[]; // kebab-case slugs for deck vocabulary
   recall: Array<{
     question: string;
     answer: string;
-    misconceptions?: string[];
-    provenance?: { blockIds?: string[] };
+    concepts: string[]; // 1–3 slugs, required
+    prerequisites?: string[]; // 0–2 slugs in deck vocabulary
+    misconceptions?: string[]; // short slug phrases
+    blockIds?: string[];
+    metadata?: StudyCardGenerationMetadata;
   }>;
   synthesis: Array<{
     question: string;
     rubric: string[];
-    provenance?: { blockIds?: string[] };
+    concepts: string[]; // 1–3 slugs, required
+    prerequisites?: string[];
+    blockIds?: string[];
+    metadata?: StudyCardGenerationMetadata;
   }>;
 }
 ```
 
 **Prompt design:**
 
-- System: retrieval-practice rules (no MCQ, no verbatim, mechanism-focused).
+- System: retrieval-practice rules (no MCQ, no verbatim, mechanism-focused) plus learning-graph slugs (`deckConcepts`, per-card `concepts`, optional `prerequisites`).
 - Context: `content` + optional `doc_semantic_search` chunks for long docs (`packages/backend/server/src/plugins/copilot/tools/doc-semantic-search.ts`).
-- Post-process: server validates schema; client runs preview UI before insert.
+- Post-process: server validates schema; client normalizes slugs (`study-graph-metadata.ts`), maps prerequisites to `prereq:` tags, and runs preview UI before insert. Saved decks feed the learning graph, adaptive tutor, and intelligence dashboard without manual tagging.
 
 **Registration checklist:**
 
@@ -481,26 +488,37 @@ Cloud sync of SRS is non-trivial (conflict on same card). v1 documents “schedu
 ```typescript
 import { z } from 'zod';
 
+const StudyConceptSlugSchema = z.string().min(2).max(40);
+const StudyCardGraphMetadataSchema = z.object({
+  concepts: z.array(StudyConceptSlugSchema).min(1).max(3),
+  prerequisites: z.array(StudyConceptSlugSchema).max(2).optional(),
+});
+
 export const StudyCardsGenerateOutputSchema = z.object({
   deckName: z.string().min(1).max(120),
+  deckConcepts: z.array(StudyConceptSlugSchema).max(20).optional(),
   recall: z
     .array(
-      z.object({
-        question: z.string().min(10),
-        answer: z.string().min(10),
-        misconceptions: z.array(z.string()).max(3).optional(),
-        blockIds: z.array(z.string()).optional(),
-      })
+      z
+        .object({
+          question: z.string().min(10),
+          answer: z.string().min(10),
+          misconceptions: z.array(z.string()).max(3).optional(),
+          blockIds: z.array(z.string()).optional(),
+        })
+        .merge(StudyCardGraphMetadataSchema)
     )
     .min(1)
     .max(30),
   synthesis: z
     .array(
-      z.object({
-        question: z.string().min(20),
-        rubric: z.array(z.string().min(5)).min(2).max(8),
-        blockIds: z.array(z.string()).optional(),
-      })
+      z
+        .object({
+          question: z.string().min(20),
+          rubric: z.array(z.string().min(5)).min(2).max(8),
+          blockIds: z.array(z.string()).optional(),
+        })
+        .merge(StudyCardGraphMetadataSchema)
     )
     .min(1)
     .max(30),
