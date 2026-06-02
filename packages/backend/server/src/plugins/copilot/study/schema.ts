@@ -22,28 +22,40 @@ const StudyCardGenerationMetadataSchema = z
   })
   .strict();
 
+const StudyConceptSlugSchema = z.string().min(2).max(40);
+
+const StudyCardGraphMetadataSchema = z.object({
+  concepts: z.array(StudyConceptSlugSchema).min(1).max(3),
+  prerequisites: z.array(StudyConceptSlugSchema).max(2).optional(),
+});
+
 export const StudyCardsGenerateOutputSchema = z.object({
   deckName: z.string().min(1).max(120),
+  deckConcepts: z.array(StudyConceptSlugSchema).max(20).optional(),
   recall: z
     .array(
-      z.object({
-        question: z.string().min(10),
-        answer: z.string().min(10),
-        misconceptions: z.array(z.string()).max(3).optional(),
-        blockIds: z.array(z.string()).optional(),
-        metadata: StudyCardGenerationMetadataSchema.optional(),
-      })
+      z
+        .object({
+          question: z.string().min(10),
+          answer: z.string().min(10),
+          misconceptions: z.array(z.string()).max(3).optional(),
+          blockIds: z.array(z.string()).optional(),
+          metadata: StudyCardGenerationMetadataSchema.optional(),
+        })
+        .merge(StudyCardGraphMetadataSchema)
     )
     .min(1)
     .max(30),
   synthesis: z
     .array(
-      z.object({
-        question: z.string().min(20),
-        rubric: z.array(z.string().min(5)).min(2).max(8),
-        blockIds: z.array(z.string()).optional(),
-        metadata: StudyCardGenerationMetadataSchema.optional(),
-      })
+      z
+        .object({
+          question: z.string().min(20),
+          rubric: z.array(z.string().min(5)).min(2).max(8),
+          blockIds: z.array(z.string()).optional(),
+          metadata: StudyCardGenerationMetadataSchema.optional(),
+        })
+        .merge(StudyCardGraphMetadataSchema)
     )
     .min(1)
     .max(30),

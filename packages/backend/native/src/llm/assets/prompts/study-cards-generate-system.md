@@ -8,12 +8,22 @@ Cards preserve reasoning the user has already worked out in their notes. Do not 
 
 ## Output
 
-Return JSON only (no markdown wrapper, no code fences, no commentary). Fields: `deckName`, `recall[]`, `synthesis[]`.
+Return JSON only (no markdown wrapper, no code fences, no commentary). Fields: `deckName`, optional `deckConcepts`, `recall[]`, `synthesis[]`.
 
 Keep answers and rubrics concise so the full deck fits in one response.
 
-- **Recall:** closed Q→A. Optional `misconceptions` (1–2 strings). Optional `blockIds` when a card maps to a section. Optional `metadata` when it materially helps downstream study modes.
-- **Synthesis:** open prompt + `rubric` (3–4 checkable strings). Optional `blockIds`. Optional `metadata` when it materially helps downstream study modes.
+- **Recall:** closed Q→A. Required `concepts` (1–3 slugs). Optional `prerequisites` (0–2 slugs). Optional `misconceptions` (1–2 short slug phrases). Optional `blockIds` when a card maps to a section. Optional `metadata` when it materially helps downstream study modes.
+- **Synthesis:** open prompt + `rubric` (3–4 checkable strings). Required `concepts` (1–3 slugs). Optional `prerequisites` (0–2 slugs). Optional `blockIds`. Optional `metadata` when it materially helps downstream study modes.
+
+## Learning graph metadata
+
+Every card must include `concepts` so the app can build a concept-level learning graph (coverage, mastery risk, adaptive tutor).
+
+- Emit stable **kebab-case slugs** (e.g. `connection-pooling`), not full sentences or display titles.
+- Provide `deckConcepts`: 8–15 slugs naming the main ideas in this deck. Reuse these slugs on cards.
+- Each card: **1–3 `concepts`** drawn from `deckConcepts` (add a new slug to `deckConcepts` if needed).
+- `prerequisites` only when confident (0–2 per card). Each prerequisite slug must appear in `deckConcepts` or another card's `concepts`.
+- `misconceptions` (recall only): short slug phrases for plausible wrong beliefs (e.g. `pool-size-fixes-db-limits`), not paragraphs.
 
 ## Card types
 
@@ -32,7 +42,7 @@ Keep answers and rubrics concise so the full deck fits in one response.
 
 - Questions must demand **production**, not recognition. Good: "Why does a connection pool exist, and what cost does it remove?" Bad: "A connection pool is: …"
 - Answers explain the **mechanism and the problem it solves**, in your own words—not the note's phrasing.
-- **Misconceptions** (optional): plausible wrong beliefs **and why they're wrong**. Skip if you cannot state the correction cleanly.
+- **Misconceptions** (optional): short slug phrases naming plausible wrong beliefs. Skip if you cannot name one cleanly.
 
 ## How to write synthesis cards
 
@@ -74,11 +84,14 @@ Return **only** a single raw JSON object matching this shape. Do not wrap it in 
 ```json
 {
   "deckName": "string",
+  "deckConcepts": ["slug-one", "slug-two"],
   "recall": [
     {
       "question": "string",
       "answer": "string",
-      "misconceptions": ["string"],
+      "concepts": ["slug-one"],
+      "prerequisites": ["slug-two"],
+      "misconceptions": ["wrong-belief-slug"],
       "blockIds": ["string"],
       "metadata": {
         "noteTypeHint": "basic | reversed | cloze | scenario",
@@ -92,6 +105,8 @@ Return **only** a single raw JSON object matching this shape. Do not wrap it in 
     {
       "question": "string",
       "rubric": ["string"],
+      "concepts": ["slug-one"],
+      "prerequisites": ["slug-two"],
       "blockIds": ["string"],
       "metadata": {
         "noteTypeHint": "basic | reversed | cloze | scenario",
@@ -104,4 +119,4 @@ Return **only** a single raw JSON object matching this shape. Do not wrap it in 
 }
 ```
 
-`misconceptions`, `blockIds`, `metadata`, and rubric items are optional where noted above; `deckName`, `recall`, and `synthesis` are required.
+`deckConcepts`, `prerequisites`, `misconceptions`, `blockIds`, and `metadata` are optional where noted above. `deckName`, `recall`, `synthesis`, and per-card `concepts` are required.
