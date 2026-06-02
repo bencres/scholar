@@ -2,6 +2,7 @@ import type { StudyCardContent, StudyCardScheduling } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
 import type { StudyLearningGraphSnapshot } from './learning-graph';
+import { normalizeConceptId } from './study-graph-metadata';
 
 const DAY_MS = 86_400_000;
 const RECENT_WINDOW_MS = 14 * DAY_MS;
@@ -211,15 +212,6 @@ function normalizeConceptIds(card: StudyCardContent) {
       [...(card.concepts ?? []), ...conceptTags].map(normalizeConceptId)
     ),
   ];
-}
-
-function normalizeConceptId(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/['"`]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
 }
 
 function scoreCardRisk(row: StudyCardScheduling | undefined, now: number) {

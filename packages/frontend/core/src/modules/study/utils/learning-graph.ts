@@ -1,6 +1,7 @@
 import type { StudyCardContent, StudyCardScheduling } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
+import { normalizeConceptId } from './study-graph-metadata';
 
 const DAY_MS = 86_400_000;
 const RECENT_WINDOW_MS = 14 * DAY_MS;
@@ -328,17 +329,6 @@ function extractPrefixedTags(tags: string[] | undefined, prefix: string) {
     .filter(tag => tag.toLowerCase().startsWith(prefix))
     .map(tag => tag.slice(prefix.length).trim())
     .filter(Boolean);
-}
-
-function normalizeConceptId(value: string) {
-  const compact = value.trim().toLowerCase();
-  if (!compact) {
-    return '';
-  }
-  return compact
-    .replace(/['"`]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
 }
 
 function toConceptLabel(id: string) {
