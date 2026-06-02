@@ -58,6 +58,10 @@ import {
   scheduleAfterReview,
   shouldMarkLeech,
 } from '../utils/scheduling';
+import {
+  sanitizeStudyCardsGenerateOutput,
+  toStudyCardGraphFields,
+} from '../utils/study-graph-metadata';
 
 const studyGenerateLogger = new DebugLogger('study.cards.generate');
 
@@ -243,7 +247,9 @@ export class StudyCommandService extends Service {
       stage = 'parse';
       const json = parseStudyCardsGenerateJson(rawResponse);
       stage = 'validate';
-      const parsed = StudyCardsGenerateOutputSchema.parse(json);
+      const parsed = sanitizeStudyCardsGenerateOutput(
+        StudyCardsGenerateOutputSchema.parse(json)
+      );
       const cards = this.toPreviewCards(parsed);
       this.generationState$.setValue({
         status: 'preview',
@@ -318,24 +324,33 @@ export class StudyCommandService extends Service {
     const deckId = nanoid();
     const now = Date.now();
     const workspaceId = this.workspaceService.workspace.id;
-    const cards: StudyCardContent[] = accepted.map(card => ({
-      id: nanoid(),
-      deckId,
-      type: card.type,
-      question: card.question,
-      answer: card.answer,
-      misconceptions: card.misconceptions,
-      rubric: card.rubric,
-      metadata: card.metadata,
-      provenance: {
-        workspaceId,
-        docId: state.docId,
-        blockIds: card.blockIds,
-      },
-      createdAt: now,
-      updatedAt: now,
-      suspended: false,
-    }));
+    const cards: StudyCardContent[] = accepted.map(card => {
+      const graphFields = toStudyCardGraphFields({
+        concepts: card.concepts ?? [],
+        prerequisites: card.prerequisites ?? [],
+        misconceptions: card.misconceptions ?? [],
+      });
+      return {
+        id: nanoid(),
+        deckId,
+        type: card.type,
+        question: card.question,
+        answer: card.answer,
+        concepts: graphFields.concepts,
+        tags: graphFields.tags,
+        misconceptions: graphFields.misconceptions,
+        rubric: card.rubric,
+        metadata: card.metadata,
+        provenance: {
+          workspaceId,
+          docId: state.docId,
+          blockIds: card.blockIds,
+        },
+        createdAt: now,
+        updatedAt: now,
+        suspended: false,
+      };
+    });
 
     const deck: StudyDeck = {
       id: deckId,
@@ -781,6 +796,8 @@ export class StudyCommandService extends Service {
         type: 'recall' as const,
         question: item.question,
         answer: item.answer,
+        concepts: item.concepts,
+        prerequisites: item.prerequisites,
         misconceptions: item.misconceptions,
         blockIds: item.blockIds,
         metadata: item.metadata,
@@ -790,6 +807,8 @@ export class StudyCommandService extends Service {
         id: nanoid(),
         type: 'synthesis' as const,
         question: item.question,
+        concepts: item.concepts,
+        prerequisites: item.prerequisites,
         rubric: item.rubric,
         blockIds: item.blockIds,
         metadata: item.metadata,

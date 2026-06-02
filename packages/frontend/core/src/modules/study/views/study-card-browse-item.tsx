@@ -12,6 +12,7 @@ export type StudyCardBrowseData = {
   question: string;
   answer?: string;
   concepts?: string[];
+  prerequisites?: string[];
   misconceptions?: string[];
   rubric?: string[];
 };
@@ -34,7 +35,8 @@ export const StudyCardBrowseItem = ({
   const hasDetails =
     (card.type === 'recall' && !!card.answer) ||
     (card.type === 'recall' && !!card.misconceptions?.length) ||
-    (card.type === 'synthesis' && !!card.rubric?.length);
+    (card.type === 'synthesis' && !!card.rubric?.length) ||
+    !!card.prerequisites?.length;
 
   const toggleExpanded = useCallback(() => {
     if (hasDetails) {
@@ -96,6 +98,18 @@ export const StudyCardBrowseItem = ({
                 {t['com.affine.study.answer']()}
               </div>
               <div className={styles.cardAnswer}>{card.answer}</div>
+            </div>
+          ) : null}
+          {card.prerequisites?.length ? (
+            <div className={styles.browseCardSection}>
+              <div className={styles.cardLabel}>
+                {t['com.affine.study.prerequisites']()}
+              </div>
+              <ul className={styles.browseList}>
+                {card.prerequisites.map(item => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </div>
           ) : null}
           {card.type === 'recall' && card.misconceptions?.length ? (
