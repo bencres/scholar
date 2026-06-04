@@ -247,6 +247,10 @@ export class StudyService extends Service {
     return this.queryService.statsSnapshot(deckId);
   }
 
+  activitySnapshot(windowDays?: number) {
+    return this.queryService.activitySnapshot(windowDays);
+  }
+
   learningGraphSnapshot(deckId?: string): StudyLearningGraphSnapshot {
     return this.queryService.learningGraphSnapshot(deckId);
   }

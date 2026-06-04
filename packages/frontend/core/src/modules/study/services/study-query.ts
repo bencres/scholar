@@ -10,6 +10,10 @@ import { matchStudyBrowserQuery } from '../utils/card-browser-search';
 import { buildIntelligenceDashboardSnapshot } from '../utils/intelligence-dashboard';
 import { buildStudyLearningGraphSnapshot } from '../utils/learning-graph';
 import { isDue } from '../utils/scheduling';
+import {
+  buildStudyActivitySnapshot,
+  DEFAULT_STUDY_ACTIVITY_WINDOW_DAYS,
+} from '../utils/study-activity';
 import { buildStudyStatsSnapshot } from '../utils/study-stats';
 import {
   buildCardMap,
@@ -279,6 +283,14 @@ export class StudyQueryService extends Service {
       tutor,
       stats,
       scheduling: this.scheduling$.value,
+    });
+  }
+
+  activitySnapshot(windowDays = DEFAULT_STUDY_ACTIVITY_WINDOW_DAYS) {
+    return buildStudyActivitySnapshot({
+      cards: this.cards$.value,
+      reviewLogs: this.reviewLogs$.value,
+      windowDays,
     });
   }
 }
