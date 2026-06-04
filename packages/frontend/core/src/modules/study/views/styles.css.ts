@@ -670,3 +670,62 @@ export const badge = style({
   background: cssVarV2.button.primary,
   color: cssVarV2.text.pureWhite,
 });
+
+export const streakCard = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 16,
+  padding: '20px 16px',
+  borderRadius: 10,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.primary,
+  marginBottom: 16,
+});
+
+export const streakValue = style({
+  fontSize: 36,
+  lineHeight: '40px',
+  fontWeight: 700,
+  color: cssVarV2.text.primary,
+});
+
+export const streakMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 4,
+  color: cssVarV2.text.secondary,
+  fontSize: 14,
+  lineHeight: '22px',
+});
+
+export const activityChartsGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+  gap: 16,
+});
+
+export const activityChartBlock = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  minWidth: 0,
+});
+
+export const activityChartTitle = style({
+  fontSize: 13,
+  fontWeight: 600,
+  color: cssVarV2.text.primary,
+});
+
+export const activityChartContainer = style({
+  width: '100%',
+  height: 200,
+});
+
+export const activityChartAxis = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  fontSize: 12,
+  color: cssVarV2.text.secondary,
+});
