@@ -2680,6 +2680,110 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.decks"](): string;
     /**
+      * `Cards`
+      */
+    ["com.affine.study.cards-library"](): string;
+    /**
+      * `Decks`
+      */
+    ["com.affine.study.tab.decks"](): string;
+    /**
+      * `Cards`
+      */
+    ["com.affine.study.tab.cards"](): string;
+    /**
+      * `Create card`
+      */
+    ["com.affine.study.create-card"](): string;
+    /**
+      * `Search cards (e.g. deck:biology due:overdue)`
+      */
+    ["com.affine.study.card-library.search.placeholder"](): string;
+    /**
+      * `Sort`
+      */
+    ["com.affine.study.card-library.sort.label"](): string;
+    /**
+      * `Newest first`
+      */
+    ["com.affine.study.card-library.sort.created-desc"](): string;
+    /**
+      * `Oldest first`
+      */
+    ["com.affine.study.card-library.sort.created-asc"](): string;
+    /**
+      * `Recently updated`
+      */
+    ["com.affine.study.card-library.sort.updated-desc"](): string;
+    /**
+      * `Due soonest`
+      */
+    ["com.affine.study.card-library.sort.due-asc"](): string;
+    /**
+      * `Card type`
+      */
+    ["com.affine.study.card-library.sort.type"](): string;
+    /**
+      * `No cards match your filters.`
+      */
+    ["com.affine.study.card-library.empty"](): string;
+    /**
+      * `Card not found.`
+      */
+    ["com.affine.study.card-not-found"](): string;
+    /**
+      * `Card`
+      */
+    ["com.affine.study.card-detail.title"](): string;
+    /**
+      * `In decks`
+      */
+    ["com.affine.study.card-in-decks"](): string;
+    /**
+      * `Not in any deck`
+      */
+    ["com.affine.study.card-unassigned"](): string;
+    /**
+      * `Add to deck`
+      */
+    ["com.affine.study.add-to-deck"](): string;
+    /**
+      * `Remove from deck`
+      */
+    ["com.affine.study.remove-from-deck"](): string;
+    /**
+      * `Delete card`
+      */
+    ["com.affine.study.delete-card"](): string;
+    /**
+      * `Add existing cards`
+      */
+    ["com.affine.study.import-from-library"](): string;
+    /**
+      * `Search decks`
+      */
+    ["com.affine.study.deck-library.search.placeholder"](): string;
+    /**
+      * `Name`
+      */
+    ["com.affine.study.deck-library.sort.name"](): string;
+    /**
+      * `Created`
+      */
+    ["com.affine.study.deck-library.sort.created"](): string;
+    /**
+      * `Card count`
+      */
+    ["com.affine.study.deck-library.sort.card-count"](): string;
+    /**
+      * `Due count`
+      */
+    ["com.affine.study.deck-library.sort.due-count"](): string;
+    /**
+      * `Open source page`
+      */
+    ["com.affine.study.open-source-page"](): string;
+    /**
       * `Review flashcards on a spaced schedule, generated from your notes.`
       */
     ["com.affine.study.hero.subtitle"](): string;
