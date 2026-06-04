@@ -36,6 +36,7 @@ export class StudyService extends Service {
   readonly generationState$ = this.commandService.generationState$;
   readonly generateModelId$ = this.commandService.generateModelId$;
   readonly decks$ = this.queryService.decks$;
+  readonly cards$ = this.queryService.cards$;
   readonly scheduling$ = this.queryService.scheduling$;
   readonly reviewLogs$ = this.queryService.reviewLogs$;
   readonly dueCount$ = this.queryService.dueCount$;
@@ -58,6 +59,14 @@ export class StudyService extends Service {
 
   deck$(deckId: string) {
     return this.queryService.deck$(deckId);
+  }
+
+  card$(cardId: string) {
+    return this.queryService.card$(cardId);
+  }
+
+  decksForCard$(cardId: string) {
+    return this.queryService.decksForCard$(cardId);
   }
 
   dueCountForDeck$(deckId: string) {
@@ -100,6 +109,7 @@ export class StudyService extends Service {
   createDeck(input: {
     name: string;
     sourceDocId?: string;
+    cardIds?: string[];
     metadata?: StudyDeckMetadata;
   }) {
     return this.commandService.createDeck(input);
@@ -119,8 +129,15 @@ export class StudyService extends Service {
     return this.commandService.deleteDeck(deckId);
   }
 
+  addCardsToDeck(deckId: string, cardIds: string[]) {
+    return this.commandService.addCardsToDeck(deckId, cardIds);
+  }
+
+  removeCardsFromDeck(deckId: string, cardIds: string[]) {
+    return this.commandService.removeCardsFromDeck(deckId, cardIds);
+  }
+
   createCard(
-    deckId: string,
     input: {
       type: 'recall' | 'synthesis';
       question: string;
@@ -144,9 +161,10 @@ export class StudyService extends Service {
       misconceptions?: string[];
       rubric?: string[];
       tags?: string[];
-    }
+    },
+    options?: { deckIds?: string[] }
   ) {
-    return this.commandService.createCard(deckId, input);
+    return this.commandService.createCard(input, options);
   }
 
   updateCard(
@@ -187,6 +205,14 @@ export class StudyService extends Service {
 
   getDeckById(deckId: string) {
     return this.queryService.getDeckById(deckId);
+  }
+
+  getDeckCards(deckId: string) {
+    return this.queryService.getDeckCards(deckId);
+  }
+
+  findCardById(cardId: string) {
+    return this.queryService.findCardById(cardId);
   }
 
   searchCards(query: string, deckId?: string) {

@@ -2,6 +2,7 @@ import type { StudyCardContent, StudyCardScheduling } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
 import { normalizeConceptId } from './study-graph-metadata';
+import { getDeckCards } from './study-storage';
 
 const DAY_MS = 86_400_000;
 const RECENT_WINDOW_MS = 14 * DAY_MS;
@@ -48,6 +49,7 @@ export interface StudyLearningGraphSnapshot {
 
 type BuildInput = {
   decks: StudyDeck[];
+  cards: StudyCardContent[];
   scheduling: StudyCardScheduling[];
   reviewLogs: StudyReviewLog[];
   now?: number;
@@ -68,6 +70,7 @@ type ConceptAccumulator = {
 
 export function buildStudyLearningGraphSnapshot({
   decks,
+  cards,
   scheduling,
   reviewLogs,
   now = Date.now(),
@@ -94,7 +97,7 @@ export function buildStudyLearningGraphSnapshot({
     let deckTotalCards = 0;
     let deckMappedCards = 0;
     let deckDueMappedCards = 0;
-    for (const card of deck.cards) {
+    for (const card of getDeckCards(deck, cards)) {
       totalCards += 1;
       deckTotalCards += 1;
       const conceptIds = extractConceptIds(card);

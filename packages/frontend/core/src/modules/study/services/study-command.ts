@@ -62,6 +62,7 @@ import {
   sanitizeStudyCardsGenerateOutput,
   toStudyCardGraphFields,
 } from '../utils/study-graph-metadata';
+import { pruneDeckCardIds } from '../utils/study-storage';
 
 const studyGenerateLogger = new DebugLogger('study.cards.generate');
 
@@ -332,7 +333,6 @@ export class StudyCommandService extends Service {
       });
       return {
         id: nanoid(),
-        deckId,
         type: card.type,
         question: card.question,
         answer: card.answer,
@@ -356,16 +356,24 @@ export class StudyCommandService extends Service {
       id: deckId,
       name: state.output.deckName,
       sourceDocId: state.docId,
-      cards,
+      cardIds: cards.map(card => card.id),
+      metadata: sanitizeDeckMetadata({
+        sourcePage: { docId: state.docId },
+      }),
       createdAt: now,
       updatedAt: now,
     };
 
-    await this.commandRepository.upsertDeck(deck);
+    const storage = await this.commandRepository.listDeckState();
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      cards: [...storage.cards, ...cards],
+      decks: [...storage.decks, deck],
+    });
     await Promise.all(
       cards.map(card =>
         this.commandRepository.upsertScheduling(
-          createInitialScheduling(card.id, deckId, now)
+          createInitialScheduling(card.id, now)
         )
       )
     );
@@ -376,19 +384,34 @@ export class StudyCommandService extends Service {
   async createDeck(input: {
     name: string;
     sourceDocId?: string;
+    cardIds?: string[];
     metadata?: StudyDeckMetadata;
   }) {
     const now = Date.now();
+    const storage = await this.commandRepository.listDeckState();
+    const validIds = (input.cardIds ?? []).filter(id =>
+      storage.cards.some(card => card.id === id)
+    );
     const deck: StudyDeck = {
       id: nanoid(),
       name: input.name.trim(),
       sourceDocId: input.sourceDocId,
-      cards: [],
-      metadata: sanitizeDeckMetadata(input.metadata),
+      cardIds: validIds,
+      metadata: sanitizeDeckMetadata(
+        input.sourceDocId
+          ? {
+              ...input.metadata,
+              sourcePage: { docId: input.sourceDocId },
+            }
+          : input.metadata
+      ),
       createdAt: now,
       updatedAt: now,
     };
-    await this.commandRepository.upsertDeck(deck);
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      decks: [...storage.decks, deck],
+    });
     return deck;
   }
 
@@ -416,17 +439,61 @@ export class StudyCommandService extends Service {
   }
 
   async deleteDeck(deckId: string) {
-    const decks = await this.commandRepository.listDecks();
-    const nextDecks = decks.filter(deck => deck.id !== deckId);
-    if (nextDecks.length === decks.length) {
+    const storage = await this.commandRepository.listDeckState();
+    const nextDecks = storage.decks.filter(deck => deck.id !== deckId);
+    if (nextDecks.length === storage.decks.length) {
       return;
     }
-    await this.commandRepository.saveDecks(nextDecks);
-    await this.commandRepository.removeSchedulingForDeck(deckId);
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      decks: nextDecks,
+    });
+  }
+
+  async addCardsToDeck(deckId: string, cardIds: string[]) {
+    const storage = await this.commandRepository.listDeckState();
+    const deck = storage.decks.find(item => item.id === deckId);
+    if (!deck) {
+      throw new Error(`Deck not found: ${deckId}`);
+    }
+    const validIds = cardIds.filter(id =>
+      storage.cards.some(card => card.id === id)
+    );
+    const nextIds = [...new Set([...deck.cardIds, ...validIds])];
+    const now = Date.now();
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      decks: storage.decks.map(item =>
+        item.id === deckId
+          ? { ...item, cardIds: nextIds, updatedAt: now }
+          : item
+      ),
+    });
+  }
+
+  async removeCardsFromDeck(deckId: string, cardIds: string[]) {
+    const storage = await this.commandRepository.listDeckState();
+    const deck = storage.decks.find(item => item.id === deckId);
+    if (!deck) {
+      throw new Error(`Deck not found: ${deckId}`);
+    }
+    const removeSet = new Set(cardIds);
+    const now = Date.now();
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      decks: storage.decks.map(item =>
+        item.id === deckId
+          ? {
+              ...item,
+              cardIds: item.cardIds.filter(id => !removeSet.has(id)),
+              updatedAt: now,
+            }
+          : item
+      ),
+    });
   }
 
   async createCard(
-    deckId: string,
     input: {
       type: StudyCardContent['type'];
       question: string;
@@ -445,17 +512,18 @@ export class StudyCommandService extends Service {
       misconceptions?: string[];
       rubric?: string[];
       tags?: string[];
-    }
+    },
+    options?: { deckIds?: string[] }
   ) {
-    const decks = await this.commandRepository.listDecks();
-    const deck = decks.find(item => item.id === deckId);
-    if (!deck) {
-      throw new Error(`Deck not found: ${deckId}`);
-    }
+    const storage = await this.commandRepository.listDeckState();
     const now = Date.now();
+    const soleDeckId =
+      options?.deckIds?.length === 1 ? options.deckIds[0] : undefined;
+    const defaultDocId = soleDeckId
+      ? storage.decks.find(deck => deck.id === soleDeckId)?.sourceDocId
+      : undefined;
     const card: StudyCardContent = {
       id: nanoid(),
-      deckId,
       type: input.type,
       question: input.question.trim(),
       answer: input.answer?.trim() || undefined,
@@ -470,7 +538,7 @@ export class StudyCommandService extends Service {
       tags: cleanList(input.tags),
       provenance: {
         workspaceId: this.workspaceService.workspace.id,
-        docId: input.provenance?.docId?.trim() || deck.sourceDocId || 'manual',
+        docId: input.provenance?.docId?.trim() || defaultDocId || 'manual',
         blockIds: cleanList(input.provenance?.blockIds),
         chunkId: input.provenance?.chunkId?.trim() || undefined,
       },
@@ -478,14 +546,30 @@ export class StudyCommandService extends Service {
       updatedAt: now,
       suspended: false,
     };
-    await this.commandRepository.upsertDeck({
-      ...deck,
-      cards: [...deck.cards, card],
-      updatedAt: now,
-    });
-    await this.commandRepository.upsertScheduling(
-      createInitialScheduling(card.id, deckId, now)
+    const deckIds = new Set(
+      (options?.deckIds ?? []).filter(id =>
+        storage.decks.some(deck => deck.id === id)
+      )
     );
+    const nextDecks = storage.decks.map(deck => {
+      if (!deckIds.has(deck.id)) return deck;
+      return {
+        ...deck,
+        cardIds: [...deck.cardIds, card.id],
+        updatedAt: now,
+      };
+    });
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      cards: [...storage.cards, card],
+      decks: nextDecks,
+    });
+    const existingScheduling = await this.commandRepository.listScheduling();
+    if (!existingScheduling.some(row => row.cardId === card.id)) {
+      await this.commandRepository.upsertScheduling(
+        createInitialScheduling(card.id, now)
+      );
+    }
     return card;
   }
 
@@ -507,92 +591,82 @@ export class StudyCommandService extends Service {
       suspended?: boolean;
     }
   ) {
-    const decks = await this.commandRepository.listDecks();
+    const storage = await this.commandRepository.listDeckState();
     const now = Date.now();
-    let updatedCard: StudyCardContent | undefined;
-    const nextDecks = decks.map(deck => {
-      const cardIndex = deck.cards.findIndex(card => card.id === cardId);
-      if (cardIndex < 0) return deck;
-      const current = deck.cards[cardIndex];
-      const nextCard: StudyCardContent = {
-        ...current,
-        type: patch.type ?? current.type,
-        question: patch.question?.trim() || current.question,
-        answer:
-          patch.answer !== undefined
-            ? patch.answer.trim() || undefined
-            : current.answer,
-        concepts:
-          patch.concepts !== undefined
-            ? cleanList(patch.concepts)
-            : current.concepts,
-        noteTypeId:
-          patch.noteTypeId !== undefined
-            ? patch.noteTypeId.trim() || undefined
-            : current.noteTypeId,
-        templateId:
-          patch.templateId !== undefined
-            ? patch.templateId.trim() || undefined
-            : current.templateId,
-        noteFields:
-          patch.noteFields !== undefined
-            ? sanitizeNoteFields(patch.noteFields)
-            : current.noteFields,
-        clozeOrdinal:
-          patch.clozeOrdinal !== undefined
-            ? sanitizeClozeOrdinal(patch.clozeOrdinal)
-            : current.clozeOrdinal,
-        imageOcclusion:
-          patch.imageOcclusion !== undefined
-            ? sanitizeImageOcclusion(patch.imageOcclusion)
-            : current.imageOcclusion,
-        misconceptions:
-          patch.misconceptions !== undefined
-            ? cleanList(patch.misconceptions)
-            : current.misconceptions,
-        rubric:
-          patch.rubric !== undefined ? cleanList(patch.rubric) : current.rubric,
-        tags: patch.tags !== undefined ? cleanList(patch.tags) : current.tags,
-        suspended: patch.suspended ?? current.suspended,
-        updatedAt: now,
-      };
-      const cards = [...deck.cards];
-      cards[cardIndex] = nextCard;
-      updatedCard = nextCard;
-      return {
-        ...deck,
-        cards,
-        updatedAt: now,
-      };
-    });
-    if (!updatedCard) {
+    const index = storage.cards.findIndex(card => card.id === cardId);
+    if (index < 0) {
       throw new Error(`Card not found: ${cardId}`);
     }
-    await this.commandRepository.saveDecks(nextDecks);
+    const current = storage.cards[index];
+    const updatedCard: StudyCardContent = {
+      ...current,
+      type: patch.type ?? current.type,
+      question: patch.question?.trim() || current.question,
+      answer:
+        patch.answer !== undefined
+          ? patch.answer.trim() || undefined
+          : current.answer,
+      concepts:
+        patch.concepts !== undefined
+          ? cleanList(patch.concepts)
+          : current.concepts,
+      noteTypeId:
+        patch.noteTypeId !== undefined
+          ? patch.noteTypeId.trim() || undefined
+          : current.noteTypeId,
+      templateId:
+        patch.templateId !== undefined
+          ? patch.templateId.trim() || undefined
+          : current.templateId,
+      noteFields:
+        patch.noteFields !== undefined
+          ? sanitizeNoteFields(patch.noteFields)
+          : current.noteFields,
+      clozeOrdinal:
+        patch.clozeOrdinal !== undefined
+          ? sanitizeClozeOrdinal(patch.clozeOrdinal)
+          : current.clozeOrdinal,
+      imageOcclusion:
+        patch.imageOcclusion !== undefined
+          ? sanitizeImageOcclusion(patch.imageOcclusion)
+          : current.imageOcclusion,
+      misconceptions:
+        patch.misconceptions !== undefined
+          ? cleanList(patch.misconceptions)
+          : current.misconceptions,
+      rubric:
+        patch.rubric !== undefined ? cleanList(patch.rubric) : current.rubric,
+      tags: patch.tags !== undefined ? cleanList(patch.tags) : current.tags,
+      suspended: patch.suspended ?? current.suspended,
+      updatedAt: now,
+    };
+    const cards = [...storage.cards];
+    cards[index] = updatedCard;
+    const validIds = new Set(cards.map(card => card.id));
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      cards,
+      decks: storage.decks.map(deck => pruneDeckCardIds(deck, validIds)),
+    });
     return updatedCard;
   }
 
   async deleteCard(cardId: string) {
-    const decks = await this.commandRepository.listDecks();
-    const now = Date.now();
-    let targetDeckId: string | undefined;
-    const nextDecks = decks.map(deck => {
-      const before = deck.cards.length;
-      const cards = deck.cards.filter(card => card.id !== cardId);
-      if (cards.length === before) {
-        return deck;
-      }
-      targetDeckId = deck.id;
-      return {
-        ...deck,
-        cards,
-        updatedAt: now,
-      };
-    });
-    if (!targetDeckId) {
+    const storage = await this.commandRepository.listDeckState();
+    if (!storage.cards.some(card => card.id === cardId)) {
       return;
     }
-    await this.commandRepository.saveDecks(nextDecks);
+    const now = Date.now();
+    const cards = storage.cards.filter(card => card.id !== cardId);
+    const validIds = new Set(cards.map(card => card.id));
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      cards,
+      decks: storage.decks.map(deck => ({
+        ...pruneDeckCardIds(deck, validIds),
+        updatedAt: now,
+      })),
+    });
     await this.commandRepository.removeSchedulingForCard(cardId);
   }
 
@@ -618,7 +692,6 @@ export class StudyCommandService extends Service {
     );
     const reviewLog: StudyReviewLog = {
       id: nanoid(),
-      deckId: row.deckId,
       cardId: row.cardId,
       reviewedAt: updated.lastReviewAt ?? now,
       grade,
@@ -674,7 +747,7 @@ export class StudyCommandService extends Service {
     if (!row) {
       throw new Error(`Scheduling not found for card: ${cardId}`);
     }
-    const next = createInitialScheduling(row.cardId, row.deckId, Date.now());
+    const next = createInitialScheduling(row.cardId, Date.now());
     await this.commandRepository.upsertScheduling(next);
     return next;
   }
@@ -684,11 +757,14 @@ export class StudyCommandService extends Service {
     orderedCardIds: string[],
     startPosition = 1
   ) {
+    const storage = await this.commandRepository.listDeckState();
+    const deck = storage.decks.find(item => item.id === deckId);
+    if (!deck) {
+      throw new Error(`Deck not found: ${deckId}`);
+    }
     const rows = await this.commandRepository.listScheduling();
     const rowMap = new Map(rows.map(row => [row.cardId, row]));
-    const deckCardIds = new Set(
-      rows.filter(row => row.deckId === deckId).map(row => row.cardId)
-    );
+    const deckCardIds = new Set(deck.cardIds);
     const validIds = orderedCardIds.filter(cardId => deckCardIds.has(cardId));
     await Promise.all(
       validIds.map((cardId, index) => {
@@ -714,12 +790,12 @@ export class StudyCommandService extends Service {
   }
 
   async exportDeckCsv(deckId: string, mapping?: StudyCsvFieldMapping) {
-    const decks = await this.commandRepository.listDecks();
-    const deck = decks.find(item => item.id === deckId);
+    const storage = await this.commandRepository.listDeckState();
+    const deck = storage.decks.find(item => item.id === deckId);
     if (!deck) {
       throw new Error(`Deck not found: ${deckId}`);
     }
-    return exportDeckToCsv(deck, mapping);
+    return exportDeckToCsv(deck, storage.cards, mapping);
   }
 
   async importDeckCsv(input: {
@@ -733,7 +809,12 @@ export class StudyCommandService extends Service {
       workspaceId: this.workspaceService.workspace.id,
       mapping: input.mapping,
     });
-    await this.commandRepository.upsertDeck(imported.deck);
+    const storage = await this.commandRepository.listDeckState();
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      cards: [...storage.cards, ...imported.cards],
+      decks: [...storage.decks, imported.deck],
+    });
     await Promise.all(
       imported.scheduling.map(row =>
         this.commandRepository.upsertScheduling(row)
@@ -747,12 +828,12 @@ export class StudyCommandService extends Service {
   }
 
   async exportDeckApkg(deckId: string): Promise<StudyApkgExportResult> {
-    const decks = await this.commandRepository.listDecks();
-    const deck = decks.find(item => item.id === deckId);
+    const storage = await this.commandRepository.listDeckState();
+    const deck = storage.decks.find(item => item.id === deckId);
     if (!deck) {
       throw new Error(`Deck not found: ${deckId}`);
     }
-    return exportDeckToApkg(deck);
+    return exportDeckToApkg(deck, storage.cards);
   }
 
   async importDeckApkg(input: {
@@ -764,7 +845,12 @@ export class StudyCommandService extends Service {
       bytes: input.bytes,
       workspaceId: this.workspaceService.workspace.id,
     });
-    await this.commandRepository.upsertDeck(imported.deck);
+    const storage = await this.commandRepository.listDeckState();
+    await this.commandRepository.saveDeckState({
+      ...storage,
+      cards: [...storage.cards, ...imported.cards],
+      decks: [...storage.decks, imported.deck],
+    });
     await Promise.all(
       imported.scheduling.map(row =>
         this.commandRepository.upsertScheduling(row)
@@ -831,6 +917,9 @@ function sanitizeDeckMetadata(
   const description = metadata.description?.trim() || undefined;
   const tags = cleanList(metadata.tags);
   const sourceLinks = cleanList(metadata.sourceLinks);
+  const sourcePage = metadata.sourcePage?.docId?.trim()
+    ? { docId: metadata.sourcePage.docId.trim() }
+    : undefined;
   const noteTypes = sanitizeNoteTypes(metadata.noteTypes);
   const dailyNewLimit = toPositiveLimit(metadata.limits?.dailyNewLimit);
   const dailyReviewLimit = toPositiveLimit(metadata.limits?.dailyReviewLimit);
@@ -854,6 +943,7 @@ function sanitizeDeckMetadata(
     !description &&
     !tags &&
     !sourceLinks &&
+    !sourcePage &&
     !noteTypes &&
     !limits &&
     !sortPolicy &&
@@ -868,6 +958,7 @@ function sanitizeDeckMetadata(
     description,
     tags,
     sourceLinks,
+    sourcePage,
     noteTypes,
     sortPolicy,
     limits,

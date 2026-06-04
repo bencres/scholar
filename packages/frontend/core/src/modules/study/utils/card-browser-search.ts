@@ -5,6 +5,8 @@ export interface StudyBrowserSearchInput {
   deck: StudyDeck;
   card: StudyCardContent;
   scheduling?: StudyCardScheduling;
+  /** True when the card is not in any deck membership list. */
+  unassigned?: boolean;
   now?: number;
 }
 
@@ -30,8 +32,13 @@ export function matchStudyBrowserQuery(
   const state = input.scheduling?.state?.toLowerCase();
 
   if (parsed.deckNames.length) {
-    const deckMatched = parsed.deckNames.some(name => deckName.includes(name));
-    if (!deckMatched) return false;
+    const wantsUnassigned = parsed.deckNames.includes('none');
+    const namedFilters = parsed.deckNames.filter(name => name !== 'none');
+    if (wantsUnassigned && !input.unassigned) return false;
+    if (namedFilters.length) {
+      const deckMatched = namedFilters.some(name => deckName.includes(name));
+      if (!deckMatched) return false;
+    }
   }
 
   if (parsed.tags.length) {

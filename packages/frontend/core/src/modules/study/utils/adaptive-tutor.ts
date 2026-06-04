@@ -1,8 +1,9 @@
 import type { StudyCardContent, StudyCardScheduling } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
-import type { StudyLearningGraphSnapshot } from './learning-graph';
+import { buildStudyLearningGraphSnapshot } from './learning-graph';
 import { normalizeConceptId } from './study-graph-metadata';
+import { getDeckCards } from './study-storage';
 
 const DAY_MS = 86_400_000;
 const RECENT_WINDOW_MS = 14 * DAY_MS;
@@ -54,21 +55,28 @@ export interface StudyTeachBackEvaluation {
 
 type BuildInput = {
   decks: StudyDeck[];
+  cards: StudyCardContent[];
   scheduling: StudyCardScheduling[];
   reviewLogs: StudyReviewLog[];
-  learningGraph: StudyLearningGraphSnapshot;
   targetCount?: number;
   now?: number;
 };
 
 export function buildAdaptiveTutorSnapshot({
   decks,
+  cards,
   scheduling,
   reviewLogs,
-  learningGraph,
   targetCount = 8,
   now = Date.now(),
 }: BuildInput): StudyAdaptiveTutorSnapshot {
+  const learningGraph = buildStudyLearningGraphSnapshot({
+    decks,
+    cards,
+    scheduling,
+    reviewLogs,
+    now,
+  });
   const schedulingByCardId = new Map(scheduling.map(row => [row.cardId, row]));
   const recentMissesByCardId = new Map<string, number>();
   for (const log of reviewLogs) {
@@ -85,7 +93,7 @@ export function buildAdaptiveTutorSnapshot({
   const queue: StudyTutorCardPlan[] = [];
 
   for (const deck of decks) {
-    for (const card of deck.cards) {
+    for (const card of getDeckCards(deck, cards)) {
       if (card.suspended) continue;
       const conceptIds = normalizeConceptIds(card);
       if (!conceptIds.length) continue;

@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import type { StudyCardContent, StudyCardScheduling } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import { createInitialScheduling } from './scheduling';
+import { getDeckCards } from './study-storage';
 
 export interface StudyCsvFieldMapping {
   question: string;
@@ -45,8 +46,16 @@ export interface StudyApkgExportResult {
 
 export interface StudyApkgImportResult {
   deck: StudyDeck;
+  cards: StudyCardContent[];
   scheduling: StudyCardScheduling[];
   report: StudyApkgImportReport;
+}
+
+export interface StudyCsvImportResult {
+  deck: StudyDeck;
+  cards: StudyCardContent[];
+  scheduling: StudyCardScheduling[];
+  report: StudyImportReport;
 }
 
 const DEFAULT_MAPPING: StudyCsvFieldMapping = {
@@ -61,6 +70,7 @@ const STUDY_APKG_VERSION = 1;
 
 export function exportDeckToCsv(
   deck: StudyDeck,
+  cards: StudyCardContent[],
   mapping: StudyCsvFieldMapping = DEFAULT_MAPPING
 ) {
   const headers = [
@@ -69,7 +79,7 @@ export function exportDeckToCsv(
     mapping.tags,
     mapping.noteTypeId,
   ];
-  const rows = deck.cards.map(card =>
+  const rows = getDeckCards(deck, cards).map(card =>
     [
       card.question,
       card.answer ?? '',
@@ -125,7 +135,6 @@ export function importDeckFromCsv(input: {
     );
     cards.push({
       id: nanoid(),
-      deckId,
       type: 'recall',
       question,
       answer: answer || undefined,
@@ -141,16 +150,17 @@ export function importDeckFromCsv(input: {
     });
   }
   const scheduling: StudyCardScheduling[] = cards.map(card =>
-    createInitialScheduling(card.id, deckId, now)
+    createInitialScheduling(card.id, now)
   );
   return {
     deck: {
       id: deckId,
       name: input.deckName.trim() || 'Imported Deck',
-      cards,
+      cardIds: cards.map(card => card.id),
       createdAt: now,
       updatedAt: now,
     } satisfies StudyDeck,
+    cards,
     scheduling,
     report: {
       importedCards: cards.length,
@@ -204,10 +214,12 @@ export type StudyApkgPayload = {
 };
 
 export async function exportDeckToApkg(
-  deck: StudyDeck
+  deck: StudyDeck,
+  cards: StudyCardContent[]
 ): Promise<StudyApkgExportResult> {
   const exportedAt = Date.now();
-  const mediaMap = buildMediaMap(deck.cards);
+  const deckCards = getDeckCards(deck, cards);
+  const mediaMap = buildMediaMap(deckCards);
   const payload: StudyApkgPayload = {
     manifest: {
       format: STUDY_APKG_FORMAT,
@@ -218,7 +230,7 @@ export async function exportDeckToApkg(
       name: deck.name,
       metadata: deck.metadata,
     },
-    cards: deck.cards.map(card => ({
+    cards: deckCards.map(card => ({
       type: card.type,
       question: card.question,
       answer: card.answer,
@@ -249,7 +261,7 @@ export async function exportDeckToApkg(
     fileName: `${slugifyDeckName(deck.name)}.apkg`,
     bytes,
     report: {
-      exportedCards: deck.cards.length,
+      exportedCards: deckCards.length,
       mediaReferences: Object.keys(mediaMap).length,
       warnings: [
         'This package is AFFiNE-compatible .apkg and does not yet encode Anki sqlite collections.',
@@ -291,7 +303,6 @@ export async function importDeckFromApkg(input: {
     }
     cards.push({
       id: nanoid(),
-      deckId,
       type: card.type,
       question,
       answer: card.answer?.trim() || undefined,
@@ -313,9 +324,7 @@ export async function importDeckFromApkg(input: {
       suspended: card.suspended === true,
     });
   }
-  const scheduling = cards.map(card =>
-    createInitialScheduling(card.id, deckId, now)
-  );
+  const scheduling = cards.map(card => createInitialScheduling(card.id, now));
   const mediaEntries = Object.keys(payload.mediaMap).length;
   if (mediaEntries > 0) {
     warnings.push(
@@ -327,10 +336,11 @@ export async function importDeckFromApkg(input: {
       id: deckId,
       name: payload.deck.name.trim() || 'Imported APKG Deck',
       metadata: payload.deck.metadata,
-      cards,
+      cardIds: cards.map(card => card.id),
       createdAt: now,
       updatedAt: now,
     },
+    cards,
     scheduling,
     report: {
       importedCards: cards.length,

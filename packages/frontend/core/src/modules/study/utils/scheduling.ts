@@ -12,12 +12,10 @@ const LEECH_LAPSES_THRESHOLD = 8;
 
 export function createInitialScheduling(
   cardId: string,
-  deckId: string,
   now = Date.now()
 ): StudyCardScheduling {
   return {
     cardId,
-    deckId,
     state: 'new',
     due: now,
     stability: 0,
