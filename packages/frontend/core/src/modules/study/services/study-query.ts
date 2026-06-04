@@ -256,7 +256,7 @@ export class StudyQueryService extends Service {
       decks,
       cards: state.cards,
       scheduling,
-      logs,
+      reviewLogs: logs,
     });
   }
 
@@ -265,7 +265,7 @@ export class StudyQueryService extends Service {
       decks: this.decks$.value,
       cards: this.cards$.value,
       scheduling: this.scheduling$.value,
-      logs: this.reviewLogs$.value,
+      reviewLogs: this.reviewLogs$.value,
       targetCount,
     });
   }
