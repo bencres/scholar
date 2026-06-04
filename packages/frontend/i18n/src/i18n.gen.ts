@@ -2684,6 +2684,10 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.cards-library"](): string;
     /**
+      * `Today`
+      */
+    ["com.affine.study.tab.today"](): string;
+    /**
       * `Decks`
       */
     ["com.affine.study.tab.decks"](): string;

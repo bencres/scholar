@@ -8,8 +8,21 @@ import { useLiveData, useService } from '@toeverything/infra';
 import * as styles from './styles.css';
 
 const tabs = [
-  { to: '/study/decks', labelKey: 'com.affine.study.tab.decks' as const },
-  { to: '/study/cards', labelKey: 'com.affine.study.tab.cards' as const },
+  {
+    to: '/study',
+    labelKey: 'com.affine.study.tab.today' as const,
+    isActive: (pathname: string) => pathname === '/study',
+  },
+  {
+    to: '/study/decks',
+    labelKey: 'com.affine.study.tab.decks' as const,
+    isActive: (pathname: string) => pathname.startsWith('/study/decks'),
+  },
+  {
+    to: '/study/cards',
+    labelKey: 'com.affine.study.tab.cards' as const,
+    isActive: (pathname: string) => pathname.startsWith('/study/cards'),
+  },
 ];
 
 export const StudySubnav = () => {
@@ -24,7 +37,7 @@ export const StudySubnav = () => {
           key={tab.to}
           to={tab.to}
           className={styles.subnavTab}
-          data-active={location.pathname.startsWith(tab.to)}
+          data-active={tab.isActive(location.pathname)}
           replaceHistory
         >
           {t[tab.labelKey]()}
