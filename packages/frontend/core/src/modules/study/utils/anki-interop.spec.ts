@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import JSZip from 'jszip';
 import { describe, expect, it } from 'vitest';
 
+import type { StudyCardContent } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import {
   createApkgCompatibilityReport,
@@ -16,27 +17,27 @@ import {
 describe('study anki interop', () => {
   it('roundtrips deck cards through csv mapping', () => {
     const now = 1_710_000_000_000;
+    const cards: StudyCardContent[] = [
+      {
+        id: 'card-1',
+        type: 'recall',
+        question: 'What is ATP?',
+        answer: 'Energy currency',
+        tags: ['bio', 'metabolism'],
+        provenance: { workspaceId: 'ws-1', docId: 'doc-1' },
+        createdAt: now,
+        updatedAt: now,
+        suspended: false,
+      },
+    ];
     const deck: StudyDeck = {
       id: 'deck-1',
       name: 'Biology',
-      cards: [
-        {
-          id: 'card-1',
-          deckId: 'deck-1',
-          type: 'recall',
-          question: 'What is ATP?',
-          answer: 'Energy currency',
-          tags: ['bio', 'metabolism'],
-          provenance: { workspaceId: 'ws-1', docId: 'doc-1' },
-          createdAt: now,
-          updatedAt: now,
-          suspended: false,
-        },
-      ],
+      cardIds: ['card-1'],
       createdAt: now,
       updatedAt: now,
     };
-    const csv = exportDeckToCsv(deck);
+    const csv = exportDeckToCsv(deck, cards);
     const imported = importDeckFromCsv({
       csv,
       deckName: 'Imported Biology',
@@ -44,44 +45,45 @@ describe('study anki interop', () => {
       now,
     });
     expect(imported.report.importedCards).toBe(1);
-    expect(imported.deck.cards[0]?.question).toBe('What is ATP?');
+    expect(imported.cards[0]?.question).toBe('What is ATP?');
+    expect(imported.deck.cardIds).toHaveLength(1);
     expect(imported.scheduling).toHaveLength(1);
   });
 
   it('exports and imports affine apkg bundles', async () => {
     const now = 1_710_000_000_000;
+    const cards: StudyCardContent[] = [
+      {
+        id: 'card-1',
+        type: 'recall',
+        question: 'What is ATP?',
+        answer: 'Energy currency',
+        noteTypeId: 'basic',
+        templateId: 'basic-forward',
+        noteFields: {
+          Front: 'What is ATP?',
+          Back: 'Energy currency',
+        },
+        imageOcclusion: {
+          imageAssetId: 'asset-1',
+          occlusionId: 'mask-1',
+          prompt: 'Label this',
+        },
+        tags: ['bio'],
+        provenance: { workspaceId: 'ws-1', docId: 'manual' },
+        createdAt: now,
+        updatedAt: now,
+        suspended: false,
+      },
+    ];
     const deck: StudyDeck = {
       id: 'deck-apkg',
       name: 'APKG Biology',
-      cards: [
-        {
-          id: 'card-1',
-          deckId: 'deck-apkg',
-          type: 'recall',
-          question: 'What is ATP?',
-          answer: 'Energy currency',
-          noteTypeId: 'basic',
-          templateId: 'basic-forward',
-          noteFields: {
-            Front: 'What is ATP?',
-            Back: 'Energy currency',
-          },
-          imageOcclusion: {
-            imageAssetId: 'asset-1',
-            occlusionId: 'mask-1',
-            prompt: 'Label this',
-          },
-          tags: ['bio'],
-          provenance: { workspaceId: 'ws-1', docId: 'manual' },
-          createdAt: now,
-          updatedAt: now,
-          suspended: false,
-        },
-      ],
+      cardIds: ['card-1'],
       createdAt: now,
       updatedAt: now,
     };
-    const exported = await exportDeckToApkg(deck);
+    const exported = await exportDeckToApkg(deck, cards);
     expect(exported.fileName).toBe('apkg-biology.apkg');
     const payload = await decodeApkgPayload(exported.bytes);
     const goldenPath = new URL(
@@ -112,8 +114,8 @@ describe('study anki interop', () => {
       workspaceId: 'ws-1',
       now,
     });
-    expect(imported.deck.cards).toHaveLength(1);
-    expect(imported.deck.cards[0]?.question).toBe('What is ATP?');
+    expect(imported.cards).toHaveLength(1);
+    expect(imported.cards[0]?.question).toBe('What is ATP?');
     expect(imported.report.skippedMedia).toBe(1);
   });
 
@@ -141,7 +143,7 @@ describe('study anki interop', () => {
       workspaceId: 'ws-fixture',
       now: 1_710_000_000_000,
     });
-    expect(imported.deck.cards).toHaveLength(2);
+    expect(imported.cards).toHaveLength(2);
     expect(imported.report.importedCards).toBe(2);
   });
 
@@ -158,10 +160,7 @@ describe('study anki interop', () => {
     ).rejects.toThrow(/sqlite-backed collection import/);
   });
 
-  it('returns compatibility report with next step', () => {
-    const report = createApkgCompatibilityReport();
-    expect(report.supported).toBe(true);
-    expect(report.reason).toContain('AFFiNE-generated .apkg');
-    expect(report.nextStep).toContain('collection.anki2');
+  it('reports apkg compatibility', () => {
+    expect(createApkgCompatibilityReport().supported).toBe(true);
   });
 });

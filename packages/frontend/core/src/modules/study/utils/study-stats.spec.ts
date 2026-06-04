@@ -7,9 +7,9 @@ describe('study stats snapshot', () => {
   it('builds retention, ease, and forecast distributions', () => {
     const now = 1_710_000_000_000;
     const scheduling = [
-      { ...createInitialScheduling('card-1', 'deck-1', now), due: now + 1_000 },
+      { ...createInitialScheduling('card-1', now), due: now + 1_000 },
       {
-        ...createInitialScheduling('card-2', 'deck-1', now),
+        ...createInitialScheduling('card-2', now),
         due: now + 2 * 86_400_000,
         scheduledDays: 3,
         leech: true,

@@ -133,7 +133,6 @@ describe('study graph metadata', () => {
       });
       return {
         id: `card-${index}`,
-        deckId: 'deck-1',
         type: (index === 0 ? 'recall' : 'synthesis') as 'recall' | 'synthesis',
         question: card.question,
         answer: 'answer' in card ? card.answer : undefined,
@@ -147,7 +146,16 @@ describe('study graph metadata', () => {
       };
     });
     const graph = buildStudyLearningGraphSnapshot({
-      decks: [{ id: 'deck-1', name: output.deckName, cards }],
+      decks: [
+        {
+          id: 'deck-1',
+          name: output.deckName,
+          cardIds: cards.map(card => card.id),
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+      cards,
       scheduling: [],
       reviewLogs: [],
       now,

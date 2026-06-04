@@ -9,14 +9,13 @@ const now = 1_710_000_000_000;
 const deck: StudyDeck = {
   id: 'deck-1',
   name: 'Biology',
-  cards: [],
+  cardIds: ['card-1'],
   createdAt: now,
   updatedAt: now,
 };
 
 const card: StudyCardContent = {
   id: 'card-1',
-  deckId: 'deck-1',
   type: 'recall',
   question: 'What is ATP?',
   answer: 'Energy currency',
@@ -29,7 +28,6 @@ const card: StudyCardContent = {
 
 const scheduling: StudyCardScheduling = {
   cardId: 'card-1',
-  deckId: 'deck-1',
   state: 'review',
   due: now - 1000,
   stability: 2,
@@ -54,6 +52,28 @@ describe('study card browser search', () => {
       deck,
       card,
       scheduling,
+      now,
+    });
+    expect(matched).toBe(false);
+  });
+
+  it('matches deck:none for unassigned cards', () => {
+    const matched = matchStudyBrowserQuery('deck:none', {
+      deck,
+      card,
+      scheduling,
+      unassigned: true,
+      now,
+    });
+    expect(matched).toBe(true);
+  });
+
+  it('rejects deck:none when card is in a deck', () => {
+    const matched = matchStudyBrowserQuery('deck:none', {
+      deck,
+      card,
+      scheduling,
+      unassigned: false,
       now,
     });
     expect(matched).toBe(false);

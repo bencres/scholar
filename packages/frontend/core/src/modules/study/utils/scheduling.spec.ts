@@ -11,7 +11,7 @@ import {
 describe('study scheduling', () => {
   it('advances learning steps before graduating to review', () => {
     const now = 1_710_000_000_000;
-    const initial = createInitialScheduling('card-1', 'deck-1', now);
+    const initial = createInitialScheduling('card-1', now);
 
     const hard = scheduleAfterReview(initial, 2, now);
     expect(hard.state).toBe('learning');
@@ -32,7 +32,7 @@ describe('study scheduling', () => {
   it('moves failed review cards to relearning and marks leeches', () => {
     const now = 1_710_000_000_000;
     const review = {
-      ...createInitialScheduling('card-1', 'deck-1', now),
+      ...createInitialScheduling('card-1', now),
       state: 'review' as const,
       scheduledDays: 6,
       stability: 4.5,
@@ -51,15 +51,15 @@ describe('study scheduling', () => {
     const now = 1_710_000_000_000;
     const rows = [
       {
-        ...createInitialScheduling('current', 'deck-1', now),
+        ...createInitialScheduling('current', now),
         due: now - 10_000,
       },
       {
-        ...createInitialScheduling('sibling-due', 'deck-1', now),
+        ...createInitialScheduling('sibling-due', now),
         due: now - 5000,
       },
       {
-        ...createInitialScheduling('sibling-future', 'deck-1', now),
+        ...createInitialScheduling('sibling-future', now),
         due: now + 5000,
       },
     ];

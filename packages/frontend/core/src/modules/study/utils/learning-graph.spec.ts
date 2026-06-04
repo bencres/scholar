@@ -1,62 +1,61 @@
 import { describe, expect, it } from 'vitest';
 
+import type { StudyCardContent } from '../entities/card';
 import { buildStudyLearningGraphSnapshot } from './learning-graph';
 import { createInitialScheduling } from './scheduling';
 
 describe('study learning graph', () => {
   it('builds concept coverage and prerequisite edges', () => {
     const now = 1_720_000_000_000;
+    const cards: StudyCardContent[] = [
+      {
+        id: 'card-1',
+        type: 'recall',
+        question: 'What is ATP?',
+        answer: 'Cell energy molecule',
+        concepts: ['Cell Respiration', 'ATP Cycle'],
+        tags: ['prereq:mitochondria'],
+        provenance: { workspaceId: 'ws-1', docId: 'doc-1' },
+        createdAt: now,
+        updatedAt: now,
+        suspended: false,
+      },
+      {
+        id: 'card-2',
+        type: 'recall',
+        question: 'Photosynthesis input',
+        answer: 'CO2 + H2O',
+        tags: ['concept:photosynthesis'],
+        misconceptions: ['plants absorb food from soil'],
+        provenance: { workspaceId: 'ws-1', docId: 'doc-1' },
+        createdAt: now,
+        updatedAt: now,
+        suspended: false,
+      },
+      {
+        id: 'card-3',
+        type: 'synthesis',
+        question: 'Compare ATP and NADH roles.',
+        rubric: ['Contrast storage and transport'],
+        provenance: { workspaceId: 'ws-1', docId: 'doc-2' },
+        createdAt: now,
+        updatedAt: now,
+        suspended: false,
+      },
+    ];
     const decks = [
       {
         id: 'deck-1',
         name: 'Biology',
-        cards: [
-          {
-            id: 'card-1',
-            deckId: 'deck-1',
-            type: 'recall' as const,
-            question: 'What is ATP?',
-            answer: 'Cell energy molecule',
-            concepts: ['Cell Respiration', 'ATP Cycle'],
-            tags: ['prereq:mitochondria'],
-            provenance: { workspaceId: 'ws-1', docId: 'doc-1' },
-            createdAt: now,
-            updatedAt: now,
-            suspended: false,
-          },
-          {
-            id: 'card-2',
-            deckId: 'deck-1',
-            type: 'recall' as const,
-            question: 'Photosynthesis input',
-            answer: 'CO2 + H2O',
-            tags: ['concept:photosynthesis'],
-            misconceptions: ['plants absorb food from soil'],
-            provenance: { workspaceId: 'ws-1', docId: 'doc-1' },
-            createdAt: now,
-            updatedAt: now,
-            suspended: false,
-          },
-          {
-            id: 'card-3',
-            deckId: 'deck-1',
-            type: 'synthesis' as const,
-            question: 'Compare ATP and NADH roles.',
-            rubric: ['Contrast storage and transport'],
-            provenance: { workspaceId: 'ws-1', docId: 'doc-2' },
-            createdAt: now,
-            updatedAt: now,
-            suspended: false,
-          },
-        ],
+        cardIds: ['card-1', 'card-2', 'card-3'],
         createdAt: now,
         updatedAt: now,
       },
     ];
     const scheduling = [
-      { ...createInitialScheduling('card-1', 'deck-1', now), due: now - 1_000 },
+      { ...createInitialScheduling('card-1', now), due: now - 1_000 },
       {
-        ...createInitialScheduling('card-2', 'deck-1', now),
+        ...createInitialScheduling('card-2', now),
         due: now + 1_000,
         difficulty: 6,
       },
@@ -64,7 +63,6 @@ describe('study learning graph', () => {
     const reviewLogs = [
       {
         id: 'log-1',
-        deckId: 'deck-1',
         cardId: 'card-1',
         reviewedAt: now - 1_000,
         grade: 4 as const,
@@ -75,7 +73,6 @@ describe('study learning graph', () => {
       },
       {
         id: 'log-2',
-        deckId: 'deck-1',
         cardId: 'card-2',
         reviewedAt: now - 2_000,
         grade: 1 as const,
@@ -88,6 +85,7 @@ describe('study learning graph', () => {
 
     const graph = buildStudyLearningGraphSnapshot({
       decks,
+      cards,
       scheduling,
       reviewLogs,
       now,

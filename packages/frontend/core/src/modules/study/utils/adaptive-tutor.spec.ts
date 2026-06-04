@@ -1,73 +1,70 @@
 import { describe, expect, it } from 'vitest';
 
+import type { StudyCardContent } from '../entities/card';
 import {
   buildAdaptiveTutorSnapshot,
   evaluateTeachBackResponse,
 } from './adaptive-tutor';
-import { buildStudyLearningGraphSnapshot } from './learning-graph';
 import { createInitialScheduling } from './scheduling';
 
 describe('adaptive tutor', () => {
   it('builds prioritized tutor queue and remediation draft', () => {
     const now = 1_730_000_000_000;
+    const cards: StudyCardContent[] = [
+      {
+        id: 'card-1',
+        type: 'recall',
+        question: 'State Newton second law',
+        answer: 'Force equals mass times acceleration',
+        concepts: ['newton-law'],
+        provenance: {
+          workspaceId: 'ws-1',
+          docId: 'doc-1',
+          blockIds: ['b1'],
+        },
+        createdAt: now,
+        updatedAt: now,
+        suspended: false,
+      },
+      {
+        id: 'card-2',
+        type: 'recall',
+        question: 'Derivative of x^2',
+        answer: '2x',
+        concepts: ['newton-law'],
+        provenance: { workspaceId: 'ws-1', docId: 'doc-2' },
+        createdAt: now,
+        updatedAt: now,
+        suspended: false,
+      },
+    ];
     const decks = [
       {
         id: 'deck-1',
         name: 'Physics',
-        cards: [
-          {
-            id: 'card-1',
-            deckId: 'deck-1',
-            type: 'recall' as const,
-            question: 'State Newton second law',
-            answer: 'Force equals mass times acceleration',
-            concepts: ['newton-law'],
-            provenance: {
-              workspaceId: 'ws-1',
-              docId: 'doc-1',
-              blockIds: ['b1'],
-            },
-            createdAt: now,
-            updatedAt: now,
-            suspended: false,
-          },
-        ],
+        cardIds: ['card-1'],
         createdAt: now,
         updatedAt: now,
       },
       {
         id: 'deck-2',
         name: 'Math',
-        cards: [
-          {
-            id: 'card-2',
-            deckId: 'deck-2',
-            type: 'recall' as const,
-            question: 'Derivative of x^2',
-            answer: '2x',
-            concepts: ['newton-law'],
-            provenance: { workspaceId: 'ws-1', docId: 'doc-2' },
-            createdAt: now,
-            updatedAt: now,
-            suspended: false,
-          },
-        ],
+        cardIds: ['card-2'],
         createdAt: now,
         updatedAt: now,
       },
     ];
     const scheduling = [
       {
-        ...createInitialScheduling('card-1', 'deck-1', now),
+        ...createInitialScheduling('card-1', now),
         due: now - 1_000,
         lapses: 2,
       },
-      { ...createInitialScheduling('card-2', 'deck-2', now), due: now + 1_000 },
+      { ...createInitialScheduling('card-2', now), due: now + 1_000 },
     ];
     const reviewLogs = [
       {
         id: 'log-1',
-        deckId: 'deck-1',
         cardId: 'card-1',
         reviewedAt: now - 5_000,
         grade: 1 as const,
@@ -77,17 +74,11 @@ describe('adaptive tutor', () => {
         dueAfter: now + 10_000,
       },
     ];
-    const learningGraph = buildStudyLearningGraphSnapshot({
-      decks,
-      scheduling,
-      reviewLogs,
-      now,
-    });
     const snapshot = buildAdaptiveTutorSnapshot({
       decks,
+      cards,
       scheduling,
       reviewLogs,
-      learningGraph,
       now,
     });
 
@@ -101,7 +92,6 @@ describe('adaptive tutor', () => {
     const result = evaluateTeachBackResponse(
       {
         id: 'card-1',
-        deckId: 'deck-1',
         type: 'recall',
         question: 'Q',
         answer: 'Force equals mass times acceleration',
