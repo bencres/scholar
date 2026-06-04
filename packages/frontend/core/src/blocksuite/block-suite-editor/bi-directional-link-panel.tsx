@@ -18,9 +18,13 @@ import {
   DocLinksService,
   type Link,
 } from '@affine/core/modules/doc-link';
+import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { toDocSearchParams } from '@affine/core/modules/navigation/utils';
 import { GlobalSessionStateService } from '@affine/core/modules/storage';
-import { WorkbenchLink } from '@affine/core/modules/workbench';
+import {
+  WorkbenchLink,
+  WorkbenchService,
+} from '@affine/core/modules/workbench';
 import { WorkspaceService } from '@affine/core/modules/workspace';
 import { useI18n } from '@affine/i18n';
 import track from '@affine/track';
@@ -408,12 +412,18 @@ export const LinkPreview = ({
 };
 
 export const BiDirectionalLinkPanel = () => {
-  const { docLinksService, docService } = useServices({
-    DocLinksService,
-    DocService,
-  });
+  const { docLinksService, docService, featureFlagService, workbenchService } =
+    useServices({
+      DocLinksService,
+      DocService,
+      FeatureFlagService,
+      WorkbenchService,
+    });
 
   const t = useI18n();
+  const linkGraphEnabled = useLiveData(
+    featureFlagService.flags.enable_link_graph.$
+  );
 
   const [show, setShow] = useBiDirectionalLinkPanelCollapseState(
     docService.doc.id
@@ -430,12 +440,27 @@ export const BiDirectionalLinkPanel = () => {
     });
   }, [show, setShow]);
 
+  const handleOpenGraph = useCallback(() => {
+    const docId = docService.doc.id;
+    workbenchService.workbench.open(
+      `/graph?center=${encodeURIComponent(docId)}`,
+      {
+        at: 'active',
+      }
+    );
+  }, [docService.doc.id, workbenchService.workbench]);
+
   return (
     <div className={styles.container}>
       {!show && <Divider size="thinner" />}
 
       <div className={styles.titleLine}>
         <div className={styles.title}>Bi-Directional Links</div>
+        {linkGraphEnabled ? (
+          <Button className={styles.showButton} onClick={handleOpenGraph}>
+            {t['com.affine.link-graph.open']()}
+          </Button>
+        ) : null}
         <Button className={styles.showButton} onClick={handleClickShow}>
           {show
             ? t['com.affine.editor.bi-directional-link-panel.hide']()

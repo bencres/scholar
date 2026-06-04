@@ -2617,6 +2617,374 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.journal.placeholder.create"](): string;
     /**
+      * `Graph`
+      */
+    ["com.affine.link-graph.title"](): string;
+    /**
+      * `Global`
+      */
+    ["com.affine.link-graph.mode.global"](): string;
+    /**
+      * `Local`
+      */
+    ["com.affine.link-graph.mode.local"](): string;
+    /**
+      * `Depth 1`
+      */
+    ["com.affine.link-graph.depth.one"](): string;
+    /**
+      * `Depth 2`
+      */
+    ["com.affine.link-graph.depth.two"](): string;
+    /**
+      * `Hide orphans`
+      */
+    ["com.affine.link-graph.hide-orphans"](): string;
+    /**
+      * `Filter by title`
+      */
+    ["com.affine.link-graph.search"](): string;
+    /**
+      * `{{nodes}} pages · {{edges}} links`
+      */
+    ["com.affine.link-graph.stats"](options: Readonly<{
+        nodes: string;
+        edges: string;
+    }>): string;
+    /**
+      * `Loading graph`
+      */
+    ["com.affine.link-graph.loading"](): string;
+    /**
+      * `No linked pages in this view.`
+      */
+    ["com.affine.link-graph.empty"](): string;
+    /**
+      * `Graph data was truncated for performance. Link more pages or narrow with Local mode.`
+      */
+    ["com.affine.link-graph.truncated"](): string;
+    /**
+      * `Open graph`
+      */
+    ["com.affine.link-graph.open"](): string;
+    /**
+      * `Study`
+      */
+    ["com.affine.study.title"](): string;
+    /**
+      * `Enable Study in experimental features to use flashcards.`
+      */
+    ["com.affine.study.disabled"](): string;
+    /**
+      * `Decks`
+      */
+    ["com.affine.study.decks"](): string;
+    /**
+      * `Review flashcards on a spaced schedule, generated from your notes.`
+      */
+    ["com.affine.study.hero.subtitle"](): string;
+    /**
+      * `Generate a study deck from a document to get started.`
+      */
+    ["com.affine.study.empty-decks"](): string;
+    /**
+      * `{{count}} cards`
+      */
+    ["com.affine.study.card-count"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `{{count}} due`
+      */
+    ["com.affine.study.due-count"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `Recall`
+      */
+    ["com.affine.study.card-type.recall"](): string;
+    /**
+      * `Synthesis`
+      */
+    ["com.affine.study.card-type.synthesis"](): string;
+    /**
+      * `Answer`
+      */
+    ["com.affine.study.answer"](): string;
+    /**
+      * `Source: {{title}}`
+      */
+    ["com.affine.study.source-document"](options: {
+        readonly title: string;
+    }): string;
+    /**
+      * `Cards`
+      */
+    ["com.affine.study.browse-cards"](): string;
+    /**
+      * `Review`
+      */
+    ["com.affine.study.review"](): string;
+    /**
+      * `Browse`
+      */
+    ["com.affine.study.view-deck"](): string;
+    /**
+      * `Review due ({{count}})`
+      */
+    ["com.affine.study.review-due"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `Daily review`
+      */
+    ["com.affine.study.daily-reminder.title"](): string;
+    /**
+      * `{{count}} cards due for review`
+      */
+    ["com.affine.study.daily-reminder.summary"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `{{count}} cards due — {{decks}}`
+      */
+    ["com.affine.study.daily-reminder.summary-with-decks"](options: Readonly<{
+        count: string;
+        decks: string;
+    }>): string;
+    /**
+      * `Review`
+      */
+    ["com.affine.study.review.title"](): string;
+    /**
+      * `No cards to review.`
+      */
+    ["com.affine.study.review.empty"](): string;
+    /**
+      * `Card {{current}} of {{total}}`
+      */
+    ["com.affine.study.review.progress"](options: Readonly<{
+        current: string;
+        total: string;
+    }>): string;
+    /**
+      * `Create deck`
+      */
+    ["com.affine.study.create-deck"](): string;
+    /**
+      * `Deck settings`
+      */
+    ["com.affine.study.deck-settings"](): string;
+    /**
+      * `Deck name`
+      */
+    ["com.affine.study.deck-name.placeholder"](): string;
+    /**
+      * `Description (optional)`
+      */
+    ["com.affine.study.deck-description.placeholder"](): string;
+    /**
+      * `Tags (comma-separated)`
+      */
+    ["com.affine.study.deck-tags.placeholder"](): string;
+    /**
+      * `Daily new limit (optional)`
+      */
+    ["com.affine.study.daily-new-limit.placeholder"](): string;
+    /**
+      * `Daily review limit (optional)`
+      */
+    ["com.affine.study.daily-review-limit.placeholder"](): string;
+    /**
+      * `Add card`
+      */
+    ["com.affine.study.add-card"](): string;
+    /**
+      * `Edit card`
+      */
+    ["com.affine.study.edit-card"](): string;
+    /**
+      * `Question`
+      */
+    ["com.affine.study.card-question.placeholder"](): string;
+    /**
+      * `Answer (optional)`
+      */
+    ["com.affine.study.card-answer.placeholder"](): string;
+    /**
+      * `Misconceptions (comma-separated)`
+      */
+    ["com.affine.study.card-misconceptions.placeholder"](): string;
+    /**
+      * `Rubric points (comma-separated)`
+      */
+    ["com.affine.study.card-rubric.placeholder"](): string;
+    /**
+      * `Card tags (comma-separated)`
+      */
+    ["com.affine.study.card-tags.placeholder"](): string;
+    /**
+      * `Flashcards`
+      */
+    ["com.affine.study.flashcards.title"](): string;
+    /**
+      * `Update spaced schedule while browsing`
+      */
+    ["com.affine.study.flashcards.track-progress"](): string;
+    /**
+      * `Learn`
+      */
+    ["com.affine.study.learn.title"](): string;
+    /**
+      * `{{remaining}} cards remaining`
+      */
+    ["com.affine.study.learn.progress"](options: {
+        readonly remaining: string;
+    }): string;
+    /**
+      * `Need retry`
+      */
+    ["com.affine.study.learn.retry-action"](): string;
+    /**
+      * `I got it`
+      */
+    ["com.affine.study.learn.got-it"](): string;
+    /**
+      * `Learn session complete`
+      */
+    ["com.affine.study.learn.done"](): string;
+    /**
+      * `Correct answers: {{count}}`
+      */
+    ["com.affine.study.learn.correct"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `Retried cards: {{count}}`
+      */
+    ["com.affine.study.learn.retry"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `Restart learn mode`
+      */
+    ["com.affine.study.learn.restart"](): string;
+    /**
+      * `Test`
+      */
+    ["com.affine.study.test.title"](): string;
+    /**
+      * `Configure test session`
+      */
+    ["com.affine.study.test.setup"](): string;
+    /**
+      * `Number of questions`
+      */
+    ["com.affine.study.test.count.placeholder"](): string;
+    /**
+      * `Start test`
+      */
+    ["com.affine.study.test.start"](): string;
+    /**
+      * `Correct`
+      */
+    ["com.affine.study.test.correct"](): string;
+    /**
+      * `Incorrect`
+      */
+    ["com.affine.study.test.incorrect"](): string;
+    /**
+      * `Test complete`
+      */
+    ["com.affine.study.test.complete"](): string;
+    /**
+      * `Score: {{score}} / {{total}}`
+      */
+    ["com.affine.study.test.score"](options: Readonly<{
+        score: string;
+        total: string;
+    }>): string;
+    /**
+      * `New test session`
+      */
+    ["com.affine.study.test.new-session"](): string;
+    /**
+      * `Reveal answer`
+      */
+    ["com.affine.study.reveal"](): string;
+    /**
+      * `Next card`
+      */
+    ["com.affine.study.next"](): string;
+    /**
+      * `View source`
+      */
+    ["com.affine.study.view-source"](): string;
+    /**
+      * `Common mistakes`
+      */
+    ["com.affine.study.misconceptions"](): string;
+    /**
+      * `Prerequisites`
+      */
+    ["com.affine.study.prerequisites"](): string;
+    /**
+      * `Rubric`
+      */
+    ["com.affine.study.rubric"](): string;
+    /**
+      * `Deck not found.`
+      */
+    ["com.affine.study.deck-not-found"](): string;
+    /**
+      * `Generate study deck`
+      */
+    ["com.affine.study.generate.title"](): string;
+    /**
+      * `Generating cards from your notes…`
+      */
+    ["com.affine.study.generate.loading"](): string;
+    /**
+      * `Save deck`
+      */
+    ["com.affine.study.generate.save"](): string;
+    /**
+      * `Generate study deck`
+      */
+    ["com.affine.study.generate.menu"](): string;
+    /**
+      * `Claude Haiku 4.5`
+      */
+    ["com.affine.study.generate.model.haiku"](): string;
+    /**
+      * `Claude Sonnet 4.6`
+      */
+    ["com.affine.study.generate.model.sonnet"](): string;
+    /**
+      * `Claude Opus 4.6`
+      */
+    ["com.affine.study.generate.model.opus"](): string;
+    /**
+      * `Failed to generate study deck`
+      */
+    ["com.affine.study.generate.failed"](): string;
+    /**
+      * `Again`
+      */
+    ["com.affine.study.grade.again"](): string;
+    /**
+      * `Hard`
+      */
+    ["com.affine.study.grade.hard"](): string;
+    /**
+      * `Good`
+      */
+    ["com.affine.study.grade.good"](): string;
+    /**
+      * `Easy`
+      */
+    ["com.affine.study.grade.easy"](): string;
+    /**
       * `Just now`
       */
     ["com.affine.just-now"](): string;
@@ -6409,6 +6777,22 @@ export function useAFFiNEI18N(): {
       * `Enables theme editor.`
       */
     ["com.affine.settings.workspace.experimental-features.enable-theme-editor.description"](): string;
+    /**
+      * `Study`
+      */
+    ["com.affine.settings.workspace.experimental-features.enable-study.name"](): string;
+    /**
+      * `Generate flashcards from notes and review on a schedule.`
+      */
+    ["com.affine.settings.workspace.experimental-features.enable-study.description"](): string;
+    /**
+      * `Link graph`
+      */
+    ["com.affine.settings.workspace.experimental-features.enable-link-graph.name"](): string;
+    /**
+      * `Visualize connections between linked pages in a force-directed graph.`
+      */
+    ["com.affine.settings.workspace.experimental-features.enable-link-graph.description"](): string;
     /**
       * `Allow create local workspace`
       */

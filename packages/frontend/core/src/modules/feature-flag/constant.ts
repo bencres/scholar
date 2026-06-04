@@ -322,6 +322,15 @@ export const AFFINE_FLAGS = {
     configurable: true,
     defaultState: true,
   },
+  enable_link_graph: {
+    category: 'affine',
+    displayName:
+      'com.affine.settings.workspace.experimental-features.enable-link-graph.name',
+    description:
+      'com.affine.settings.workspace.experimental-features.enable-link-graph.description',
+    configurable: true,
+    defaultState: true,
+  },
 } satisfies { [key in string]: FlagInfo };
 
 // oxlint-disable-next-line no-redeclare
