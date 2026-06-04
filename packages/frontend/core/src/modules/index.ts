@@ -22,6 +22,7 @@ import { configureDialogModule } from './dialogs';
 import { configureDndModule } from './dnd';
 import { configureDocModule } from './doc';
 import { configureDocDisplayMetaModule } from './doc-display-meta';
+import { configureDocGraphModule } from './doc-graph';
 import { configureDocInfoModule } from './doc-info';
 import { configureDocLinksModule } from './doc-link';
 import { configureDocSummaryModule } from './doc-summary';
@@ -96,6 +97,7 @@ export function configureCommonModules(framework: Framework) {
   configureQuickSearchModule(framework);
   configureDocsSearchModule(framework);
   configureDocLinksModule(framework);
+  configureDocGraphModule(framework);
   configureOrganizeModule(framework);
   configureFavoriteModule(framework);
   configureNavigationPanelModule(framework);
