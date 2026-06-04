@@ -83,6 +83,7 @@
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-error-boundary": "^6.0.0",
+    "react-force-graph-2d": "^1.29.1",
     "react-router-dom": "^6.30.3",
     "react-transition-state": "^2.2.0",
     "react-virtuoso": "^4.12.3",
