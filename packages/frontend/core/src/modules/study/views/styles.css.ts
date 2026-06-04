@@ -549,6 +549,72 @@ export const previewHeader = style({
   marginBottom: 8,
 });
 
+export const subnav = style({
+  display: 'flex',
+  gap: 8,
+  padding: '0 24px 8px',
+  borderBottom: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+});
+
+export const subnavTab = style({
+  fontSize: 14,
+  lineHeight: '22px',
+  fontWeight: 500,
+  padding: '8px 12px',
+  borderRadius: 8,
+  color: cssVarV2.text.secondary,
+  textDecoration: 'none',
+  selectors: {
+    '&[data-active="true"]': {
+      color: cssVarV2.text.primary,
+      background: cssVarV2.layer.background.hoverOverlay,
+    },
+  },
+});
+
+export const libraryToolbar = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+  alignItems: 'center',
+  marginBottom: 12,
+});
+
+export const deckBadgeRow = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 6,
+  marginTop: 6,
+});
+
+export const deckBadge = style({
+  fontSize: 12,
+  lineHeight: '18px',
+  padding: '2px 8px',
+  borderRadius: 999,
+  background: cssVarV2.layer.background.secondary,
+  color: cssVarV2.text.secondary,
+  textDecoration: 'none',
+  border: 'none',
+  cursor: 'pointer',
+});
+
+export const pickerList = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  maxHeight: 320,
+  overflowY: 'auto',
+});
+
+export const pickerItem = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 8,
+  padding: '8px 0',
+  borderBottom: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+});
+
 export const badge = style({
   display: 'inline-flex',
   alignItems: 'center',

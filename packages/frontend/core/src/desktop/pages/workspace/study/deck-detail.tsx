@@ -2,6 +2,7 @@ import { Button, Input } from '@affine/component';
 import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
 import { StudyService } from '@affine/core/modules/study';
 import type { StudyCardContent } from '@affine/core/modules/study/entities/card';
+import { getDeckCards } from '@affine/core/modules/study/utils/study-storage';
 import {
   type CardDraft,
   cardDraftToPayload,
@@ -16,6 +17,7 @@ import {
   StudyDeckHeaderActions,
 } from '@affine/core/modules/study/views/study-deck-header';
 import { StudyPageBody } from '@affine/core/modules/study/views/study-page-shell';
+import { StudySubnav } from '@affine/core/modules/study/views/study-subnav';
 import * as styles from '@affine/core/modules/study/views/styles.css';
 import {
   ViewHeader,
@@ -35,11 +37,11 @@ export const StudyDeckDetailPage = () => {
   const workbench = useService(WorkbenchService).workbench;
   const docDisplayMetaService = useService(DocDisplayMetaService);
   const deck = useLiveData(studyService.deck$(deckId));
+  const allCards = useLiveData(studyService.cards$);
   const dueCount = useLiveData(studyService.dueCountForDeck$(deckId));
-
-  const sourceTitle = useLiveData(
-    docDisplayMetaService.title$(deck?.sourceDocId ?? '')
-  );
+  const sourceDocId =
+    deck?.sourceDocId ?? deck?.metadata?.sourcePage?.docId ?? '';
+  const sourceTitle = useLiveData(docDisplayMetaService.title$(sourceDocId));
   const [deckName, setDeckName] = useState('');
   const [deckDescription, setDeckDescription] = useState('');
   const [deckTags, setDeckTags] = useState('');
@@ -50,11 +52,28 @@ export const StudyDeckDetailPage = () => {
     useState<CardDraft>(DEFAULT_CARD_DRAFT);
   const [newCardDraft, setNewCardDraft] =
     useState<CardDraft>(DEFAULT_CARD_DRAFT);
+  const [librarySearch, setLibrarySearch] = useState('');
+  const [librarySelection, setLibrarySelection] = useState<Set<string>>(
+    () => new Set()
+  );
+  const [showLibraryPicker, setShowLibraryPicker] = useState(false);
+
+  const deckCards = useMemo(
+    () => (deck ? getDeckCards(deck, allCards) : []),
+    [allCards, deck]
+  );
 
   const activeCards = useMemo(
-    () => deck?.cards.filter(card => !card.suspended) ?? [],
-    [deck?.cards]
+    () => deckCards.filter(card => !card.suspended),
+    [deckCards]
   );
+
+  const libraryCandidates = useMemo(() => {
+    if (!deck) return [];
+    const inDeck = new Set(deck.cardIds);
+    const query = librarySearch.trim();
+    return studyService.searchCards(query).filter(card => !inDeck.has(card.id));
+  }, [deck, librarySearch, studyService]);
   const learningGraph = useMemo(
     () => (deck ? studyService.learningGraphSnapshot(deck.id) : null),
     [deck, studyService]
@@ -66,9 +85,9 @@ export const StudyDeckDetailPage = () => {
   }, [deck, workbench]);
 
   const openSourceDoc = useCallback(() => {
-    if (!deck?.sourceDocId) return;
-    workbench.openDoc({ docId: deck.sourceDocId, mode: 'page' });
-  }, [deck?.sourceDocId, workbench]);
+    if (!sourceDocId) return;
+    workbench.openDoc({ docId: sourceDocId, mode: 'page' });
+  }, [sourceDocId, workbench]);
 
   const cancelCardEdit = () => {
     setEditingCardId(null);
@@ -106,13 +125,31 @@ export const StudyDeckDetailPage = () => {
   const handleDeleteDeck = async () => {
     if (!deck) return;
     await studyService.deleteDeck(deck.id);
-    workbench.open('/study', { at: 'active' });
+    workbench.open('/study/decks', { at: 'active' });
   };
 
   const handleAddCard = async () => {
     if (!deck || !newCardDraft.question.trim()) return;
-    await studyService.createCard(deck.id, cardDraftToPayload(newCardDraft));
+    await studyService.createCard(cardDraftToPayload(newCardDraft), {
+      deckIds: [deck.id],
+    });
     setNewCardDraft(DEFAULT_CARD_DRAFT);
+  };
+
+  const handleImportFromLibrary = async () => {
+    if (!deck || librarySelection.size === 0) return;
+    await studyService.addCardsToDeck(deck.id, [...librarySelection]);
+    setLibrarySelection(new Set());
+    setShowLibraryPicker(false);
+  };
+
+  const toggleLibraryCard = (cardId: string, selected: boolean) => {
+    setLibrarySelection(prev => {
+      const next = new Set(prev);
+      if (selected) next.add(cardId);
+      else next.delete(cardId);
+      return next;
+    });
   };
 
   const handleSaveCardEdit = async () => {
@@ -151,6 +188,7 @@ export const StudyDeckDetailPage = () => {
           }
         />
       </ViewHeader>
+      <StudySubnav />
       <StudyPageBody>
         <div className={styles.deckStats}>
           <span className={styles.deckStatPill}>
@@ -163,7 +201,7 @@ export const StudyDeckDetailPage = () => {
               {t['com.affine.study.due-count']({ count: String(dueCount) })}
             </span>
           ) : null}
-          {deck.sourceDocId ? (
+          {sourceDocId ? (
             <button
               type="button"
               className={styles.deckStatLink}
@@ -270,20 +308,63 @@ export const StudyDeckDetailPage = () => {
         <div className={styles.sectionTitle}>
           {t['com.affine.study.browse-cards']()}
         </div>
-        {deck.cards.length === 0 ? (
+        <div className={styles.actionsRow}>
+          <Button onClick={() => setShowLibraryPicker(value => !value)}>
+            {t['com.affine.study.import-from-library']()}
+          </Button>
+        </div>
+        {showLibraryPicker ? (
+          <div className={styles.formCard}>
+            <Input
+              value={librarySearch}
+              onChange={event => setLibrarySearch(event.target.value)}
+              placeholder={t[
+                'com.affine.study.card-library.search.placeholder'
+              ]()}
+            />
+            <div className={styles.pickerList}>
+              {libraryCandidates.map(card => (
+                <label key={card.id} className={styles.pickerItem}>
+                  <input
+                    type="checkbox"
+                    checked={librarySelection.has(card.id)}
+                    onChange={event =>
+                      toggleLibraryCard(card.id, event.target.checked)
+                    }
+                  />
+                  <span>{card.question}</span>
+                </label>
+              ))}
+            </div>
+            <div className={styles.actionsRow}>
+              <Button
+                variant="primary"
+                disabled={librarySelection.size === 0}
+                onClick={() => {
+                  handleImportFromLibrary().catch(console.error);
+                }}
+              >
+                {t['com.affine.study.add-to-deck']()}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+        {deckCards.length === 0 ? (
           <div className={styles.emptyState}>
             {t['com.affine.study.review.empty']()}
           </div>
         ) : (
           <div className={styles.browseCardList}>
-            {deck.cards.map((card, index) => (
+            {deckCards.map((card, index) => (
               <StudyCardEditableBrowseItem
                 key={card.id}
                 index={index}
                 card={card}
                 editing={editingCardId === card.id}
                 draft={editingCardDraft}
-                onDraftChange={setEditingCardDraft}
+                onDraftChange={updater =>
+                  setEditingCardDraft(current => updater(current))
+                }
                 onSave={() => {
                   handleSaveCardEdit().catch(error => {
                     console.error('[study.deck] save card failed', error);
@@ -295,9 +376,11 @@ export const StudyDeckDetailPage = () => {
                   if (editingCardId === card.id) {
                     cancelCardEdit();
                   }
-                  studyService.deleteCard(card.id).catch(error => {
-                    console.error('[study.deck] delete card failed', error);
-                  });
+                  studyService
+                    .removeCardsFromDeck(deck.id, [card.id])
+                    .catch(error => {
+                      console.error('[study.deck] remove card failed', error);
+                    });
                 }}
                 onToggleSuspended={active => {
                   studyService
@@ -329,7 +412,9 @@ export const StudyDeckDetailPage = () => {
           </div>
           <StudyCardFormFields
             draft={newCardDraft}
-            onDraftChange={setNewCardDraft}
+            onDraftChange={updater =>
+              setNewCardDraft(current => updater(current))
+            }
           />
           <div className={styles.actionsRow}>
             <Button

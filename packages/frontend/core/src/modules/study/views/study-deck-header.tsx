@@ -21,8 +21,8 @@ export const StudyDeckHeader = ({
       left={
         <div className={styles.breadcrumb}>
           <div className={styles.breadcrumbItem}>
-            <WorkbenchLink to="/study" className={styles.breadcrumbLink}>
-              {t['com.affine.study.title']()}
+            <WorkbenchLink to="/study/decks" className={styles.breadcrumbLink}>
+              {t['com.affine.study.decks']()}
             </WorkbenchLink>
           </div>
           <div className={styles.breadcrumbSeparator}>/</div>

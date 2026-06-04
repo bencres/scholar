@@ -45,19 +45,22 @@ export const StudyTutorPage = () => {
   const handleCreateRemediationCard = async () => {
     if (!active) return;
     const draft = active.remediationDraft;
-    const card = await studyService.createCard(draft.deckId, {
-      type: 'recall',
-      question: draft.question,
-      answer: draft.answer,
-      concepts: draft.concepts,
-      misconceptions: draft.misconceptions,
-      tags: draft.tags,
-      provenance: {
-        docId: draft.provenance.docId,
-        blockIds: draft.provenance.blockIds,
-        chunkId: draft.provenance.chunkId,
+    const card = await studyService.createCard(
+      {
+        type: 'recall',
+        question: draft.question,
+        answer: draft.answer,
+        concepts: draft.concepts,
+        misconceptions: draft.misconceptions,
+        tags: draft.tags,
+        provenance: {
+          docId: draft.provenance.docId,
+          blockIds: draft.provenance.blockIds,
+          chunkId: draft.provenance.chunkId,
+        },
       },
-    });
+      { deckIds: [draft.deckId] }
+    );
     setCreatedCardIds(current => [...current, card.id]);
   };
 

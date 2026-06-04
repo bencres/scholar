@@ -1,6 +1,6 @@
 import { Button } from '@affine/component';
-import type { StudyCardContent } from '@affine/core/modules/study';
 import { StudyService } from '@affine/core/modules/study';
+import { getDeckCards } from '@affine/core/modules/study/utils/study-storage';
 import {
   StudyPageBody,
   StudyPageHeader,
@@ -28,6 +28,7 @@ function useReviewCards(deckId?: string) {
   const studyService = useService(StudyService);
   const dueCards = useLiveData(studyService.reviewQueue$(deckId));
   const decks = useLiveData(studyService.decks$);
+  const allCards = useLiveData(studyService.cards$);
 
   const cards = useMemo(() => {
     if (dueCards.length) {
@@ -35,14 +36,11 @@ function useReviewCards(deckId?: string) {
     }
     if (deckId) {
       const deck = decks.find(item => item.id === deckId);
-      return deck?.cards.filter(card => !card.suspended) ?? [];
+      if (!deck) return [];
+      return getDeckCards(deck, allCards).filter(card => !card.suspended);
     }
-    const allCards: StudyCardContent[] = [];
-    for (const deck of decks) {
-      allCards.push(...deck.cards.filter(card => !card.suspended));
-    }
-    return allCards;
-  }, [deckId, decks, dueCards]);
+    return allCards.filter(card => !card.suspended);
+  }, [allCards, deckId, decks, dueCards]);
 
   return { cards, useGrading: dueCards.length > 0 };
 }
