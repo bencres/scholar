@@ -12,6 +12,7 @@ import {
 } from '@affine/core/modules/study/views/study-card-draft';
 import { StudyCardEditableBrowseItem } from '@affine/core/modules/study/views/study-card-editable-browse-item';
 import { StudyCardFormFields } from '@affine/core/modules/study/views/study-card-form-fields';
+import { StudyCardSearchHelp } from '@affine/core/modules/study/views/study-card-search-help';
 import {
   StudyDeckHeader,
   StudyDeckHeaderActions,
@@ -322,6 +323,7 @@ export const StudyDeckDetailPage = () => {
                 'com.affine.study.card-library.search.placeholder'
               ]()}
             />
+            <StudyCardSearchHelp />
             <div className={styles.pickerList}>
               {libraryCandidates.map(card => (
                 <label key={card.id} className={styles.pickerItem}>

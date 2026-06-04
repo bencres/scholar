@@ -2696,9 +2696,45 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.create-card"](): string;
     /**
-      * `Search cards (e.g. deck:biology due:overdue)`
+      * `Search cards (e.g. concept:atp deck:biology due:overdue)`
       */
     ["com.affine.study.card-library.search.placeholder"](): string;
+    /**
+      * `How to search cards`
+      */
+    ["com.affine.study.card-library.search.help-title"](): string;
+    /**
+      * `Combine filters and keywords. Every filter must match; separate filters with spaces. Plain words search question, answer, concepts, tags, and other card text.`
+      */
+    ["com.affine.study.card-library.search.help-intro"](): string;
+    /**
+      * `limit to a deck by partial name; use deck:none for cards not in any deck`
+      */
+    ["com.affine.study.card-library.search.help-deck"](): string;
+    /**
+      * `card must include this concept (partial match on concept labels)`
+      */
+    ["com.affine.study.card-library.search.help-concept"](): string;
+    /**
+      * `card must have this exact tag`
+      */
+    ["com.affine.study.card-library.search.help-tag"](): string;
+    /**
+      * `scheduling state`
+      */
+    ["com.affine.study.card-library.search.help-state"](): string;
+    /**
+      * `due date bucket`
+      */
+    ["com.affine.study.card-library.search.help-due"](): string;
+    /**
+      * `Plain words or "quoted phrases" match card text`
+      */
+    ["com.affine.study.card-library.search.help-text"](): string;
+    /**
+      * `Example: concept:atp tag:metabolism due:overdue deck:biology "energy currency"`
+      */
+    ["com.affine.study.card-library.search.help-example"](): string;
     /**
       * `Sort`
       */

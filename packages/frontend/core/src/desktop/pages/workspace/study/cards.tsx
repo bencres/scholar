@@ -9,6 +9,7 @@ import {
 } from '@affine/core/modules/study/views/study-card-draft';
 import { StudyCardEditableBrowseItem } from '@affine/core/modules/study/views/study-card-editable-browse-item';
 import { StudyCardFormFields } from '@affine/core/modules/study/views/study-card-form-fields';
+import { StudyCardSearchHelp } from '@affine/core/modules/study/views/study-card-search-help';
 import {
   StudyPageBody,
   StudyPageHeader,
@@ -181,6 +182,7 @@ export const StudyCardsPage = () => {
             </option>
           </select>
         </div>
+        <StudyCardSearchHelp />
         {filteredCards.length === 0 ? (
           <div className={styles.emptyState}>
             {t['com.affine.study.card-library.empty']()}

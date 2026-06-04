@@ -580,6 +580,47 @@ export const libraryToolbar = style({
   marginBottom: 12,
 });
 
+export const searchHelp = style({
+  marginBottom: 12,
+  fontSize: 13,
+  lineHeight: '20px',
+  color: cssVarV2.text.secondary,
+});
+
+export const searchHelpSummary = style({
+  cursor: 'pointer',
+  fontWeight: 500,
+  color: cssVarV2.text.primary,
+  selectors: {
+    '&::marker': {
+      color: cssVarV2.text.secondary,
+    },
+  },
+});
+
+export const searchHelpIntro = style({
+  margin: '8px 0 6px',
+});
+
+export const searchHelpList = style({
+  margin: 0,
+  paddingLeft: 20,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 4,
+});
+
+export const searchHelpCode = style({
+  fontSize: 12,
+  fontFamily: 'var(--affine-font-family-mono, ui-monospace, monospace)',
+  color: cssVarV2.text.primary,
+});
+
+export const searchHelpExample = style({
+  margin: '8px 0 0',
+  fontStyle: 'italic',
+});
+
 export const deckBadgeRow = style({
   display: 'flex',
   flexWrap: 'wrap',
