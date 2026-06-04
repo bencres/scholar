@@ -2,7 +2,7 @@ import type { ReviewGrade } from './card';
 
 export interface StudyReviewLog {
   id: string;
-  deckId: string;
+  deckId?: string;
   cardId: string;
   reviewedAt: number;
   grade: ReviewGrade;

@@ -4,6 +4,7 @@ import { map, type Observable } from 'rxjs';
 import type { WorkspaceServerService } from '../../cloud/services/workspace-server';
 import type { CacheStorage } from '../../storage';
 import type { WorkspaceService } from '../../workspace';
+import type { StudyCardContent } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import {
   isDeckStorageState,
@@ -70,6 +71,8 @@ export class StudyDeckStore extends Store {
   }) {
     return (
       input.decks.decks.length > 0 ||
+      input.decks.cards.length > 0 ||
+      input.decks.cards.length > 0 ||
       input.sidecar.scheduling.length > 0 ||
       input.sidecar.reviewLogs.length > 0
     );
@@ -95,7 +98,6 @@ export class StudyDeckStore extends Store {
       });
 
       if (!remote) {
-        // Import existing browser-side study state on first cloud hydration.
         if (localHasData) {
           await upsertRemoteStudyStorageState(
             server,
@@ -116,7 +118,6 @@ export class StudyDeckStore extends Store {
       const localDirtyAt = syncMeta.lastLocalWriteAt ?? 0;
       const keepLocalAndRePush = localHasData && localDirtyAt > remoteUpdatedAt;
 
-      // Last-write-wins: if this device has newer unsynced writes, push local back.
       if (keepLocalAndRePush) {
         await upsertRemoteStudyStorageState(
           server,
@@ -157,7 +158,7 @@ export class StudyDeckStore extends Store {
     }
   }
 
-  private async listDeckState(): Promise<StudyDeckStorageState> {
+  async loadDeckState(): Promise<StudyDeckStorageState> {
     await this.ensureHydratedFromRemote();
     const raw = await this.cacheStorage.get<unknown>(this.key);
     const state = normalizeDeckStorageState(raw);
@@ -167,21 +168,38 @@ export class StudyDeckStore extends Store {
     return state;
   }
 
+  listDeckState(): Promise<StudyDeckStorageState> {
+    return this.loadDeckState();
+  }
+
   async listDecks(): Promise<StudyDeck[]> {
-    return (await this.listDeckState()).decks;
+    return (await this.loadDeckState()).decks;
+  }
+
+  async listCards(): Promise<StudyCardContent[]> {
+    return (await this.loadDeckState()).cards;
+  }
+
+  watchDeckState(): Observable<StudyDeckStorageState> {
+    return this.cacheStorage
+      .watch<unknown>(this.key)
+      .pipe(map(raw => normalizeDeckStorageState(raw)));
   }
 
   watchDecks(): Observable<StudyDeck[]> {
-    return this.cacheStorage
-      .watch<unknown>(this.key)
-      .pipe(map(raw => normalizeDeckStorageState(raw).decks));
+    return this.watchDeckState().pipe(map(state => state.decks));
   }
 
-  async saveDecks(decks: StudyDeck[]) {
+  watchCards(): Observable<StudyCardContent[]> {
+    return this.watchDeckState().pipe(map(state => state.cards));
+  }
+
+  async saveDeckState(state: StudyDeckStorageState) {
     const now = Date.now();
-    const state: StudyDeckStorageState = {
+    const normalized: StudyDeckStorageState = {
       version: STUDY_DECK_STORAGE_VERSION,
-      decks,
+      cards: state.cards,
+      decks: state.decks,
     };
     await patchStudySyncMeta(this.cacheStorage, this.workspaceId, {
       lastLocalWriteAt: now,
@@ -193,7 +211,7 @@ export class StudyDeckStore extends Store {
         await upsertRemoteStudyStorageState(
           this.server,
           this.workspaceId,
-          state as unknown as Record<string, unknown>,
+          normalized as unknown as Record<string, unknown>,
           sidecar as unknown as Record<string, unknown>
         );
         await patchStudySyncMeta(this.cacheStorage, this.workspaceId, {
@@ -204,17 +222,28 @@ export class StudyDeckStore extends Store {
       }
     }
 
-    await this.cacheStorage.set(this.key, state);
+    await this.cacheStorage.set(this.key, normalized);
+  }
+
+  async saveDecks(decks: StudyDeck[]) {
+    const state = await this.loadDeckState();
+    await this.saveDeckState({ ...state, decks });
+  }
+
+  async saveCards(cards: StudyCardContent[]) {
+    const state = await this.loadDeckState();
+    await this.saveDeckState({ ...state, cards });
   }
 
   async upsertDeck(deck: StudyDeck) {
-    const decks = await this.listDecks();
-    const index = decks.findIndex(item => item.id === deck.id);
+    const state = await this.loadDeckState();
+    const index = state.decks.findIndex(item => item.id === deck.id);
+    const decks = [...state.decks];
     if (index >= 0) {
       decks[index] = deck;
     } else {
       decks.push(deck);
     }
-    await this.saveDecks(decks);
+    await this.saveDeckState({ ...state, decks });
   }
 }

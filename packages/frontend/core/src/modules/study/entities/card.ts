@@ -55,7 +55,6 @@ export interface StudyCardGenerationMetadata {
 
 export interface StudyCardContent {
   id: string;
-  deckId: string;
   type: CardType;
   concepts?: string[];
   noteTypeId?: string;
@@ -77,7 +76,8 @@ export interface StudyCardContent {
 
 export interface StudyCardScheduling {
   cardId: string;
-  deckId: string;
+  /** @deprecated Legacy field; scheduling is global per card. */
+  deckId?: string;
   state: CardState;
   due: number;
   stability: number;

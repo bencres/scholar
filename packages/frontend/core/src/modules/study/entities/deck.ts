@@ -1,4 +1,4 @@
-import type { StudyCardContent, StudyNoteType } from './card';
+import type { StudyNoteType } from './card';
 
 export type StudyDeckSortPolicy = 'created-desc' | 'created-asc' | 'due-asc';
 
@@ -31,10 +31,15 @@ export interface StudyDeckLimits {
   dailyReviewLimit?: number;
 }
 
+export interface StudyDeckSourcePage {
+  docId: string;
+}
+
 export interface StudyDeckMetadata {
   description?: string;
   tags?: string[];
   sourceLinks?: string[];
+  sourcePage?: StudyDeckSourcePage;
   noteTypes?: StudyNoteType[];
   sortPolicy?: StudyDeckSortPolicy;
   limits?: StudyDeckLimits;
@@ -55,7 +60,7 @@ export interface StudyDeck {
   id: string;
   name: string;
   sourceDocId?: string;
-  cards: StudyCardContent[];
+  cardIds: string[];
   metadata?: StudyDeckMetadata;
   future?: StudyDeckFutureMetadata;
   createdAt: number;

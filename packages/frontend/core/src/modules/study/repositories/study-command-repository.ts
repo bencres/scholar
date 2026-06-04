@@ -1,19 +1,22 @@
 import { Store } from '@toeverything/infra';
 
-import type { StudyCardScheduling } from '../entities/card';
+import type { StudyCardContent, StudyCardScheduling } from '../entities/card';
 import type { StudyDeck } from '../entities/deck';
 import type { StudyReviewLog } from '../entities/review-log';
+import type { StudyDeckStorageState } from '../schema/storage';
 import type { StudyDeckStore } from '../stores/study-deck';
 import type { StudySidecarStore } from '../stores/study-sidecar';
 
 export interface StudyWriteRepository {
+  listDeckState(): Promise<StudyDeckStorageState>;
+  saveDeckState(state: StudyDeckStorageState): Promise<void>;
   listDecks(): Promise<StudyDeck[]>;
+  listCards(): Promise<StudyCardContent[]>;
   saveDecks(decks: StudyDeck[]): Promise<void>;
   listScheduling(): Promise<StudyCardScheduling[]>;
   upsertDeck(deck: StudyDeck): Promise<void>;
   upsertScheduling(row: StudyCardScheduling): Promise<void>;
   appendReviewLog(log: StudyReviewLog): Promise<void>;
-  removeSchedulingForDeck(deckId: string): Promise<void>;
   removeSchedulingForCard(cardId: string): Promise<void>;
 }
 
@@ -25,12 +28,24 @@ export class StudyCommandRepository extends Store {
     super();
   }
 
+  listDeckState() {
+    return this.deckStore.listDeckState();
+  }
+
+  saveDeckState(state: StudyDeckStorageState) {
+    return this.deckStore.saveDeckState(state);
+  }
+
   listScheduling() {
     return this.sidecarStore.listScheduling();
   }
 
   listDecks() {
     return this.deckStore.listDecks();
+  }
+
+  listCards() {
+    return this.deckStore.listCards();
   }
 
   saveDecks(decks: StudyDeck[]) {
@@ -47,10 +62,6 @@ export class StudyCommandRepository extends Store {
 
   appendReviewLog(log: StudyReviewLog) {
     return this.sidecarStore.appendReviewLog(log);
-  }
-
-  removeSchedulingForDeck(deckId: string) {
-    return this.sidecarStore.removeSchedulingForDeck(deckId);
   }
 
   removeSchedulingForCard(cardId: string) {

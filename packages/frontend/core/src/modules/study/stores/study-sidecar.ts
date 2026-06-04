@@ -72,6 +72,7 @@ export class StudySidecarStore extends Store {
   }) {
     return (
       input.decks.decks.length > 0 ||
+      input.decks.cards.length > 0 ||
       input.sidecar.scheduling.length > 0 ||
       input.sidecar.reviewLogs.length > 0
     );
