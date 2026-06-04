@@ -19,6 +19,7 @@ const card: StudyCardContent = {
   type: 'recall',
   question: 'What is ATP?',
   answer: 'Energy currency',
+  concepts: ['cellular respiration'],
   tags: ['metabolism'],
   provenance: { workspaceId: 'ws-1', docId: 'doc-1' },
   createdAt: now,
@@ -77,5 +78,35 @@ describe('study card browser search', () => {
       now,
     });
     expect(matched).toBe(false);
+  });
+
+  it('matches concept: filter with partial concept names', () => {
+    const matched = matchStudyBrowserQuery('concept:respiration', {
+      deck,
+      card,
+      scheduling,
+      now,
+    });
+    expect(matched).toBe(true);
+  });
+
+  it('fails when concept: filter is unmet', () => {
+    const matched = matchStudyBrowserQuery('concept:photosynthesis', {
+      deck,
+      card,
+      scheduling,
+      now,
+    });
+    expect(matched).toBe(false);
+  });
+
+  it('matches concept labels via plain text search', () => {
+    const matched = matchStudyBrowserQuery('cellular', {
+      deck,
+      card,
+      scheduling,
+      now,
+    });
+    expect(matched).toBe(true);
   });
 });

@@ -13,6 +13,7 @@ export interface StudyBrowserSearchInput {
 interface ParsedStudyBrowserQuery {
   deckNames: string[];
   tags: string[];
+  concepts: string[];
   states: string[];
   due: Array<'overdue' | 'today' | 'future'>;
   text: string[];
@@ -29,6 +30,9 @@ export function matchStudyBrowserQuery(
   const searchableText = buildSearchableText(input.card).toLowerCase();
   const deckName = input.deck.name.toLowerCase();
   const tags = new Set((input.card.tags ?? []).map(tag => tag.toLowerCase()));
+  const concepts = (input.card.concepts ?? []).map(concept =>
+    concept.toLowerCase()
+  );
   const state = input.scheduling?.state?.toLowerCase();
 
   if (parsed.deckNames.length) {
@@ -44,6 +48,13 @@ export function matchStudyBrowserQuery(
   if (parsed.tags.length) {
     const tagsMatched = parsed.tags.every(tag => tags.has(tag));
     if (!tagsMatched) return false;
+  }
+
+  if (parsed.concepts.length) {
+    const conceptsMatched = parsed.concepts.every(filter =>
+      concepts.some(concept => concept.includes(filter))
+    );
+    if (!conceptsMatched) return false;
   }
 
   if (parsed.states.length && (!state || !parsed.states.includes(state))) {
@@ -62,6 +73,7 @@ function parseStudyBrowserQuery(query: string): ParsedStudyBrowserQuery {
   const parsed: ParsedStudyBrowserQuery = {
     deckNames: [],
     tags: [],
+    concepts: [],
     states: [],
     due: [],
     text: [],
@@ -83,6 +95,10 @@ function parseStudyBrowserQuery(query: string): ParsedStudyBrowserQuery {
     }
     if (prefix === 'tag') {
       parsed.tags.push(value);
+      continue;
+    }
+    if (prefix === 'concept') {
+      parsed.concepts.push(value);
       continue;
     }
     if (prefix === 'state') {
@@ -113,6 +129,7 @@ function buildSearchableText(card: StudyCardContent) {
   return [
     card.question,
     card.answer,
+    ...(card.concepts ?? []),
     ...(card.misconceptions ?? []),
     ...(card.rubric ?? []),
     ...(card.tags ?? []),
