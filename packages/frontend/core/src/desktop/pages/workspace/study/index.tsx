@@ -52,7 +52,7 @@ export const StudyHome = () => {
 
   const toolbar = (
     <div className={styles.heroSub}>
-      See your progress, upcoming reviews, and the fastest way to learn today.
+      {t['com.affine.study.today.hero.subtitle']()}
     </div>
   );
 

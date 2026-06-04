@@ -1,6 +1,7 @@
 import { Button } from '@affine/component';
 import { StudyService } from '@affine/core/modules/study';
 import { WorkbenchService } from '@affine/core/modules/workbench';
+import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
 import { useMemo } from 'react';
 
@@ -10,6 +11,7 @@ import { StudyStreakBadge } from './study-streak-badge';
 import * as styles from './styles.css';
 
 export const StudyTodayDashboard = () => {
+  const t = useI18n();
   const studyService = useService(StudyService);
   const workbench = useService(WorkbenchService).workbench;
   const decks = useLiveData(studyService.decks$);
@@ -56,13 +58,23 @@ export const StudyTodayDashboard = () => {
 
       {stats.leechCount > 0 || stats.lapseCount > 0 ? (
         <div className={styles.formCard}>
-          <div className={styles.formTitle}>How you are doing</div>
+          <div className={styles.formTitle}>
+            {t['com.affine.study.today.section.progress.title']()}
+          </div>
           <div className={styles.modeSummary}>
             {stats.leechCount > 0 ? (
-              <span>{stats.leechCount} leeches</span>
+              <span>
+                {t['com.affine.study.today.health.leeches']({
+                  count: String(stats.leechCount),
+                })}
+              </span>
             ) : null}
             {stats.lapseCount > 0 ? (
-              <span>{stats.lapseCount} lapses</span>
+              <span>
+                {t['com.affine.study.today.health.lapses']({
+                  count: String(stats.lapseCount),
+                })}
+              </span>
             ) : null}
           </div>
         </div>
@@ -72,20 +84,24 @@ export const StudyTodayDashboard = () => {
         <div className={styles.formCard}>
           <div className={styles.modeSummary}>
             <span>
-              {learningGraph.mappedCards} of {learningGraph.totalCards} cards
-              mapped to concepts
+              {t['com.affine.study.today.concept-coverage']({
+                mapped: String(learningGraph.mappedCards),
+                total: String(learningGraph.totalCards),
+              })}
             </span>
             <Button
               onClick={() => workbench.open('/study/graph', { at: 'active' })}
             >
-              Open learning graph
+              {t['com.affine.study.today.concept-coverage.link']()}
             </Button>
           </div>
         </div>
       ) : null}
 
       <div className={styles.formCard}>
-        <div className={styles.formTitle}>Upcoming reviews</div>
+        <div className={styles.formTitle}>
+          {t['com.affine.study.today.section.upcoming.title']()}
+        </div>
         {dueDecks.length ? (
           <div className={styles.deckList}>
             {dueDecks.map(({ deck, dueCount: deckDue }) => (
@@ -100,29 +116,43 @@ export const StudyTodayDashboard = () => {
         ) : (
           <div className={styles.emptyState}>
             {decks.length === 0
-              ? 'No decks yet. Generate cards from a note or create a deck to start.'
-              : 'You are caught up. No cards are due right now.'}
+              ? t['com.affine.study.today.due.empty-decks']()
+              : t['com.affine.study.today.due.caught-up']()}
           </div>
         )}
       </div>
 
       <div className={styles.formCard}>
-        <div className={styles.formTitle}>7-day workload</div>
+        <div className={styles.formTitle}>
+          {t['com.affine.study.today.forecast.title']()}
+        </div>
         <div className={styles.conceptGrid}>
           {stats.workloadForecast.map(day => (
             <div key={day.dayOffset} className={styles.conceptCard}>
-              <div className={styles.conceptTitle}>Day {day.dayOffset + 1}</div>
-              <div className={styles.conceptMeta}>{day.dueCount} due</div>
+              <div className={styles.conceptTitle}>
+                {t['com.affine.study.today.forecast.day']({
+                  offset: String(day.dayOffset + 1),
+                })}
+              </div>
+              <div className={styles.conceptMeta}>
+                {t['com.affine.study.today.forecast.due']({
+                  count: String(day.dueCount),
+                })}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       <div className={styles.formCard}>
-        <div className={styles.formTitle}>Learn efficiently</div>
+        <div className={styles.formTitle}>
+          {t['com.affine.study.today.section.efficient.title']()}
+        </div>
         {recommendations.length ? (
           <>
-            <div className={styles.formTitle}>Suggestions</div>
+            <div className={styles.formTitle}>
+              {t['com.affine.study.today.recommendations.title']()}
+            </div>
             <div className={styles.modeSummary}>
               {recommendations.map(item => (
                 <span key={item}>{item}</span>
@@ -130,74 +160,90 @@ export const StudyTodayDashboard = () => {
             </div>
           </>
         ) : null}
-        <div className={styles.formTitle}>Study modes</div>
+        <div className={styles.formTitle}>
+          {t['com.affine.study.today.modes.title']()}
+        </div>
         <div className={styles.modeGrid}>
           <Button
             onClick={() =>
               workbench.open('/study/flashcards', { at: 'active' })
             }
           >
-            Flashcards
+            {t['com.affine.study.flashcards.title']()}
           </Button>
           <Button
             onClick={() => workbench.open('/study/learn', { at: 'active' })}
           >
-            Learn
+            {t['com.affine.study.learn.title']()}
           </Button>
           <Button
             onClick={() => workbench.open('/study/test', { at: 'active' })}
           >
-            Test
+            {t['com.affine.study.test.title']()}
           </Button>
           <Button
             onClick={() => workbench.open('/study/graph', { at: 'active' })}
           >
-            Learning graph
+            {t['com.affine.study.today.graph.title']()}
           </Button>
           <Button
             onClick={() => workbench.open('/study/tutor', { at: 'active' })}
           >
-            Adaptive tutor
+            {t['com.affine.study.today.tutor.title']()}
           </Button>
           <Button
             onClick={() => workbench.open('/study/dashboard', { at: 'active' })}
           >
-            Insights
+            {t['com.affine.study.today.insights.title']()}
           </Button>
         </div>
         <div className={styles.actionsRow}>
           <Button
             onClick={() => workbench.open('/study/decks', { at: 'active' })}
           >
-            Browse decks
+            {t['com.affine.study.today.quick.decks']()}
           </Button>
           <Button
             onClick={() => workbench.open('/study/cards', { at: 'active' })}
           >
-            Browse cards
+            {t['com.affine.study.today.quick.cards']()}
           </Button>
           <Button
             onClick={() => workbench.open('/study/generate', { at: 'active' })}
           >
-            Generate
+            {t['com.affine.study.generate.title']()}
           </Button>
           {dueCount > 0 ? (
             <Button
               variant="primary"
               onClick={() => workbench.open('/study/review', { at: 'active' })}
             >
-              Review due ({dueCount})
+              {t['com.affine.study.review-due']({ count: String(dueCount) })}
             </Button>
           ) : null}
         </div>
       </div>
 
       <div className={styles.formCard}>
-        <div className={styles.formTitle}>Library</div>
+        <div className={styles.formTitle}>
+          {t['com.affine.study.today.section.library.title']()}
+        </div>
         <div className={styles.modeSummary}>
-          <span>{decks.length} decks</span>
-          <span>{activeCardCount} active cards</span>
-          <span>{dueCount} due today</span>
+          <span>
+            {t['com.affine.study.today.library.decks']({
+              count: String(decks.length),
+            })}
+          </span>
+          <span>
+            {t['com.affine.study.today.library.cards']({
+              count: String(activeCardCount),
+            })}
+          </span>
+          <span>
+            {t['com.affine.study.today.library.due']({
+              count: String(dueCount),
+            })}
+          </span>
         </div>
       </div>
     </>

@@ -1,5 +1,5 @@
 import type { StudyActivitySnapshot } from '@affine/core/modules/study/utils/study-activity';
-import { i18nTime } from '@affine/i18n';
+import { i18nTime, useI18n } from '@affine/i18n';
 import { cssVar } from '@toeverything/theme';
 import { useMemo } from 'react';
 import {
@@ -39,6 +39,7 @@ function ActivityChartTooltip({
   active,
   payload,
 }: TooltipProps<number, string>) {
+  const t = useI18n();
   if (!active || !payload?.length) {
     return null;
   }
@@ -55,7 +56,7 @@ function ActivityChartTooltip({
     <div className={styles.conceptCard}>
       <div className={styles.conceptTitle}>{formatChartDate(point.date)}</div>
       <div className={styles.conceptMeta}>
-        {count} {count === 1 ? 'card' : 'cards'}
+        {t['com.affine.study.today.chart.tooltip']({ count: String(count) })}
       </div>
     </div>
   );
@@ -153,6 +154,7 @@ export const StudyActivityCharts = ({
 }: {
   snapshot: StudyActivitySnapshot;
 }) => {
+  const t = useI18n();
   const createdPoints = useMemo(
     () => toChartPoints(snapshot.createdByDay),
     [snapshot.createdByDay]
@@ -164,16 +166,22 @@ export const StudyActivityCharts = ({
 
   return (
     <div className={styles.formCard}>
-      <div className={styles.formTitle}>How you are doing</div>
-      <div className={styles.heroSub}>Last {snapshot.windowDays} days</div>
+      <div className={styles.formTitle}>
+        {t['com.affine.study.today.section.progress.title']()}
+      </div>
+      <div className={styles.heroSub}>
+        {t['com.affine.study.today.chart.window']({
+          days: String(snapshot.windowDays),
+        })}
+      </div>
       <div className={styles.activityChartsGrid}>
         <StudyActivityLineChart
-          title="Cards created"
+          title={t['com.affine.study.today.chart.created']()}
           points={createdPoints}
           strokeColor={cssVar('primaryColor')}
         />
         <StudyActivityLineChart
-          title="Cards reviewed"
+          title={t['com.affine.study.today.chart.reviewed']()}
           points={reviewedPoints}
           strokeColor={cssVar('processingColor')}
         />

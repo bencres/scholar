@@ -2688,6 +2688,167 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.tab.today"](): string;
     /**
+      * `See your progress, upcoming reviews, and the fastest way to learn today.`
+      */
+    ["com.affine.study.today.hero.subtitle"](): string;
+    /**
+      * `How you are doing`
+      */
+    ["com.affine.study.today.section.progress.title"](): string;
+    /**
+      * `Upcoming reviews`
+      */
+    ["com.affine.study.today.section.upcoming.title"](): string;
+    /**
+      * `Learn efficiently`
+      */
+    ["com.affine.study.today.section.efficient.title"](): string;
+    /**
+      * `Library`
+      */
+    ["com.affine.study.today.section.library.title"](): string;
+    /**
+      * `day streak`
+      */
+    ["com.affine.study.today.streak.day"](): string;
+    /**
+      * `{{count}} day streak`
+      */
+    ["com.affine.study.today.streak.days"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `Start a streak by reviewing or creating a card today.`
+      */
+    ["com.affine.study.today.streak.zero"](): string;
+    /**
+      * `You studied today. Keep it going tomorrow.`
+      */
+    ["com.affine.study.today.streak.active-today"](): string;
+    /**
+      * `Review or create a card today to continue your streak.`
+      */
+    ["com.affine.study.today.streak.study-today"](): string;
+    /**
+      * `Longest streak: {{count}} days`
+      */
+    ["com.affine.study.today.streak.longest"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `Last {{days}} days`
+      */
+    ["com.affine.study.today.chart.window"](options: {
+        readonly days: string;
+    }): string;
+    /**
+      * `Cards created`
+      */
+    ["com.affine.study.today.chart.created"](): string;
+    /**
+      * `Cards reviewed`
+      */
+    ["com.affine.study.today.chart.reviewed"](): string;
+    /**
+      * `{{count}} cards`
+      */
+    ["com.affine.study.today.chart.tooltip"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `{{count}} leeches`
+      */
+    ["com.affine.study.today.health.leeches"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `{{count}} lapses`
+      */
+    ["com.affine.study.today.health.lapses"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `{{mapped}} of {{total}} cards mapped to concepts`
+      */
+    ["com.affine.study.today.concept-coverage"](options: Readonly<{
+        mapped: string;
+        total: string;
+    }>): string;
+    /**
+      * `Open learning graph`
+      */
+    ["com.affine.study.today.concept-coverage.link"](): string;
+    /**
+      * `No decks yet. Generate cards from a note or create a deck to start.`
+      */
+    ["com.affine.study.today.due.empty-decks"](): string;
+    /**
+      * `You are caught up. No cards are due right now.`
+      */
+    ["com.affine.study.today.due.caught-up"](): string;
+    /**
+      * `7-day workload`
+      */
+    ["com.affine.study.today.forecast.title"](): string;
+    /**
+      * `Day {{offset}}`
+      */
+    ["com.affine.study.today.forecast.day"](options: {
+        readonly offset: string;
+    }): string;
+    /**
+      * `{{count}} due`
+      */
+    ["com.affine.study.today.forecast.due"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `Suggestions`
+      */
+    ["com.affine.study.today.recommendations.title"](): string;
+    /**
+      * `Study modes`
+      */
+    ["com.affine.study.today.modes.title"](): string;
+    /**
+      * `Learning graph`
+      */
+    ["com.affine.study.today.graph.title"](): string;
+    /**
+      * `Adaptive tutor`
+      */
+    ["com.affine.study.today.tutor.title"](): string;
+    /**
+      * `Insights`
+      */
+    ["com.affine.study.today.insights.title"](): string;
+    /**
+      * `Browse decks`
+      */
+    ["com.affine.study.today.quick.decks"](): string;
+    /**
+      * `Browse cards`
+      */
+    ["com.affine.study.today.quick.cards"](): string;
+    /**
+      * `{{count}} decks`
+      */
+    ["com.affine.study.today.library.decks"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `{{count}} active cards`
+      */
+    ["com.affine.study.today.library.cards"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `{{count}} due today`
+      */
+    ["com.affine.study.today.library.due"](options: {
+        readonly count: string;
+    }): string;
+    /**
       * `Decks`
       */
     ["com.affine.study.tab.decks"](): string;
@@ -2824,7 +2985,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.open-source-page"](): string;
     /**
-      * `Review flashcards on a spaced schedule, generated from your notes.`
+      * `See your progress, upcoming reviews, and the fastest way to learn today.`
       */
     ["com.affine.study.hero.subtitle"](): string;
     /**
