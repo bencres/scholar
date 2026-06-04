@@ -1,6 +1,5 @@
 import { toDocSearchParams } from '@affine/core/modules/navigation';
 import type { IndexerPreferOptions, IndexerSyncState } from '@affine/nbstore';
-import type { ReferenceParams } from '@blocksuite/affine/model';
 import { fromPromise, LiveData, Service } from '@toeverything/infra';
 import { isEmpty, omit } from 'lodash-es';
 import {
@@ -15,6 +14,33 @@ import { z } from 'zod';
 import { normalizeSearchText } from '../../../utils/normalize-search-text';
 import type { DocsService } from '../../doc/services/docs';
 import type { WorkspaceService } from '../../workspace';
+import {
+  type IndexerRefEdge,
+  parseParsedRefsFromNodes,
+  parseRefEdgesFromNodes,
+  refEdgesSignature,
+} from '../utils/parse-indexer-refs';
+
+const REF_BLOCKS_PAGE_SIZE = 100;
+const REF_BLOCKS_MAX = 10_000;
+
+export type AllRefBlocksResult = {
+  edges: IndexerRefEdge[];
+  truncated: boolean;
+};
+
+const ALL_REF_BLOCKS_QUERY = {
+  type: 'exists' as const,
+  field: 'refDocId' as const,
+};
+
+const ALL_REF_BLOCKS_OPTIONS = {
+  fields: ['docId', 'refDocId', 'ref'] as const,
+  pagination: {
+    limit: REF_BLOCKS_PAGE_SIZE,
+    skip: 0,
+  },
+};
 
 export class DocsSearchService extends Service {
   constructor(
@@ -208,19 +234,7 @@ export class DocsSearchService extends Service {
       .pipe(
         switchMap(({ nodes }) => {
           return fromPromise(async () => {
-            const refs: ({ docId: string } & ReferenceParams)[] = Array.from(
-              new Map(
-                nodes
-                  .flatMap(node => {
-                    const { ref } = node.fields;
-                    return typeof ref === 'string'
-                      ? [JSON.parse(ref)]
-                      : ref.map(item => JSON.parse(item));
-                  })
-                  .filter(ref => !docIds.includes(ref.docId))
-                  .map(ref => [ref.docId, ref])
-              ).values()
-            );
+            const refs = parseParsedRefsFromNodes(nodes, docIds);
 
             return refs
               .flatMap(ref => {
@@ -256,6 +270,49 @@ export class DocsSearchService extends Service {
           return prev.every(r => currIds.has(r.docId));
         })
       );
+  }
+
+  watchAllRefBlocks$(): Observable<AllRefBlocksResult> {
+    return this.indexer
+      .search$('block', ALL_REF_BLOCKS_QUERY, ALL_REF_BLOCKS_OPTIONS)
+      .pipe(
+        switchMap(() => fromPromise(() => this.fetchAllRefBlocks())),
+        distinctUntilChanged(
+          (prev, curr) =>
+            prev.truncated === curr.truncated &&
+            refEdgesSignature(prev.edges) === refEdgesSignature(curr.edges)
+        )
+      );
+  }
+
+  private async fetchAllRefBlocks(): Promise<AllRefBlocksResult> {
+    const nodes: { fields: Record<string, string | string[]> }[] = [];
+    let skip = 0;
+    let truncated = false;
+
+    while (nodes.length < REF_BLOCKS_MAX) {
+      const page = await this.indexer.search('block', ALL_REF_BLOCKS_QUERY, {
+        fields: ['docId', 'refDocId', 'ref'],
+        pagination: {
+          limit: REF_BLOCKS_PAGE_SIZE,
+          skip,
+        },
+      });
+      nodes.push(...page.nodes);
+      skip += REF_BLOCKS_PAGE_SIZE;
+      if (!page.pagination.hasMore) {
+        break;
+      }
+      if (nodes.length >= REF_BLOCKS_MAX) {
+        truncated = true;
+        break;
+      }
+    }
+
+    return {
+      edges: parseRefEdgesFromNodes(nodes),
+      truncated,
+    };
   }
 
   watchDatabasesTo(docId: string) {
