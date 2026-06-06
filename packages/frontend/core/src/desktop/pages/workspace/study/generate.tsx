@@ -1,5 +1,8 @@
-import { Button, Checkbox } from '@affine/component';
+import { Button, Checkbox, IconButton, Input, notify } from '@affine/component';
+import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
+import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
 import { StudyService } from '@affine/core/modules/study';
+import { STUDY_GENERATE_MODELS } from '@affine/core/modules/study/constants/generate-models';
 import { StudyCardBrowseItem } from '@affine/core/modules/study/views/study-card-browse-item';
 import {
   StudyPageBody,
@@ -13,43 +16,185 @@ import {
   WorkbenchService,
 } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
+import { CloseIcon } from '@blocksuite/icons/rc';
 import { useLiveData, useService } from '@toeverything/infra';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
+const SelectedDocRow = ({
+  docId,
+  onRemove,
+}: {
+  docId: string;
+  onRemove: () => void;
+}) => {
+  const t = useI18n();
+  const docDisplayMetaService = useService(DocDisplayMetaService);
+  const title = useLiveData(docDisplayMetaService.title$(docId));
+
+  return (
+    <div className={styles.selectedDocItem}>
+      <span>{title || docId}</span>
+      <IconButton
+        icon={<CloseIcon />}
+        onClick={onRemove}
+        aria-label={t['com.affine.study.synthesize.pages.remove']()}
+      />
+    </div>
+  );
+};
 
 export const StudyGeneratePage = () => {
   const t = useI18n();
   const studyService = useService(StudyService);
   const workbench = useService(WorkbenchService).workbench;
+  const workspaceDialogService = useService(WorkspaceDialogService);
   const generationState = useLiveData(studyService.generationState$);
+  const generateModelId = useLiveData(studyService.generateModelId$);
+  const [searchParams] = useSearchParams();
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+  const [focus, setFocus] = useState('');
+
+  useEffect(() => {
+    const docId = searchParams.get('docId');
+    if (docId) {
+      setSelectedDocIds(current =>
+        current.includes(docId) ? current : [...current, docId]
+      );
+    }
+  }, [searchParams]);
+
+  const handleAddPages = useCallback(() => {
+    workspaceDialogService.open(
+      'doc-selector',
+      { init: selectedDocIds },
+      ids => {
+        if (ids !== undefined) {
+          setSelectedDocIds(ids);
+        }
+      }
+    );
+  }, [selectedDocIds, workspaceDialogService]);
+
+  const handleRemovePage = useCallback((docId: string) => {
+    setSelectedDocIds(current => current.filter(id => id !== docId));
+  }, []);
+
+  const handleGenerate = useCallback(async () => {
+    try {
+      await studyService.generateFromDocs(
+        selectedDocIds,
+        focus.trim() || undefined,
+        generateModelId
+      );
+    } catch (error) {
+      notify.error({
+        title: t['com.affine.study.synthesize.failed'](),
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }, [focus, generateModelId, selectedDocIds, studyService, t]);
 
   const handleSave = useCallback(async () => {
     const deck = await studyService.savePreviewDeck();
     workbench.open(`/study/decks/${deck.id}`, { at: 'active' });
   }, [studyService, workbench]);
 
+  const isIdle =
+    generationState.status === 'idle' || generationState.status === 'error';
+
   return (
     <>
-      <ViewTitle title={t['com.affine.study.generate.title']()} />
+      <ViewTitle title={t['com.affine.study.synthesize.title']()} />
       <ViewIcon icon="today" />
       <ViewHeader>
-        <StudyPageHeader title={t['com.affine.study.generate.title']()} />
+        <StudyPageHeader title={t['com.affine.study.synthesize.title']()} />
       </ViewHeader>
       <StudyPageBody>
+        {isIdle ? (
+          <>
+            <div className={styles.formCard}>
+              <div className={styles.formTitle}>
+                {t['com.affine.study.synthesize.pages.title']()}
+              </div>
+              <div className={styles.heroSub}>
+                {t['com.affine.study.synthesize.pages.subtitle']()}
+              </div>
+              <div className={styles.actionsRow}>
+                <Button onClick={handleAddPages}>
+                  {t['com.affine.study.synthesize.pages.add']()}
+                </Button>
+              </div>
+              {selectedDocIds.length ? (
+                <div className={styles.selectedDocList}>
+                  {selectedDocIds.map(docId => (
+                    <SelectedDocRow
+                      key={docId}
+                      docId={docId}
+                      onRemove={() => handleRemovePage(docId)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyState}>
+                  {t['com.affine.study.synthesize.pages.empty']()}
+                </div>
+              )}
+            </div>
+            <div className={styles.formCard}>
+              <div className={styles.formTitle}>
+                {t['com.affine.study.synthesize.focus.title']()}
+              </div>
+              <Input
+                value={focus}
+                onChange={event => setFocus(event.target.value)}
+                placeholder={t[
+                  'com.affine.study.synthesize.focus.placeholder'
+                ]()}
+              />
+            </div>
+            <div className={styles.formCard}>
+              <div className={styles.formTitle}>
+                {t['com.affine.study.synthesize.model.title']()}
+              </div>
+              <select
+                value={generateModelId}
+                onChange={event =>
+                  studyService.setGenerateModel(event.target.value)
+                }
+              >
+                {STUDY_GENERATE_MODELS.map(model => (
+                  <option key={model.id} value={model.id}>
+                    {t[model.labelKey]()}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.actionsRow}>
+              <Button
+                variant="primary"
+                disabled={!selectedDocIds.length}
+                onClick={() => {
+                  handleGenerate().catch(() => undefined);
+                }}
+              >
+                {t['com.affine.study.synthesize.action']()}
+              </Button>
+            </div>
+            {generationState.status === 'error' ? (
+              <div className={styles.emptyState}>
+                <div>{generationState.message}</div>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+
         {generationState.status === 'generating' ? (
           <div className={styles.emptyState}>
-            {t['com.affine.study.generate.loading']()}
+            {t['com.affine.study.synthesize.loading']()}
           </div>
         ) : null}
-        {generationState.status === 'error' ? (
-          <div className={styles.emptyState}>
-            <div>{generationState.message}</div>
-            {generationState.rawResponse ? (
-              <pre className={styles.debugResponse}>
-                {generationState.rawResponse}
-              </pre>
-            ) : null}
-          </div>
-        ) : null}
+
         {generationState.status === 'preview' ? (
           <>
             <div className={styles.sectionTitle}>
@@ -78,11 +223,11 @@ export const StudyGeneratePage = () => {
                 variant="primary"
                 onClick={() => {
                   handleSave().catch(error => {
-                    console.error('[study.generate] save failed', error);
+                    console.error('[study.synthesize] save failed', error);
                   });
                 }}
               >
-                {t['com.affine.study.generate.save']()}
+                {t['com.affine.study.synthesize.save']()}
               </Button>
               <Button onClick={() => studyService.resetGeneration()}>
                 {t['Cancel']()}

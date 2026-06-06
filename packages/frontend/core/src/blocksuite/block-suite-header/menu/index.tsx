@@ -323,7 +323,7 @@ const PageHeaderMenuItem = ({
           { duration: 10000 }
         );
       } finally {
-        workbench.open(`/study/generate?docId=${pageId}`, { at: 'active' });
+        workbench.open(`/study/synthesize?docId=${pageId}`, { at: 'active' });
       }
     },
     [page, pageId, studyService, t, workbench]

@@ -1,6 +1,7 @@
 import type { Framework } from '@toeverything/infra';
 
 import { WorkspaceServerService } from '../cloud';
+import { DocsService } from '../doc';
 import { FeatureFlagService } from '../feature-flag';
 import { CacheStorage, GlobalStateService } from '../storage';
 import { WorkspaceScope, WorkspaceService } from '../workspace';
@@ -30,6 +31,7 @@ export function configureStudyModule(framework: Framework) {
     .service(StudyQueryService, [StudyQueryRepository, FeatureFlagService])
     .service(StudyCommandService, [
       WorkspaceService,
+      DocsService,
       StudyCommandRepository,
       FeatureFlagService,
       GlobalStateService,

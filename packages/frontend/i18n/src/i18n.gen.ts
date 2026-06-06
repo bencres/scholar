@@ -2779,7 +2779,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.today.concept-coverage.link"](): string;
     /**
-      * `No decks yet. Generate cards from a note or create a deck to start.`
+      * `No decks yet. Synthesize linked cards from your notes to get started.`
       */
     ["com.affine.study.today.due.empty-decks"](): string;
     /**
@@ -2787,9 +2787,17 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.today.due.caught-up"](): string;
     /**
-      * `7-day workload`
+      * `Upcoming 7 days`
       */
     ["com.affine.study.today.forecast.title"](): string;
+    /**
+      * `Cards due each day, with the concepts they cover.`
+      */
+    ["com.affine.study.today.forecast.subtitle"](): string;
+    /**
+      * `Today`
+      */
+    ["com.affine.study.today.forecast.today"](): string;
     /**
       * `Day {{offset}}`
       */
@@ -2802,6 +2810,150 @@ export function useAFFiNEI18N(): {
     ["com.affine.study.today.forecast.due"](options: {
         readonly count: string;
     }): string;
+    /**
+      * `No mapped concepts due`
+      */
+    ["com.affine.study.today.forecast.no-concepts"](): string;
+    /**
+      * `Decks`
+      */
+    ["com.affine.study.today.library.decks-short"](): string;
+    /**
+      * `Active cards`
+      */
+    ["com.affine.study.today.library.cards-short"](): string;
+    /**
+      * `Due today`
+      */
+    ["com.affine.study.today.library.due-short"](): string;
+    /**
+      * `Most common concepts`
+      */
+    ["com.affine.study.today.library.top-concepts"](): string;
+    /**
+      * `Add concept tags or generate cards to see concept coverage.`
+      */
+    ["com.affine.study.today.library.no-concepts"](): string;
+    /**
+      * `Each mode is a dedicated study screen with a different goal.`
+      */
+    ["com.affine.study.today.modes.subtitle"](): string;
+    /**
+      * `Review`
+      */
+    ["com.affine.study.today.mode.review.title"](): string;
+    /**
+      * `Spaced repetition session for cards that are due now.`
+      */
+    ["com.affine.study.today.mode.review.description"](): string;
+    /**
+      * `Synthesize from notes`
+      */
+    ["com.affine.study.today.mode.synthesize.title"](): string;
+    /**
+      * `Select multiple note pages and generate linked recall and synthesis cards.`
+      */
+    ["com.affine.study.today.mode.synthesize.description"](): string;
+    /**
+      * `Flashcards`
+      */
+    ["com.affine.study.today.mode.flashcards.title"](): string;
+    /**
+      * `Browse cards freely with optional schedule tracking.`
+      */
+    ["com.affine.study.today.mode.flashcards.description"](): string;
+    /**
+      * `Learn`
+      */
+    ["com.affine.study.today.mode.learn.title"](): string;
+    /**
+      * `Walk through cards with quick self-check feedback.`
+      */
+    ["com.affine.study.today.mode.learn.description"](): string;
+    /**
+      * `Test`
+      */
+    ["com.affine.study.today.mode.test.title"](): string;
+    /**
+      * `Run a scored quiz session over a sample of cards.`
+      */
+    ["com.affine.study.today.mode.test.description"](): string;
+    /**
+      * `Learning graph`
+      */
+    ["com.affine.study.today.mode.graph.title"](): string;
+    /**
+      * `Explore concept links, prerequisites, and coverage across cards.`
+      */
+    ["com.affine.study.today.mode.graph.description"](): string;
+    /**
+      * `Adaptive tutor`
+      */
+    ["com.affine.study.today.mode.tutor.title"](): string;
+    /**
+      * `Target high-risk concepts with guided remediation drills.`
+      */
+    ["com.affine.study.today.mode.tutor.description"](): string;
+    /**
+      * `Insights`
+      */
+    ["com.affine.study.today.mode.insights.title"](): string;
+    /**
+      * `Deeper mastery bands, goals, and workload analytics.`
+      */
+    ["com.affine.study.today.mode.insights.description"](): string;
+    /**
+      * `Synthesize from notes`
+      */
+    ["com.affine.study.synthesize.title"](): string;
+    /**
+      * `Note pages`
+      */
+    ["com.affine.study.synthesize.pages.title"](): string;
+    /**
+      * `Choose one or more pages. Generated cards will link ideas across them.`
+      */
+    ["com.affine.study.synthesize.pages.subtitle"](): string;
+    /**
+      * `Add pages`
+      */
+    ["com.affine.study.synthesize.pages.add"](): string;
+    /**
+      * `Remove page`
+      */
+    ["com.affine.study.synthesize.pages.remove"](): string;
+    /**
+      * `Add note pages to synthesize questions from.`
+      */
+    ["com.affine.study.synthesize.pages.empty"](): string;
+    /**
+      * `Focus (optional)`
+      */
+    ["com.affine.study.synthesize.focus.title"](): string;
+    /**
+      * `e.g. compare mechanisms, exam prep on chapter 3`
+      */
+    ["com.affine.study.synthesize.focus.placeholder"](): string;
+    /**
+      * `Model`
+      */
+    ["com.affine.study.synthesize.model.title"](): string;
+    /**
+      * `Synthesize cards`
+      */
+    ["com.affine.study.synthesize.action"](): string;
+    /**
+      * `Synthesizing cards across your selected notes…`
+      */
+    ["com.affine.study.synthesize.loading"](): string;
+    /**
+      * `Save deck`
+      */
+    ["com.affine.study.synthesize.save"](): string;
+    /**
+      * `Failed to synthesize cards`
+      */
+    ["com.affine.study.synthesize.failed"](): string;
     /**
       * `Suggestions`
       */
@@ -2900,6 +3052,14 @@ export function useAFFiNEI18N(): {
       * `Example: concept:atp tag:metabolism due:overdue deck:biology "energy currency"`
       */
     ["com.affine.study.card-library.search.help-example"](): string;
+    /**
+      * `Card type`
+      */
+    ["com.affine.study.card-library.filter.type.label"](): string;
+    /**
+      * `All`
+      */
+    ["com.affine.study.card-library.filter.type.all"](): string;
     /**
       * `Sort`
       */
@@ -3242,7 +3402,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.deck-not-found"](): string;
     /**
-      * `Generate study deck`
+      * `Synthesize from notes`
       */
     ["com.affine.study.generate.title"](): string;
     /**
@@ -3254,7 +3414,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.generate.save"](): string;
     /**
-      * `Generate study deck`
+      * `Synthesize cards from notes`
       */
     ["com.affine.study.generate.menu"](): string;
     /**

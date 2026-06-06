@@ -62,6 +62,10 @@ export const workbenchRoutes = [
     lazy: () => import('./pages/workspace/study/card-detail'),
   },
   {
+    path: '/study/synthesize',
+    lazy: () => import('./pages/workspace/study/generate'),
+  },
+  {
     path: '/study/generate',
     lazy: () => import('./pages/workspace/study/generate'),
   },

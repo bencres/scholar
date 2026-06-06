@@ -5,6 +5,7 @@ import type { Store } from '@blocksuite/affine/store';
 import { LiveData, Service } from '@toeverything/infra';
 import { nanoid } from 'nanoid';
 
+import type { DocsService } from '../../doc';
 import type { FeatureFlagService } from '../../feature-flag';
 import type { GlobalStateService } from '../../storage';
 import type { WorkspaceService } from '../../workspace';
@@ -49,7 +50,11 @@ import {
   evaluateStudyCardSelection,
   type StudyCardQualityAiEvaluator,
 } from '../utils/card-quality-evaluator';
-import { extractDocMarkdown } from '../utils/extract-doc-text';
+import {
+  buildMultiDocGenerationFocus,
+  combineDocsMarkdown,
+  extractDocSection,
+} from '../utils/extract-docs-markdown';
 import { parseStudyCardsGenerateJson } from '../utils/parse-generate-json';
 import {
   burySiblingScheduling,
@@ -131,14 +136,19 @@ function publishStudyGenerateDebug(debug: StudyGenerationDebug) {
 
 export type StudyGenerationState =
   | { status: 'idle' }
-  | { status: 'generating'; docId: string }
+  | { status: 'generating'; docIds: string[] }
   | {
       status: 'preview';
-      docId: string;
+      docIds: string[];
       output: StudyCardsGenerateOutput;
       cards: StudyCardPreview[];
     }
-  | { status: 'error'; docId: string; message: string; rawResponse?: string };
+  | {
+      status: 'error';
+      docIds: string[];
+      message: string;
+      rawResponse?: string;
+    };
 
 export class StudyCommandService extends Service {
   lastGenerationDebug: StudyGenerationDebug | null = null;
@@ -157,6 +167,7 @@ export class StudyCommandService extends Service {
 
   constructor(
     private readonly workspaceService: WorkspaceService,
+    private readonly docsService: DocsService,
     private readonly commandRepository: StudyCommandRepository,
     private readonly featureFlagService: FeatureFlagService,
     private readonly globalStateService: GlobalStateService
@@ -188,30 +199,108 @@ export class StudyCommandService extends Service {
     modelId?: string,
     options?: StudyGenerationOptions
   ) {
+    return this.generateFromDocs([doc.id], focus, modelId, options, doc);
+  }
+
+  async generateFromDocs(
+    docIds: string[],
+    focus?: string,
+    modelId?: string,
+    options?: StudyGenerationOptions,
+    primaryStore?: Store
+  ) {
     if (!this.enabled) {
       throw new Error('Study is disabled');
     }
 
-    const docId = doc.id;
-    const workspaceId = this.workspaceService.workspace.id;
-    const content = extractDocMarkdown(doc);
-    if (!content) {
-      throw new Error('Document has no extractable content');
+    const uniqueDocIds = [...new Set(docIds.filter(Boolean))];
+    if (!uniqueDocIds.length) {
+      throw new Error('Select at least one note page');
     }
 
+    const releases: Array<() => void> = [];
+    const sections = [];
+    try {
+      if (primaryStore && uniqueDocIds.length === 1) {
+        let title = 'Untitled';
+        try {
+          const { doc, release } = this.docsService.open(primaryStore.id);
+          title = doc.title$.value || 'Untitled';
+          release();
+        } catch {
+          // fall back to untitled when the record is unavailable
+        }
+        const section = extractDocSection(primaryStore.id, title, primaryStore);
+        if (section) {
+          sections.push(section);
+        }
+      } else {
+        for (const docId of uniqueDocIds) {
+          const { doc, release } = this.docsService.open(docId);
+          releases.push(release);
+          const store = doc.blockSuiteDoc.getStore({ id: docId });
+          if (!store) {
+            continue;
+          }
+          const section = extractDocSection(
+            docId,
+            doc.title$.value || 'Untitled',
+            store
+          );
+          if (section) {
+            sections.push(section);
+          }
+        }
+      }
+    } finally {
+      for (const release of releases) {
+        release();
+      }
+    }
+
+    if (!sections.length) {
+      throw new Error('Selected pages have no extractable content');
+    }
+
+    const content = combineDocsMarkdown(sections);
+    const mergedFocus = buildMultiDocGenerationFocus(sections, focus);
+    return this.generateFromContent({
+      docIds: uniqueDocIds,
+      content,
+      focus: mergedFocus,
+      modelId,
+      options,
+    });
+  }
+
+  private async generateFromContent({
+    docIds,
+    content,
+    focus,
+    modelId,
+    options,
+  }: {
+    docIds: string[];
+    content: string;
+    focus?: string;
+    modelId?: string;
+    options?: StudyGenerationOptions;
+  }) {
+    const docId = docIds[0];
+    const workspaceId = this.workspaceService.workspace.id;
     const selectedModel =
       modelId ?? this.generateModelId$.value ?? DEFAULT_STUDY_GENERATE_MODEL;
     if (!isStudyGenerateModelId(selectedModel)) {
       throw new Error(`Unsupported study generation model: ${selectedModel}`);
     }
 
-    this.generationState$.setValue({ status: 'generating', docId });
+    this.generationState$.setValue({ status: 'generating', docIds });
 
     let rawResponse: string | undefined;
     let stage: StudyGenerationDebug['stage'] = 'stream';
     try {
       logStudyGenerateDebug('Starting generation', {
-        docId,
+        docIds,
         modelId: selectedModel,
         contentLength: content.length,
       });
@@ -240,7 +329,7 @@ export class StudyCommandService extends Service {
       rawResponse = await collectStreamText(stream);
       logStudyGenerateDebug('Raw model response', {
         modelId: selectedModel,
-        docId,
+        docIds,
         length: rawResponse.length,
         rawResponse,
       });
@@ -254,7 +343,7 @@ export class StudyCommandService extends Service {
       const cards = this.toPreviewCards(parsed);
       this.generationState$.setValue({
         status: 'preview',
-        docId,
+        docIds,
         output: parsed,
         cards,
       });
@@ -278,7 +367,7 @@ export class StudyCommandService extends Service {
       });
       this.generationState$.setValue({
         status: 'error',
-        docId,
+        docIds,
         message,
         rawResponse,
       });
@@ -343,7 +432,7 @@ export class StudyCommandService extends Service {
         metadata: card.metadata,
         provenance: {
           workspaceId,
-          docId: state.docId,
+          docId: state.docIds[0],
           blockIds: card.blockIds,
         },
         createdAt: now,
@@ -355,10 +444,11 @@ export class StudyCommandService extends Service {
     const deck: StudyDeck = {
       id: deckId,
       name: state.output.deckName,
-      sourceDocId: state.docId,
+      sourceDocId: state.docIds[0],
       cardIds: cards.map(card => card.id),
       metadata: sanitizeDeckMetadata({
-        sourcePage: { docId: state.docId },
+        sourcePage: { docId: state.docIds[0] },
+        sourceLinks: state.docIds,
       }),
       createdAt: now,
       updatedAt: now,
