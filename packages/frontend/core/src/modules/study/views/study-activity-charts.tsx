@@ -166,9 +166,6 @@ export const StudyActivityCharts = ({
 
   return (
     <div className={styles.formCard}>
-      <div className={styles.formTitle}>
-        {t['com.affine.study.today.section.progress.title']()}
-      </div>
       <div className={styles.heroSub}>
         {t['com.affine.study.today.chart.window']({
           days: String(snapshot.windowDays),

@@ -225,22 +225,22 @@ export const actionsRow = style({
   display: 'flex',
   gap: 8,
   flexWrap: 'wrap',
-  marginTop: 16,
 });
 
 export const formCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
   padding: 16,
   borderRadius: 10,
   border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
   background: cssVarV2.layer.background.primary,
-  marginBottom: 16,
 });
 
 export const formTitle = style({
   fontSize: 14,
   fontWeight: 600,
   color: cssVarV2.text.primary,
-  marginBottom: 10,
 });
 
 export const formGrid = style({
@@ -577,11 +577,9 @@ export const libraryToolbar = style({
   flexWrap: 'wrap',
   gap: 8,
   alignItems: 'center',
-  marginBottom: 12,
 });
 
 export const searchHelp = style({
-  marginBottom: 12,
   fontSize: 13,
   lineHeight: '20px',
   color: cssVarV2.text.secondary,
@@ -671,16 +669,174 @@ export const badge = style({
   color: cssVarV2.text.pureWhite,
 });
 
+export const todaySummaryRow = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(180px, 1fr) minmax(220px, 1.4fr)',
+  gap: 16,
+  '@container': {
+    'study-body (width <= 720px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
 export const streakCard = style({
   display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 16,
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: 4,
   padding: '20px 16px',
   borderRadius: 10,
   border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
   background: cssVarV2.layer.background.primary,
-  marginBottom: 16,
+  minHeight: '100%',
+});
+
+export const librarySummaryCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  padding: '16px',
+  borderRadius: 10,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.primary,
+});
+
+export const libraryStatGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+  gap: 8,
+});
+
+export const libraryStat = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 2,
+  fontSize: 13,
+  color: cssVarV2.text.secondary,
+});
+
+export const libraryStatValue = style({
+  fontSize: 20,
+  lineHeight: '28px',
+  fontWeight: 700,
+  color: cssVarV2.text.primary,
+});
+
+export const conceptChipRow = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 6,
+});
+
+export const conceptChip = style({
+  fontSize: 12,
+  lineHeight: '18px',
+  padding: '4px 8px',
+  borderRadius: 999,
+  background: cssVarV2.layer.background.hoverOverlay,
+  color: cssVarV2.text.secondary,
+});
+
+export const workloadTimeline = style({
+  display: 'flex',
+  gap: 10,
+  overflowX: 'auto',
+  paddingBottom: 4,
+});
+
+export const workloadDay = style({
+  flex: '1 0 120px',
+  minWidth: 120,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  padding: '12px 10px',
+  borderRadius: 10,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.secondary,
+  position: 'relative',
+});
+
+export const workloadDayToday = style({
+  borderColor: cssVarV2.button.primary,
+  boxShadow: `0 0 0 1px ${cssVarV2.button.primary}`,
+});
+
+export const workloadDayConnector = style({
+  position: 'absolute',
+  top: 18,
+  right: -10,
+  width: 10,
+  height: 2,
+  background: cssVarV2.layer.insideBorder.border,
+});
+
+export const workloadDueBar = style({
+  height: 6,
+  borderRadius: 999,
+  background: cssVarV2.layer.insideBorder.border,
+  overflow: 'hidden',
+});
+
+export const workloadDueFill = style({
+  height: '100%',
+  borderRadius: 999,
+  background: cssVarV2.button.primary,
+});
+
+export const studyModeGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: 12,
+});
+
+export const studyModeCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  padding: '14px 16px',
+  borderRadius: 10,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.secondary,
+  textAlign: 'left',
+  cursor: 'pointer',
+  transition: 'border-color 0.15s ease, background 0.15s ease',
+  selectors: {
+    '&:hover': {
+      borderColor: cssVarV2.button.primary,
+      background: cssVarV2.layer.background.hoverOverlay,
+    },
+  },
+});
+
+export const studyModeTitle = style({
+  fontSize: 14,
+  fontWeight: 600,
+  color: cssVarV2.text.primary,
+});
+
+export const studyModeDescription = style({
+  fontSize: 13,
+  lineHeight: '20px',
+  color: cssVarV2.text.secondary,
+});
+
+export const selectedDocList = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+});
+
+export const selectedDocItem = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 12,
+  padding: '10px 12px',
+  borderRadius: 8,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.secondary,
 });
 
 export const streakValue = style({
@@ -691,18 +847,27 @@ export const streakValue = style({
 });
 
 export const streakMeta = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
   color: cssVarV2.text.secondary,
   fontSize: 14,
   lineHeight: '22px',
+});
+
+export const streakLongest = style({
+  marginTop: 4,
+  color: cssVarV2.text.tertiary,
+  fontSize: 13,
+  lineHeight: '20px',
+});
+
+export const streakActions = style({
+  marginTop: 12,
 });
 
 export const activityChartsGrid = style({
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
   gap: 16,
+  marginTop: 4,
 });
 
 export const activityChartBlock = style({

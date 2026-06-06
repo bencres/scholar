@@ -1,4 +1,3 @@
-import { Button } from '@affine/component';
 import { StudyService } from '@affine/core/modules/study';
 import {
   StudyPageBody,
@@ -11,16 +10,13 @@ import {
   ViewHeader,
   ViewIcon,
   ViewTitle,
-  WorkbenchService,
 } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useService } from '@toeverything/infra';
 
 export const StudyHome = () => {
   const t = useI18n();
   const studyService = useService(StudyService);
-  const workbench = useService(WorkbenchService).workbench;
-  const dueCount = useLiveData(studyService.dueCount$);
 
   if (!studyService.enabled) {
     return (
@@ -31,24 +27,6 @@ export const StudyHome = () => {
       </StudyPageBody>
     );
   }
-
-  const headerActions = (
-    <>
-      {dueCount > 0 ? (
-        <Button
-          variant="primary"
-          onClick={() => workbench.open('/study/review', { at: 'active' })}
-        >
-          {t['com.affine.study.review-due']({ count: String(dueCount) })}
-        </Button>
-      ) : null}
-      <Button
-        onClick={() => workbench.open('/study/generate', { at: 'active' })}
-      >
-        {t['com.affine.study.generate.title']()}
-      </Button>
-    </>
-  );
 
   const toolbar = (
     <div className={styles.heroSub}>
@@ -61,10 +39,7 @@ export const StudyHome = () => {
       <ViewTitle title={t['com.affine.study.tab.today']()} />
       <ViewIcon icon="today" />
       <ViewHeader>
-        <StudyPageHeader
-          title={t['com.affine.study.tab.today']()}
-          actions={headerActions}
-        />
+        <StudyPageHeader title={t['com.affine.study.tab.today']()} />
       </ViewHeader>
       <StudySubnav />
       <StudyPageBody toolbar={toolbar}>
