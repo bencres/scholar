@@ -109,4 +109,24 @@ describe('study card browser search', () => {
     });
     expect(matched).toBe(true);
   });
+
+  it('matches type:recall filter', () => {
+    const matched = matchStudyBrowserQuery('type:recall', {
+      deck,
+      card,
+      scheduling,
+      now,
+    });
+    expect(matched).toBe(true);
+  });
+
+  it('rejects type:synthesis for recall cards', () => {
+    const matched = matchStudyBrowserQuery('type:synthesis', {
+      deck,
+      card,
+      scheduling,
+      now,
+    });
+    expect(matched).toBe(false);
+  });
 });

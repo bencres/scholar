@@ -15,6 +15,7 @@ interface ParsedStudyBrowserQuery {
   tags: string[];
   concepts: string[];
   states: string[];
+  types: Array<'recall' | 'synthesis'>;
   due: Array<'overdue' | 'today' | 'future'>;
   text: string[];
 }
@@ -61,6 +62,10 @@ export function matchStudyBrowserQuery(
     return false;
   }
 
+  if (parsed.types.length && !parsed.types.includes(input.card.type)) {
+    return false;
+  }
+
   if (parsed.due.length) {
     const dueTag = deriveDueTag(input.scheduling, now);
     if (!dueTag || !parsed.due.includes(dueTag)) return false;
@@ -75,6 +80,7 @@ function parseStudyBrowserQuery(query: string): ParsedStudyBrowserQuery {
     tags: [],
     concepts: [],
     states: [],
+    types: [],
     due: [],
     text: [],
   };
@@ -103,6 +109,10 @@ function parseStudyBrowserQuery(query: string): ParsedStudyBrowserQuery {
     }
     if (prefix === 'state') {
       parsed.states.push(value);
+      continue;
+    }
+    if (prefix === 'type' && (value === 'recall' || value === 'synthesis')) {
+      parsed.types.push(value);
       continue;
     }
     if (

@@ -1,6 +1,9 @@
 import { Button, Input } from '@affine/component';
 import { StudyService } from '@affine/core/modules/study';
-import type { StudyCardContent } from '@affine/core/modules/study/entities/card';
+import type {
+  CardType,
+  StudyCardContent,
+} from '@affine/core/modules/study/entities/card';
 import { getDecksForCard } from '@affine/core/modules/study/utils/study-storage';
 import {
   type CardDraft,
@@ -33,6 +36,8 @@ type CardSort =
   | 'updated-desc'
   | 'due-asc'
   | 'type';
+
+type CardTypeFilter = 'all' | CardType;
 
 function sortCards(
   cards: StudyCardContent[],
@@ -69,6 +74,7 @@ export const StudyCardsPage = () => {
   const decks = useLiveData(studyService.decks$);
   const scheduling = useLiveData(studyService.scheduling$);
   const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<CardTypeFilter>('all');
   const [sort, setSort] = useState<CardSort>('created-desc');
   const [showCreate, setShowCreate] = useState(false);
   const [newCardDraft, setNewCardDraft] =
@@ -81,8 +87,12 @@ export const StudyCardsPage = () => {
 
   const filteredCards = useMemo(() => {
     const base = studyService.searchCards(search);
-    return sortCards(base, sort, schedulingByCard);
-  }, [search, sort, schedulingByCard, studyService]);
+    const typed =
+      typeFilter === 'all'
+        ? base
+        : base.filter(card => card.type === typeFilter);
+    return sortCards(typed, sort, schedulingByCard);
+  }, [search, typeFilter, sort, schedulingByCard, studyService]);
 
   const handleCreateCard = async () => {
     const card = await studyService.createCard(
@@ -160,6 +170,30 @@ export const StudyCardsPage = () => {
             ]()}
             style={{ flex: 1, minWidth: 200 }}
           />
+          <div
+            className={styles.toggleRow}
+            role="group"
+            aria-label={t['com.affine.study.card-library.filter.type.label']()}
+          >
+            <Button
+              variant={typeFilter === 'all' ? 'primary' : 'plain'}
+              onClick={() => setTypeFilter('all')}
+            >
+              {t['com.affine.study.card-library.filter.type.all']()}
+            </Button>
+            <Button
+              variant={typeFilter === 'recall' ? 'primary' : 'plain'}
+              onClick={() => setTypeFilter('recall')}
+            >
+              {t['com.affine.study.card-type.recall']()}
+            </Button>
+            <Button
+              variant={typeFilter === 'synthesis' ? 'primary' : 'plain'}
+              onClick={() => setTypeFilter('synthesis')}
+            >
+              {t['com.affine.study.card-type.synthesis']()}
+            </Button>
+          </div>
           <select
             value={sort}
             onChange={event => setSort(event.target.value as CardSort)}
