@@ -1,4 +1,4 @@
-import { cssVarV2 } from '@toeverything/theme/v2';
+import { useThemeValueV2 } from '@affine/component';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, {
   type ForceGraphMethods,
@@ -34,6 +34,11 @@ export const LinkGraphCanvas = ({
   );
   const [size, setSize] = useState({ width: 800, height: 600 });
   const [hoverNodeId, setHoverNodeId] = useState<string | null>(null);
+  const nodePrimaryColor = useThemeValueV2('button/primary');
+  const nodeDimmedColor = useThemeValueV2('icon/tertiary');
+  const linkDefaultColor = useThemeValueV2('layer/insideBorder/border');
+  const linkHighlightColor = useThemeValueV2('text/secondary');
+  const backgroundColor = useThemeValueV2('layer/background/primary');
 
   useEffect(() => {
     const element = containerRef.current;
@@ -83,34 +88,32 @@ export const LinkGraphCanvas = ({
   const nodeColor = useCallback(
     (node: GraphNode) => {
       if (!neighborIds) {
-        return cssVarV2.button.primary;
+        return nodePrimaryColor;
       }
       const nodeId = node.id;
-      if (!nodeId) return cssVarV2.layer.insideBorder.blackBorder;
-      return neighborIds.has(nodeId)
-        ? cssVarV2.button.primary
-        : cssVarV2.layer.insideBorder.blackBorder;
+      if (!nodeId) return nodeDimmedColor;
+      return neighborIds.has(nodeId) ? nodePrimaryColor : nodeDimmedColor;
     },
-    [neighborIds]
+    [neighborIds, nodeDimmedColor, nodePrimaryColor]
   );
 
   const linkColor = useCallback(
     (link: GraphLink) => {
       if (!neighborIds) {
-        return cssVarV2.layer.insideBorder.border;
+        return linkDefaultColor;
       }
       const sourceId =
         typeof link.source === 'string' ? link.source : link.source.id;
       const targetId =
         typeof link.target === 'string' ? link.target : link.target.id;
       if (!sourceId || !targetId) {
-        return cssVarV2.layer.insideBorder.border;
+        return linkDefaultColor;
       }
       return neighborIds.has(sourceId) && neighborIds.has(targetId)
-        ? cssVarV2.text.secondary
-        : cssVarV2.layer.insideBorder.border;
+        ? linkHighlightColor
+        : linkDefaultColor;
     },
-    [neighborIds]
+    [linkDefaultColor, linkHighlightColor, neighborIds]
   );
 
   if (!graphData.nodes.length) {
@@ -127,6 +130,7 @@ export const LinkGraphCanvas = ({
         ref={graphRef}
         width={size.width}
         height={size.height}
+        backgroundColor={backgroundColor}
         graphData={graphData}
         nodeId="id"
         nodeLabel="title"
