@@ -1,7 +1,6 @@
 // Import is already correct, no changes needed
 import {
   AddPageButton,
-  AppDownloadButton,
   AppSidebar,
   MenuItem,
   MenuLinkItem,
@@ -54,7 +53,6 @@ import { SidebarAudioPlayer } from './sidebar-audio-player';
 import { AppSidebarStudyButton } from './study-button';
 import { TemplateDocEntrance } from './template-doc-entrance';
 import { TrashButton } from './trash-button';
-import { UpdaterButton } from './updater-button';
 import UserInfo from './user-info';
 
 export type RootAppSidebarProps = {
@@ -259,7 +257,6 @@ export const RootAppSidebar = memo((): ReactElement => {
       </SidebarScrollableContainer>
       <SidebarContainer className={bottomContainer}>
         <SidebarAudioPlayer />
-        {BUILD_CONFIG.isElectron ? <UpdaterButton /> : <AppDownloadButton />}
       </SidebarContainer>
     </AppSidebar>
   );
