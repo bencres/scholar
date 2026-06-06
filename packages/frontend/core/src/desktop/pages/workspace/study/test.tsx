@@ -124,7 +124,7 @@ export const StudyTestPage = () => {
   return (
     <>
       <ViewTitle title={t['com.affine.study.test.title']()} />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyPageHeader
           title={t['com.affine.study.test.title']()}

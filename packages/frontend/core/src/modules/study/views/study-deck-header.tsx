@@ -2,7 +2,7 @@ import { Button } from '@affine/component';
 import { Header } from '@affine/core/components/pure/header';
 import { WorkbenchLink } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
-import { TodayIcon } from '@blocksuite/icons/rc';
+import { JournalIcon } from '@blocksuite/icons/rc';
 import type { ReactNode } from 'react';
 
 import * as styles from './styles.css';
@@ -27,7 +27,7 @@ export const StudyDeckHeader = ({
           </div>
           <div className={styles.breadcrumbSeparator}>/</div>
           <div className={styles.breadcrumbItem} data-active={true}>
-            <TodayIcon className={styles.breadcrumbIcon} />
+            <JournalIcon className={styles.breadcrumbIcon} />
             {deckName}
           </div>
         </div>

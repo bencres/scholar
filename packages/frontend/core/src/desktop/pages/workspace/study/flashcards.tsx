@@ -61,7 +61,7 @@ export const StudyFlashcardsPage = () => {
   return (
     <>
       <ViewTitle title={t['com.affine.study.flashcards.title']()} />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyPageHeader
           title={t['com.affine.study.flashcards.title']()}

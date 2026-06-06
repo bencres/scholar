@@ -106,7 +106,7 @@ export const StudyGeneratePage = () => {
   return (
     <>
       <ViewTitle title={t['com.affine.study.synthesize.title']()} />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyPageHeader title={t['com.affine.study.synthesize.title']()} />
       </ViewHeader>

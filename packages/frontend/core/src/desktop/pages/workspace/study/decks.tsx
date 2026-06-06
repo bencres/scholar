@@ -96,7 +96,7 @@ export const StudyDecksPage = () => {
   return (
     <>
       <ViewTitle title={t['com.affine.study.decks']()} />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyPageHeader title={t['com.affine.study.decks']()} />
       </ViewHeader>

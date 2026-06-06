@@ -116,7 +116,7 @@ export const StudyCardsPage = () => {
   return (
     <>
       <ViewTitle title={t['com.affine.study.cards-library']()} />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyPageHeader
           title={t['com.affine.study.cards-library']()}

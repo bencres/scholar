@@ -180,7 +180,7 @@ export const StudyDeckDetailPage = () => {
   return (
     <>
       <ViewTitle title={deck.name} />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyDeckHeader
           deckName={deck.name}

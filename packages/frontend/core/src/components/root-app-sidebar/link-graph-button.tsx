@@ -2,7 +2,7 @@ import { MenuLinkItem } from '@affine/core/modules/app-sidebar/views';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
-import { ViewLayersIcon } from '@blocksuite/icons/rc';
+import { MindmapIcon } from '@blocksuite/icons/rc';
 import { useLiveData, useService } from '@toeverything/infra';
 
 export const AppSidebarLinkGraphButton = () => {
@@ -21,7 +21,7 @@ export const AppSidebarLinkGraphButton = () => {
       data-testid="slider-bar-link-graph-button"
       active={location.pathname.startsWith('/graph')}
       to="/graph"
-      icon={<ViewLayersIcon />}
+      icon={<MindmapIcon />}
     >
       {t['com.affine.link-graph.title']()}
     </MenuLinkItem>

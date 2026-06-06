@@ -10,7 +10,7 @@ import {
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { WorkspaceService } from '@affine/core/modules/workspace';
 import { useI18n } from '@affine/i18n';
-import { TodayIcon } from '@blocksuite/icons/rc';
+import { JournalIcon } from '@blocksuite/icons/rc';
 import { useLiveData, useService } from '@toeverything/infra';
 import { useCallback, useEffect } from 'react';
 
@@ -80,7 +80,7 @@ export const StudyDailyReminder = () => {
     }
 
     notify({
-      icon: <TodayIcon />,
+      icon: <JournalIcon />,
       title,
       message,
       rootAttrs: {

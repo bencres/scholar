@@ -21,7 +21,7 @@ export const StudyGraphPage = () => {
   return (
     <>
       <ViewTitle title="Learning graph" />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyPageHeader title="Learning graph" />
       </ViewHeader>

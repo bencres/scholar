@@ -37,7 +37,7 @@ export const StudyHome = () => {
   return (
     <>
       <ViewTitle title={t['com.affine.study.tab.today']()} />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyPageHeader title={t['com.affine.study.tab.today']()} />
       </ViewHeader>

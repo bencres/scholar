@@ -77,7 +77,7 @@ export const StudyTutorPage = () => {
   return (
     <>
       <ViewTitle title="Adaptive tutor" />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyPageHeader title="Adaptive tutor" />
       </ViewHeader>

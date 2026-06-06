@@ -4,7 +4,7 @@ import { StudyService } from '@affine/core/modules/study';
 import * as styles from '@affine/core/modules/study/views/styles.css';
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
-import { TodayIcon } from '@blocksuite/icons/rc';
+import { JournalIcon } from '@blocksuite/icons/rc';
 import { useLiveData, useService } from '@toeverything/infra';
 
 export const AppSidebarStudyButton = () => {
@@ -25,12 +25,10 @@ export const AppSidebarStudyButton = () => {
       data-testid="slider-bar-study-button"
       active={location.pathname.startsWith('/study')}
       to={'/study'}
-      icon={<TodayIcon />}
+      icon={<JournalIcon />}
     >
       {t['com.affine.study.title']()}
-      {dueCount > 0 ? (
-        <span className={styles.badge}>{dueCount}</span>
-      ) : null}
+      {dueCount > 0 ? <span className={styles.badge}>{dueCount}</span> : null}
     </MenuLinkItem>
   );
 };

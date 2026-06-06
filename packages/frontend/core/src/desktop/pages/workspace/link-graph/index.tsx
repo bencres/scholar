@@ -50,7 +50,7 @@ export const LinkGraphPage = () => {
   return (
     <>
       <ViewTitle title={t['com.affine.link-graph.title']()} />
-      <ViewIcon icon="allDocs" />
+      <ViewIcon icon="linkGraph" />
       <ViewHeader>
         <Header
           left={

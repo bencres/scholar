@@ -33,7 +33,7 @@ export const StudyDashboardPage = () => {
   return (
     <>
       <ViewTitle title="Study intelligence dashboard" />
-      <ViewIcon icon="today" />
+      <ViewIcon icon="study" />
       <ViewHeader>
         <StudyPageHeader title="Study intelligence dashboard" />
       </ViewHeader>
