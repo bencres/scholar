@@ -94,6 +94,20 @@ export class StudyService extends Service {
     return this.commandService.generateFromDoc(doc, focus, modelId, options);
   }
 
+  generateFromDocs(
+    docIds: string[],
+    focus?: string,
+    modelId?: string,
+    options?: StudyGenerationOptions
+  ) {
+    return this.commandService.generateFromDocs(
+      docIds,
+      focus,
+      modelId,
+      options
+    );
+  }
+
   setPreviewCardAccepted(cardId: string, accepted: boolean) {
     this.commandService.setPreviewCardAccepted(cardId, accepted);
   }
@@ -249,6 +263,14 @@ export class StudyService extends Service {
 
   activitySnapshot(windowDays?: number) {
     return this.queryService.activitySnapshot(windowDays);
+  }
+
+  topConcepts(limit?: number) {
+    return this.queryService.topConcepts(limit);
+  }
+
+  workloadForecastWithConcepts() {
+    return this.queryService.workloadForecastWithConcepts();
   }
 
   learningGraphSnapshot(deckId?: string): StudyLearningGraphSnapshot {

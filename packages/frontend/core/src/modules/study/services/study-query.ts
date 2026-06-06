@@ -14,6 +14,10 @@ import {
   buildStudyActivitySnapshot,
   DEFAULT_STUDY_ACTIVITY_WINDOW_DAYS,
 } from '../utils/study-activity';
+import {
+  buildWorkloadForecastWithConcepts,
+  countTopConcepts,
+} from '../utils/study-concept-stats';
 import { buildStudyStatsSnapshot } from '../utils/study-stats';
 import {
   buildCardMap,
@@ -291,6 +295,17 @@ export class StudyQueryService extends Service {
       cards: this.cards$.value,
       reviewLogs: this.reviewLogs$.value,
       windowDays,
+    });
+  }
+
+  topConcepts(limit = 5) {
+    return countTopConcepts(this.cards$.value, limit);
+  }
+
+  workloadForecastWithConcepts() {
+    return buildWorkloadForecastWithConcepts({
+      cards: this.cards$.value,
+      scheduling: this.scheduling$.value,
     });
   }
 }
