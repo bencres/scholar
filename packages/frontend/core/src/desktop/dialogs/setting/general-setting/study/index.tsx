@@ -23,6 +23,9 @@ export const StudySettings = () => {
   const defaultSynthesisCount = useLiveData(
     studyService.defaultSynthesisCount$
   );
+  const flashcardsTrackSchedule = useLiveData(
+    studyService.flashcardsTrackSchedule$
+  );
 
   return (
     <>
@@ -90,6 +93,17 @@ export const StudySettings = () => {
               </option>
             ))}
           </select>
+        </SettingRow>
+      </SettingWrapper>
+      <SettingWrapper title={t['com.affine.settings.study.flashcards']()}>
+        <SettingRow
+          name={t['com.affine.settings.study.flashcards-track-schedule.name']()}
+          desc={t['com.affine.settings.study.flashcards-track-schedule.desc']()}
+        >
+          <Switch
+            checked={flashcardsTrackSchedule}
+            onChange={value => studyService.setFlashcardsTrackSchedule(value)}
+          />
         </SettingRow>
       </SettingWrapper>
     </>

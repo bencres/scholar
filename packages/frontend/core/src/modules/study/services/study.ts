@@ -40,6 +40,8 @@ export class StudyService extends Service {
     this.commandService.defaultIncludeSynthesis$;
   readonly defaultRecallCount$ = this.commandService.defaultRecallCount$;
   readonly defaultSynthesisCount$ = this.commandService.defaultSynthesisCount$;
+  readonly flashcardsTrackSchedule$ =
+    this.commandService.flashcardsTrackSchedule$;
   readonly decks$ = this.queryService.decks$;
   readonly cards$ = this.queryService.cards$;
   readonly scheduling$ = this.queryService.scheduling$;
@@ -104,6 +106,10 @@ export class StudyService extends Service {
 
   setDefaultSynthesisCount(value: number) {
     this.commandService.setDefaultSynthesisCount(value);
+  }
+
+  setFlashcardsTrackSchedule(value: boolean) {
+    this.commandService.setFlashcardsTrackSchedule(value);
   }
 
   generateFromDoc(

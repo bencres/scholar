@@ -6136,7 +6136,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.settings.study.title"](): string;
     /**
-      * `Default options for card generation.`
+      * `Default options for card generation and study modes.`
       */
     ["com.affine.settings.study.subtitle"](): string;
     /**
@@ -6167,6 +6167,18 @@ export function useAFFiNEI18N(): {
       * `Model used for card generation.`
       */
     ["com.affine.settings.study.model.desc"](): string;
+    /**
+      * `Flashcards`
+      */
+    ["com.affine.settings.study.flashcards"](): string;
+    /**
+      * `Update spaced schedule while browsing`
+      */
+    ["com.affine.settings.study.flashcards-track-schedule.name"](): string;
+    /**
+      * `When enabled, grading cards in flashcard mode updates each card's review schedule.`
+      */
+    ["com.affine.settings.study.flashcards-track-schedule.desc"](): string;
     /**
       * `Appearance`
       */

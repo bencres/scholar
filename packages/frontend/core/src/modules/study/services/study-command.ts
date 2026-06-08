@@ -11,6 +11,7 @@ import type { FeatureFlagService } from '../../feature-flag';
 import type { GlobalStateService } from '../../storage';
 import type { WorkspaceService } from '../../workspace';
 import {
+  DEFAULT_STUDY_FLASHCARDS_TRACK_SCHEDULE,
   DEFAULT_STUDY_GENERATE_MODEL,
   DEFAULT_STUDY_INCLUDE_RECALL,
   DEFAULT_STUDY_INCLUDE_SYNTHESIS,
@@ -21,6 +22,7 @@ import {
   STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY,
   STUDY_DEFAULT_RECALL_COUNT_KEY,
   STUDY_DEFAULT_SYNTHESIS_COUNT_KEY,
+  STUDY_FLASHCARDS_TRACK_SCHEDULE_KEY,
   STUDY_GENERATE_MODEL_STORAGE_KEY,
 } from '../constants/generate-models';
 import type {
@@ -204,6 +206,13 @@ export class StudyCommandService extends Service {
     DEFAULT_STUDY_SYNTHESIS_COUNT
   );
 
+  readonly flashcardsTrackSchedule$ = LiveData.from(
+    this.globalStateService.globalState.watch<boolean>(
+      STUDY_FLASHCARDS_TRACK_SCHEDULE_KEY
+    ),
+    DEFAULT_STUDY_FLASHCARDS_TRACK_SCHEDULE
+  );
+
   constructor(
     private readonly workspaceService: WorkspaceService,
     private readonly docsService: DocsService,
@@ -255,6 +264,13 @@ export class StudyCommandService extends Service {
     this.globalStateService.globalState.set(
       STUDY_DEFAULT_SYNTHESIS_COUNT_KEY,
       clamped
+    );
+  }
+
+  setFlashcardsTrackSchedule(value: boolean) {
+    this.globalStateService.globalState.set(
+      STUDY_FLASHCARDS_TRACK_SCHEDULE_KEY,
+      value
     );
   }
 
