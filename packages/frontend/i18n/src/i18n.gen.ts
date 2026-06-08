@@ -3265,6 +3265,70 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.deck-library.sort.due-count"](): string;
     /**
+      * `Name`
+      */
+    ["com.affine.study.deck-library.column.name"](): string;
+    /**
+      * `Cards`
+      */
+    ["com.affine.study.deck-library.column.cards"](): string;
+    /**
+      * `Due`
+      */
+    ["com.affine.study.deck-library.column.due"](): string;
+    /**
+      * `Created`
+      */
+    ["com.affine.study.deck-library.column.created"](): string;
+    /**
+      * `Due status`
+      */
+    ["com.affine.study.deck-library.filter.due.label"](): string;
+    /**
+      * `All decks`
+      */
+    ["com.affine.study.deck-library.filter.due.all"](): string;
+    /**
+      * `Has due cards`
+      */
+    ["com.affine.study.deck-library.filter.due.has-due"](): string;
+    /**
+      * `No due cards`
+      */
+    ["com.affine.study.deck-library.filter.due.none"](): string;
+    /**
+      * `Source`
+      */
+    ["com.affine.study.deck-library.filter.source.label"](): string;
+    /**
+      * `All decks`
+      */
+    ["com.affine.study.deck-library.filter.source.all"](): string;
+    /**
+      * `Has source page`
+      */
+    ["com.affine.study.deck-library.filter.source.has-source"](): string;
+    /**
+      * `No source page`
+      */
+    ["com.affine.study.deck-library.filter.source.none"](): string;
+    /**
+      * `No decks match your filters.`
+      */
+    ["com.affine.study.deck-library.empty"](): string;
+    /**
+      * `Tags`
+      */
+    ["com.affine.study.deck-library.tags"](): string;
+    /**
+      * `Description`
+      */
+    ["com.affine.study.deck-library.description"](): string;
+    /**
+      * `Browse deck`
+      */
+    ["com.affine.study.deck-library.browse"](): string;
+    /**
       * `Open source page`
       */
     ["com.affine.study.open-source-page"](): string;

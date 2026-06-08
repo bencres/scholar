@@ -914,6 +914,11 @@ export const cardTableFilterSelect = style({
   cursor: 'pointer',
 });
 
+export const deckTableDueHighlight = style({
+  fontWeight: 600,
+  color: cssVarV2.button.primary,
+});
+
 export const pickerList = style({
   display: 'flex',
   flexDirection: 'column',

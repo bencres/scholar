@@ -1,7 +1,12 @@
 import { Button, Input } from '@affine/component';
 import { StudyService } from '@affine/core/modules/study';
+import type { StudyDeck } from '@affine/core/modules/study/entities/deck';
 import { getDeckCards } from '@affine/core/modules/study/utils/study-storage';
-import { StudyDeckListItem } from '@affine/core/modules/study/views/study-deck-list-item';
+import {
+  type DeckSort,
+  type DeckTableRow,
+  StudyDeckTable,
+} from '@affine/core/modules/study/views/study-deck-table';
 import {
   StudyPageBody,
   StudyPageHeader,
@@ -16,9 +21,38 @@ import {
 } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-type DeckSort = 'name' | 'created' | 'card-count' | 'due-count';
+type DueFilter = 'all' | 'has-due' | 'no-due';
+type SourceFilter = 'all' | 'has-source' | 'no-source';
+
+function sortDecks(rows: DeckTableRow[], sort: DeckSort) {
+  const sorted = [...rows];
+  sorted.sort((a, b) => {
+    if (sort === 'name-asc' || sort === 'name-desc') {
+      const cmp = a.deck.name.localeCompare(b.deck.name);
+      return sort === 'name-asc' ? cmp : -cmp;
+    }
+    if (sort === 'created-asc' || sort === 'created-desc') {
+      const cmp = a.deck.createdAt - b.deck.createdAt;
+      return sort === 'created-asc' ? cmp : -cmp;
+    }
+    if (sort === 'updated-asc' || sort === 'updated-desc') {
+      const cmp = a.deck.updatedAt - b.deck.updatedAt;
+      return sort === 'updated-asc' ? cmp : -cmp;
+    }
+    if (sort === 'card-count-asc' || sort === 'card-count-desc') {
+      const cmp = a.activeCardCount - b.activeCardCount;
+      return sort === 'card-count-asc' ? cmp : -cmp;
+    }
+    if (sort === 'due-asc' || sort === 'due-desc') {
+      const cmp = a.dueCount - b.dueCount;
+      return sort === 'due-asc' ? cmp : -cmp;
+    }
+    return a.deck.name.localeCompare(b.deck.name);
+  });
+  return sorted;
+}
 
 export const StudyDecksPage = () => {
   const t = useI18n();
@@ -31,15 +65,30 @@ export const StudyDecksPage = () => {
   const [deckDescription, setDeckDescription] = useState('');
   const [deckTags, setDeckTags] = useState('');
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<DeckSort>('name');
+  const [dueFilter, setDueFilter] = useState<DueFilter>('all');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [sort, setSort] = useState<DeckSort>('name-asc');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const canCreateDeck = deckName.trim().length > 0;
 
-  const sortedDecks = useMemo(() => {
+  const deckRows = useMemo(() => {
+    return decks.map(deck => {
+      const deckCards = getDeckCards(deck, cards);
+      return {
+        deck,
+        activeCardCount: deckCards.filter(card => !card.suspended).length,
+        totalCardCount: deckCards.length,
+        dueCount: dueByDeck.get(deck.id) ?? 0,
+      };
+    });
+  }, [cards, decks, dueByDeck]);
+
+  const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase();
-    let filtered = decks;
+    let filtered = deckRows;
     if (query) {
-      filtered = decks.filter(deck => {
+      filtered = filtered.filter(({ deck }) => {
         const haystack = [
           deck.name,
           deck.metadata?.description ?? '',
@@ -51,19 +100,22 @@ export const StudyDecksPage = () => {
         return haystack.includes(query);
       });
     }
-    return [...filtered].sort((a, b) => {
-      if (sort === 'created') {
-        return b.createdAt - a.createdAt;
-      }
-      if (sort === 'card-count') {
-        return getDeckCards(b, cards).length - getDeckCards(a, cards).length;
-      }
-      if (sort === 'due-count') {
-        return (dueByDeck.get(b.id) ?? 0) - (dueByDeck.get(a.id) ?? 0);
-      }
-      return a.name.localeCompare(b.name);
-    });
-  }, [cards, decks, dueByDeck, search, sort]);
+    if (dueFilter === 'has-due') {
+      filtered = filtered.filter(row => row.dueCount > 0);
+    } else if (dueFilter === 'no-due') {
+      filtered = filtered.filter(row => row.dueCount === 0);
+    }
+    if (sourceFilter === 'has-source') {
+      filtered = filtered.filter(
+        ({ deck }) => !!(deck.sourceDocId ?? deck.metadata?.sourcePage?.docId)
+      );
+    } else if (sourceFilter === 'no-source') {
+      filtered = filtered.filter(
+        ({ deck }) => !(deck.sourceDocId ?? deck.metadata?.sourcePage?.docId)
+      );
+    }
+    return sortDecks(filtered, sort);
+  }, [deckRows, dueFilter, search, sort, sourceFilter]);
 
   const handleCreateDeck = async () => {
     if (!canCreateDeck) return;
@@ -82,6 +134,29 @@ export const StudyDecksPage = () => {
     setDeckTags('');
     workbench.open(`/study/decks/${deck.id}`, { at: 'active' });
   };
+
+  const handleBrowse = useCallback(
+    (deck: StudyDeck) => {
+      workbench.open(`/study/decks/${deck.id}`, { at: 'active' });
+    },
+    [workbench]
+  );
+
+  const handleReview = useCallback(
+    (deck: StudyDeck) => {
+      workbench.open(`/study/review/${deck.id}`, { at: 'active' });
+    },
+    [workbench]
+  );
+
+  const handleOpenSource = useCallback(
+    (deck: StudyDeck) => {
+      const docId = deck.sourceDocId ?? deck.metadata?.sourcePage?.docId;
+      if (!docId) return;
+      workbench.openDoc({ docId, mode: 'page' });
+    },
+    [workbench]
+  );
 
   if (!studyService.enabled) {
     return (
@@ -146,43 +221,64 @@ export const StudyDecksPage = () => {
             ]()}
             style={{ flex: 1, minWidth: 200 }}
           />
+        </div>
+        <div className={styles.cardTableFilterRow}>
           <select
-            value={sort}
-            onChange={event => setSort(event.target.value as DeckSort)}
-            aria-label={t['com.affine.study.card-library.sort.label']()}
+            className={styles.cardTableFilterSelect}
+            value={dueFilter}
+            onChange={event => setDueFilter(event.target.value as DueFilter)}
+            aria-label={t['com.affine.study.deck-library.filter.due.label']()}
           >
-            <option value="name">
-              {t['com.affine.study.deck-library.sort.name']()}
+            <option value="all">
+              {t['com.affine.study.deck-library.filter.due.all']()}
             </option>
-            <option value="created">
-              {t['com.affine.study.deck-library.sort.created']()}
+            <option value="has-due">
+              {t['com.affine.study.deck-library.filter.due.has-due']()}
             </option>
-            <option value="card-count">
-              {t['com.affine.study.deck-library.sort.card-count']()}
+            <option value="no-due">
+              {t['com.affine.study.deck-library.filter.due.none']()}
             </option>
-            <option value="due-count">
-              {t['com.affine.study.deck-library.sort.due-count']()}
+          </select>
+          <select
+            className={styles.cardTableFilterSelect}
+            value={sourceFilter}
+            onChange={event =>
+              setSourceFilter(event.target.value as SourceFilter)
+            }
+            aria-label={t[
+              'com.affine.study.deck-library.filter.source.label'
+            ]()}
+          >
+            <option value="all">
+              {t['com.affine.study.deck-library.filter.source.all']()}
+            </option>
+            <option value="has-source">
+              {t['com.affine.study.deck-library.filter.source.has-source']()}
+            </option>
+            <option value="no-source">
+              {t['com.affine.study.deck-library.filter.source.none']()}
             </option>
           </select>
         </div>
-        <div className={styles.sectionTitle}>
-          {t['com.affine.study.decks']()}
-        </div>
-        {sortedDecks.length === 0 ? (
+        {decks.length === 0 ? (
           <div className={styles.emptyState}>
             {t['com.affine.study.empty-decks']()}
           </div>
-        ) : (
-          <div className={styles.deckList}>
-            {sortedDecks.map(deck => (
-              <StudyDeckListItem
-                key={deck.id}
-                deck={deck}
-                cards={cards}
-                dueCount={dueByDeck.get(deck.id) ?? 0}
-              />
-            ))}
+        ) : filteredRows.length === 0 ? (
+          <div className={styles.emptyState}>
+            {t['com.affine.study.deck-library.empty']()}
           </div>
+        ) : (
+          <StudyDeckTable
+            rows={filteredRows}
+            sort={sort}
+            onSortChange={setSort}
+            expandedId={expandedId}
+            onExpandedChange={setExpandedId}
+            onBrowse={handleBrowse}
+            onReview={handleReview}
+            onOpenSource={handleOpenSource}
+          />
         )}
       </StudyPageBody>
     </>
