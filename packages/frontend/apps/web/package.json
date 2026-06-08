@@ -5,8 +5,8 @@
   "private": true,
   "browser": "src/index.tsx",
   "scripts": {
-    "build": "affine bundle",
-    "dev": "affine bundle --dev"
+    "build": "node ../../../../tools/cli/bin/runner.js affine.ts bundle -p @affine/web",
+    "dev": "node ../../../../tools/cli/bin/runner.js affine.ts bundle --dev -p @affine/web"
   },
   "dependencies": {
     "@affine/component": "workspace:*",

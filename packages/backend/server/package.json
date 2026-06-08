@@ -144,7 +144,7 @@
     "why-is-node-running": "^3.2.2"
   },
   "nodemonConfig": {
-    "exec": "node",
+    "exec": "node --import=../../../tools/cli/register.js",
     "ignore": [
       "**/__tests__/**",
       "**/dist/**",
