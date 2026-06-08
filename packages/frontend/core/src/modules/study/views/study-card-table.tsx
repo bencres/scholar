@@ -50,6 +50,7 @@ export const StudyCardTable = ({
   onDelete,
   onToggleSuspended,
   onViewSource,
+  deleteLabel,
 }: {
   cards: StudyCardContent[];
   decksByCardId: Map<string, StudyDeck[]>;
@@ -64,6 +65,7 @@ export const StudyCardTable = ({
   onDelete: (card: StudyCardContent) => void;
   onToggleSuspended: (card: StudyCardContent, active: boolean) => void;
   onViewSource?: (card: StudyCardContent) => void;
+  deleteLabel?: string;
 }) => {
   const t = useI18n();
   const selectionAnchorRef = useRef<string | null>(null);
@@ -296,6 +298,7 @@ export const StudyCardTable = ({
                       ? () => onViewSource(card)
                       : undefined
                   }
+                  deleteLabel={deleteLabel}
                 />
               }
               onSelect={shiftKey => handleSelect(card.id, shiftKey)}

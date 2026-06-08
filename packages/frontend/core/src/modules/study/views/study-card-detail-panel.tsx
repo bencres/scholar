@@ -18,6 +18,7 @@ export const StudyCardDetailPanel = ({
   onDelete,
   onToggleSuspended,
   onViewSource,
+  deleteLabel,
 }: {
   card: StudyCardContent;
   decks: StudyDeck[];
@@ -27,6 +28,7 @@ export const StudyCardDetailPanel = ({
   onDelete: () => void;
   onToggleSuspended: (active: boolean) => void;
   onViewSource?: () => void;
+  deleteLabel?: string;
 }) => {
   const t = useI18n();
 
@@ -156,7 +158,7 @@ export const StudyCardDetailPanel = ({
             ? t['com.affine.study.card-library.filter.status.active']()
             : t['com.affine.study.card-library.bulk.suspend']()}
         </Button>
-        <Button onClick={onDelete}>{t['Delete']()}</Button>
+        <Button onClick={onDelete}>{deleteLabel ?? t['Delete']()}</Button>
         {onViewSource ? (
           <Button onClick={onViewSource}>
             {t['com.affine.study.view-source']()}
