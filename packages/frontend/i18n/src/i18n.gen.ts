@@ -2779,7 +2779,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.today.concept-coverage.link"](): string;
     /**
-      * `No decks yet. Synthesize linked cards from your notes to get started.`
+      * `No decks yet. Generate cards from your notes to get started.`
       */
     ["com.affine.study.today.due.empty-decks"](): string;
     /**
@@ -2847,7 +2847,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.today.mode.review.description"](): string;
     /**
-      * `Synthesize from notes`
+      * `Generate cards`
       */
     ["com.affine.study.today.mode.synthesize.title"](): string;
     /**
@@ -2903,7 +2903,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.today.mode.insights.description"](): string;
     /**
-      * `Synthesize from notes`
+      * `Generate cards`
       */
     ["com.affine.study.synthesize.title"](): string;
     /**
@@ -2923,7 +2923,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.synthesize.pages.remove"](): string;
     /**
-      * `Add note pages to synthesize questions from.`
+      * `Add note pages to generate cards from.`
       */
     ["com.affine.study.synthesize.pages.empty"](): string;
     /**
@@ -2939,11 +2939,27 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.synthesize.model.title"](): string;
     /**
-      * `Synthesize cards`
+      * `Card types`
+      */
+    ["com.affine.study.synthesize.card-types.title"](): string;
+    /**
+      * `Recall`
+      */
+    ["com.affine.study.synthesize.card-types.recall"](): string;
+    /**
+      * `Synthesis`
+      */
+    ["com.affine.study.synthesize.card-types.synthesis"](): string;
+    /**
+      * `cards`
+      */
+    ["com.affine.study.synthesize.card-types.cards"](): string;
+    /**
+      * `Generate cards`
       */
     ["com.affine.study.synthesize.action"](): string;
     /**
-      * `Synthesizing cards across your selected notes…`
+      * `Generating cards from your selected notes…`
       */
     ["com.affine.study.synthesize.loading"](): string;
     /**
@@ -3402,7 +3418,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.deck-not-found"](): string;
     /**
-      * `Synthesize from notes`
+      * `Generate cards`
       */
     ["com.affine.study.generate.title"](): string;
     /**
@@ -3414,7 +3430,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.generate.save"](): string;
     /**
-      * `Synthesize cards from notes`
+      * `Generate cards from notes`
       */
     ["com.affine.study.generate.menu"](): string;
     /**
@@ -5943,6 +5959,42 @@ export function useAFFiNEI18N(): {
       * `Settings`
       */
     ["com.affine.settingSidebar.title"](): string;
+    /**
+      * `Study`
+      */
+    ["com.affine.settings.study.title"](): string;
+    /**
+      * `Default options for card generation.`
+      */
+    ["com.affine.settings.study.subtitle"](): string;
+    /**
+      * `Card generation`
+      */
+    ["com.affine.settings.study.card-generation"](): string;
+    /**
+      * `Recall cards`
+      */
+    ["com.affine.settings.study.recall.name"](): string;
+    /**
+      * `Generate closed Q&A cards. Set the default count.`
+      */
+    ["com.affine.settings.study.recall.desc"](): string;
+    /**
+      * `Synthesis cards`
+      */
+    ["com.affine.settings.study.synthesis.name"](): string;
+    /**
+      * `Generate open-ended cards with a rubric. Set the default count.`
+      */
+    ["com.affine.settings.study.synthesis.desc"](): string;
+    /**
+      * `AI model`
+      */
+    ["com.affine.settings.study.model.name"](): string;
+    /**
+      * `Model used for card generation.`
+      */
+    ["com.affine.settings.study.model.desc"](): string;
     /**
       * `Appearance`
       */
