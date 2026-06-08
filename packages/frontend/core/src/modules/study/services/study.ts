@@ -35,6 +35,11 @@ export {
 export class StudyService extends Service {
   readonly generationState$ = this.commandService.generationState$;
   readonly generateModelId$ = this.commandService.generateModelId$;
+  readonly defaultIncludeRecall$ = this.commandService.defaultIncludeRecall$;
+  readonly defaultIncludeSynthesis$ =
+    this.commandService.defaultIncludeSynthesis$;
+  readonly defaultRecallCount$ = this.commandService.defaultRecallCount$;
+  readonly defaultSynthesisCount$ = this.commandService.defaultSynthesisCount$;
   readonly decks$ = this.queryService.decks$;
   readonly cards$ = this.queryService.cards$;
   readonly scheduling$ = this.queryService.scheduling$;
@@ -83,6 +88,22 @@ export class StudyService extends Service {
 
   setGenerateModel(modelId: string) {
     this.commandService.setGenerateModel(modelId);
+  }
+
+  setDefaultIncludeRecall(value: boolean) {
+    this.commandService.setDefaultIncludeRecall(value);
+  }
+
+  setDefaultIncludeSynthesis(value: boolean) {
+    this.commandService.setDefaultIncludeSynthesis(value);
+  }
+
+  setDefaultRecallCount(value: number) {
+    this.commandService.setDefaultRecallCount(value);
+  }
+
+  setDefaultSynthesisCount(value: number) {
+    this.commandService.setDefaultSynthesisCount(value);
   }
 
   generateFromDoc(

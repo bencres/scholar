@@ -11,7 +11,15 @@ import type { GlobalStateService } from '../../storage';
 import type { WorkspaceService } from '../../workspace';
 import {
   DEFAULT_STUDY_GENERATE_MODEL,
+  DEFAULT_STUDY_INCLUDE_RECALL,
+  DEFAULT_STUDY_INCLUDE_SYNTHESIS,
+  DEFAULT_STUDY_RECALL_COUNT,
+  DEFAULT_STUDY_SYNTHESIS_COUNT,
   isStudyGenerateModelId,
+  STUDY_DEFAULT_INCLUDE_RECALL_KEY,
+  STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY,
+  STUDY_DEFAULT_RECALL_COUNT_KEY,
+  STUDY_DEFAULT_SYNTHESIS_COUNT_KEY,
   STUDY_GENERATE_MODEL_STORAGE_KEY,
 } from '../constants/generate-models';
 import type {
@@ -85,6 +93,8 @@ export type StudyGenerationOptions = {
   targetRecallCount?: number;
   targetSynthesisCount?: number;
   includeCardMetadata?: boolean;
+  includeRecall?: boolean;
+  includeSynthesis?: boolean;
 };
 
 declare global {
@@ -165,6 +175,34 @@ export class StudyCommandService extends Service {
     DEFAULT_STUDY_GENERATE_MODEL
   );
 
+  readonly defaultIncludeRecall$ = LiveData.from(
+    this.globalStateService.globalState.watch<boolean>(
+      STUDY_DEFAULT_INCLUDE_RECALL_KEY
+    ),
+    DEFAULT_STUDY_INCLUDE_RECALL
+  );
+
+  readonly defaultIncludeSynthesis$ = LiveData.from(
+    this.globalStateService.globalState.watch<boolean>(
+      STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY
+    ),
+    DEFAULT_STUDY_INCLUDE_SYNTHESIS
+  );
+
+  readonly defaultRecallCount$ = LiveData.from(
+    this.globalStateService.globalState.watch<number>(
+      STUDY_DEFAULT_RECALL_COUNT_KEY
+    ),
+    DEFAULT_STUDY_RECALL_COUNT
+  );
+
+  readonly defaultSynthesisCount$ = LiveData.from(
+    this.globalStateService.globalState.watch<number>(
+      STUDY_DEFAULT_SYNTHESIS_COUNT_KEY
+    ),
+    DEFAULT_STUDY_SYNTHESIS_COUNT
+  );
+
   constructor(
     private readonly workspaceService: WorkspaceService,
     private readonly docsService: DocsService,
@@ -186,6 +224,36 @@ export class StudyCommandService extends Service {
     this.globalStateService.globalState.set(
       STUDY_GENERATE_MODEL_STORAGE_KEY,
       modelId
+    );
+  }
+
+  setDefaultIncludeRecall(value: boolean) {
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_INCLUDE_RECALL_KEY,
+      value
+    );
+  }
+
+  setDefaultIncludeSynthesis(value: boolean) {
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY,
+      value
+    );
+  }
+
+  setDefaultRecallCount(value: number) {
+    const clamped = Math.max(1, Math.min(30, Math.floor(value)));
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_RECALL_COUNT_KEY,
+      clamped
+    );
+  }
+
+  setDefaultSynthesisCount(value: number) {
+    const clamped = Math.max(1, Math.min(30, Math.floor(value)));
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_SYNTHESIS_COUNT_KEY,
+      clamped
     );
   }
 
@@ -340,7 +408,7 @@ export class StudyCommandService extends Service {
       const parsed = sanitizeStudyCardsGenerateOutput(
         StudyCardsGenerateOutputSchema.parse(json)
       );
-      const cards = this.toPreviewCards(parsed);
+      const cards = this.toPreviewCards(parsed, options);
       this.generationState$.setValue({
         status: 'preview',
         docIds,
@@ -965,7 +1033,12 @@ export class StudyCommandService extends Service {
     }
   }
 
-  private toPreviewCards(output: StudyCardsGenerateOutput): StudyCardPreview[] {
+  private toPreviewCards(
+    output: StudyCardsGenerateOutput,
+    options?: Pick<StudyGenerationOptions, 'includeRecall' | 'includeSynthesis'>
+  ): StudyCardPreview[] {
+    const acceptRecall = options?.includeRecall !== false;
+    const acceptSynthesis = options?.includeSynthesis !== false;
     return [
       ...output.recall.map(item => ({
         id: nanoid(),
@@ -977,7 +1050,7 @@ export class StudyCommandService extends Service {
         misconceptions: item.misconceptions,
         blockIds: item.blockIds,
         metadata: item.metadata,
-        accepted: true,
+        accepted: acceptRecall,
       })),
       ...output.synthesis.map(item => ({
         id: nanoid(),
@@ -988,7 +1061,7 @@ export class StudyCommandService extends Service {
         rubric: item.rubric,
         blockIds: item.blockIds,
         metadata: item.metadata,
-        accepted: true,
+        accepted: acceptSynthesis,
       })),
     ];
   }

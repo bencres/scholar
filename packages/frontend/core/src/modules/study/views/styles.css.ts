@@ -255,6 +255,40 @@ export const toggleRow = style({
   flexWrap: 'wrap',
 });
 
+export const cardTypeRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  padding: '4px 0',
+});
+
+export const cardTypeLabel = style({
+  fontSize: 14,
+  color: cssVarV2.text.primary,
+  flex: 1,
+});
+
+export const countInput = style({
+  width: 56,
+  padding: '4px 8px',
+  fontSize: 14,
+  borderRadius: 6,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.primary,
+  color: cssVarV2.text.primary,
+  textAlign: 'center',
+  selectors: {
+    '&:disabled': {
+      opacity: 0.4,
+      cursor: 'not-allowed',
+    },
+    '&:focus': {
+      outline: 'none',
+      borderColor: cssVarV2.button.primary,
+    },
+  },
+});
+
 export const inlineActions = style({
   display: 'flex',
   alignItems: 'center',

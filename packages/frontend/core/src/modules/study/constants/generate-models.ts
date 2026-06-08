@@ -1,6 +1,15 @@
 export const STUDY_GENERATE_MODEL_STORAGE_KEY = 'StudyGenerateModelId';
+export const STUDY_DEFAULT_INCLUDE_RECALL_KEY = 'StudyDefaultIncludeRecall';
+export const STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY =
+  'StudyDefaultIncludeSynthesis';
+export const STUDY_DEFAULT_RECALL_COUNT_KEY = 'StudyDefaultRecallCount';
+export const STUDY_DEFAULT_SYNTHESIS_COUNT_KEY = 'StudyDefaultSynthesisCount';
 
 export const DEFAULT_STUDY_GENERATE_MODEL = 'claude-sonnet-4-6';
+export const DEFAULT_STUDY_INCLUDE_RECALL = true;
+export const DEFAULT_STUDY_INCLUDE_SYNTHESIS = false;
+export const DEFAULT_STUDY_RECALL_COUNT = 10;
+export const DEFAULT_STUDY_SYNTHESIS_COUNT = 7;
 
 export const STUDY_GENERATE_MODELS = [
   {
