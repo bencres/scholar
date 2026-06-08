@@ -672,6 +672,248 @@ export const deckBadge = style({
   cursor: 'pointer',
 });
 
+export const cardTable = style({
+  display: 'flex',
+  flexDirection: 'column',
+  borderRadius: 10,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.primary,
+  overflow: 'hidden',
+});
+
+export const cardTableHeader = style({
+  display: 'grid',
+  alignItems: 'center',
+  gap: 8,
+  padding: '10px 12px',
+  fontSize: 12,
+  fontWeight: 600,
+  color: cssVarV2.text.secondary,
+  background: cssVarV2.layer.background.secondary,
+  borderBottom: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+});
+
+export const cardTableHeaderCell = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 4,
+  minWidth: 0,
+  textAlign: 'left',
+});
+
+export const cardTableHeaderSortable = style({
+  border: 'none',
+  background: 'transparent',
+  padding: 0,
+  cursor: 'pointer',
+  color: 'inherit',
+  font: 'inherit',
+  selectors: {
+    '&:hover': {
+      color: cssVarV2.text.primary,
+    },
+  },
+});
+
+export const cardTableHeaderActive = style({
+  color: cssVarV2.text.primary,
+});
+
+export const cardTableSortIcon = style({
+  fontSize: 16,
+  flexShrink: 0,
+  transition: 'transform 0.15s ease',
+});
+
+export const cardTableSortIconAsc = style({
+  transform: 'rotate(180deg)',
+});
+
+export const cardTableBody = style({
+  display: 'flex',
+  flexDirection: 'column',
+});
+
+export const cardTableRowGroup = style({
+  borderBottom: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  selectors: {
+    '&:last-child': {
+      borderBottom: 'none',
+    },
+  },
+});
+
+export const cardTableRow = style({
+  display: 'grid',
+  alignItems: 'center',
+  gap: 8,
+  padding: '8px 12px',
+  fontSize: 13,
+  lineHeight: '20px',
+  color: cssVarV2.text.primary,
+  transition: 'background 0.15s ease',
+});
+
+export const cardTableRowExpanded = style({
+  background: cssVarV2.layer.background.hoverOverlay,
+});
+
+export const cardTableRowSelected = style({
+  background: cssVarV2.layer.background.hoverOverlay,
+});
+
+export const cardTableRowSuspended = style({
+  opacity: 0.65,
+});
+
+export const cardTableCell = style({
+  minWidth: 0,
+  display: 'flex',
+  alignItems: 'center',
+});
+
+export const cardTableCellButton = style({
+  border: 'none',
+  background: 'transparent',
+  padding: 0,
+  cursor: 'pointer',
+  color: 'inherit',
+  font: 'inherit',
+  textAlign: 'left',
+  minWidth: 0,
+  selectors: {
+    '&:hover': {
+      color: cssVarV2.text.primary,
+    },
+  },
+});
+
+export const cardTableQuestionCell = style({
+  flex: 1,
+});
+
+export const cardTableQuestionText = style({
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  width: '100%',
+});
+
+export const cardTableDecksCell = style({
+  fontSize: 12,
+  color: cssVarV2.text.secondary,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const cardTableStatusBadge = style({
+  fontSize: 11,
+  fontWeight: 600,
+  padding: '2px 6px',
+  borderRadius: 4,
+  color: cssVarV2.text.secondary,
+  background: cssVarV2.layer.background.secondary,
+});
+
+export const cardTableStatusSuspended = style({
+  color: cssVarV2.text.tertiary,
+});
+
+export const cardTableExpandCell = style({
+  justifyContent: 'center',
+});
+
+export const cardTableExpandIcon = style({
+  fontSize: 18,
+  color: cssVarV2.icon.secondary,
+  transition: 'transform 0.2s ease',
+});
+
+export const cardTableExpandIconOpen = style({
+  transform: 'rotate(180deg)',
+});
+
+export const cardTableDetailWrapper = style({
+  display: 'grid',
+  gridTemplateRows: '0fr',
+  transition: 'grid-template-rows 0.25s ease',
+});
+
+export const cardTableDetailWrapperOpen = style({
+  gridTemplateRows: '1fr',
+});
+
+export const cardTableDetailInner = style({
+  overflow: 'hidden',
+  minHeight: 0,
+});
+
+export const cardTableDetailContent = style({
+  padding: '12px 16px 16px 48px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  borderTop: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.secondary,
+});
+
+export const cardTableDetailGrid = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+});
+
+export const cardTableDetailMeta = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 12,
+  fontSize: 12,
+  color: cssVarV2.text.secondary,
+});
+
+export const cardTableMetaItem = style({});
+
+export const cardTableDetailActions = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+});
+
+export const cardTableBulkBar = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  padding: '10px 14px',
+  borderRadius: 8,
+  background: cssVarV2.layer.background.secondary,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+});
+
+export const cardTableBulkCount = style({
+  fontSize: 13,
+  fontWeight: 600,
+  color: cssVarV2.text.primary,
+  flex: 1,
+});
+
+export const cardTableFilterRow = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 8,
+  alignItems: 'center',
+});
+
+export const cardTableFilterSelect = style({
+  fontSize: 13,
+  padding: '6px 10px',
+  borderRadius: 6,
+  border: `1px solid ${cssVarV2.layer.insideBorder.border}`,
+  background: cssVarV2.layer.background.primary,
+  color: cssVarV2.text.primary,
+  cursor: 'pointer',
+});
+
 export const pickerList = style({
   display: 'flex',
   flexDirection: 'column',

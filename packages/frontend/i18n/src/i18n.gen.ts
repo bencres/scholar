@@ -2851,7 +2851,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.today.mode.synthesize.title"](): string;
     /**
-      * `Select multiple note pages and generate linked recall and synthesis cards.`
+      * `Select note pages and generate recall and synthesis cards from them.`
       */
     ["com.affine.study.today.mode.synthesize.description"](): string;
     /**
@@ -2967,7 +2967,7 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.synthesize.save"](): string;
     /**
-      * `Failed to synthesize cards`
+      * `Failed to generate cards`
       */
     ["com.affine.study.synthesize.failed"](): string;
     /**
@@ -3104,6 +3104,114 @@ export function useAFFiNEI18N(): {
       * `No cards match your filters.`
       */
     ["com.affine.study.card-library.empty"](): string;
+    /**
+      * `Question`
+      */
+    ["com.affine.study.card-library.column.question"](): string;
+    /**
+      * `Type`
+      */
+    ["com.affine.study.card-library.column.type"](): string;
+    /**
+      * `Decks`
+      */
+    ["com.affine.study.card-library.column.decks"](): string;
+    /**
+      * `Due`
+      */
+    ["com.affine.study.card-library.column.due"](): string;
+    /**
+      * `State`
+      */
+    ["com.affine.study.card-library.column.state"](): string;
+    /**
+      * `Status`
+      */
+    ["com.affine.study.card-library.column.status"](): string;
+    /**
+      * `Scheduling state`
+      */
+    ["com.affine.study.card-library.filter.state.label"](): string;
+    /**
+      * `All states`
+      */
+    ["com.affine.study.card-library.filter.state.all"](): string;
+    /**
+      * `Status`
+      */
+    ["com.affine.study.card-library.filter.status.label"](): string;
+    /**
+      * `All`
+      */
+    ["com.affine.study.card-library.filter.status.all"](): string;
+    /**
+      * `Active`
+      */
+    ["com.affine.study.card-library.filter.status.active"](): string;
+    /**
+      * `Suspended`
+      */
+    ["com.affine.study.card-library.filter.status.suspended"](): string;
+    /**
+      * `New`
+      */
+    ["com.affine.study.card-library.state.new"](): string;
+    /**
+      * `Learning`
+      */
+    ["com.affine.study.card-library.state.learning"](): string;
+    /**
+      * `Review`
+      */
+    ["com.affine.study.card-library.state.review"](): string;
+    /**
+      * `Relearning`
+      */
+    ["com.affine.study.card-library.state.relearning"](): string;
+    /**
+      * `—`
+      */
+    ["com.affine.study.card-library.due.none"](): string;
+    /**
+      * `{{count}} selected`
+      */
+    ["com.affine.study.card-library.bulk.selected"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `Suspend`
+      */
+    ["com.affine.study.card-library.bulk.suspend"](): string;
+    /**
+      * `Activate`
+      */
+    ["com.affine.study.card-library.bulk.activate"](): string;
+    /**
+      * `Delete`
+      */
+    ["com.affine.study.card-library.bulk.delete"](): string;
+    /**
+      * `Concepts`
+      */
+    ["com.affine.study.card-library.concepts"](): string;
+    /**
+      * `Tags`
+      */
+    ["com.affine.study.card-library.tags"](): string;
+    /**
+      * `{{count}} decks`
+      */
+    ["com.affine.study.card-library.deck-count"](options: {
+        readonly count: string;
+    }): string;
+    /**
+      * `Select all cards`
+      */
+    ["com.affine.study.card-library.select-all"](): string;
+    /**
+      * `Updated`
+      */
+    ["com.affine.study.card-library.updated"](): string;
     /**
       * `Card not found.`
       */
