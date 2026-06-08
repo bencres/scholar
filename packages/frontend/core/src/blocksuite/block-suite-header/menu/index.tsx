@@ -19,10 +19,7 @@ import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { OpenInAppService } from '@affine/core/modules/open-in-app/services';
 import { GuardService } from '@affine/core/modules/permissions';
 import { ShareMenuContent } from '@affine/core/modules/share-menu';
-import {
-  STUDY_GENERATE_MODELS,
-  StudyService,
-} from '@affine/core/modules/study';
+import { StudyService } from '@affine/core/modules/study';
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { ViewService } from '@affine/core/modules/workbench/services/view';
 import { WorkspaceService } from '@affine/core/modules/workspace';
@@ -303,31 +300,27 @@ const PageHeaderMenuItem = ({
     toggleFavorite();
   }, [toggleFavorite]);
 
-  const handleGenerateStudyDeck = useCallback(
-    async (modelId: (typeof STUDY_GENERATE_MODELS)[number]['id']) => {
-      if (!studyService?.enabled) return;
-      try {
-        studyService.setGenerateModel(modelId);
-        await studyService.generateFromDoc(page, undefined, modelId);
-      } catch (error) {
-        console.warn('[study.cards.generate] menu handler caught error', error);
-        if (studyService.lastGenerationDebug) {
-          console.warn(
-            '[study.cards.generate] inspect window.__affineStudyGenerateDebug'
-          );
-        }
-        toast(
-          error instanceof Error
-            ? error.message
-            : t['com.affine.study.generate.failed'](),
-          { duration: 10000 }
+  const handleGenerateStudyDeck = useCallback(async () => {
+    if (!studyService?.enabled) return;
+    try {
+      await studyService.generateFromDoc(page);
+    } catch (error) {
+      console.warn('[study.cards.generate] menu handler caught error', error);
+      if (studyService.lastGenerationDebug) {
+        console.warn(
+          '[study.cards.generate] inspect window.__affineStudyGenerateDebug'
         );
-      } finally {
-        workbench.open(`/study/synthesize?docId=${pageId}`, { at: 'active' });
       }
-    },
-    [page, pageId, studyService, t, workbench]
-  );
+      toast(
+        error instanceof Error
+          ? error.message
+          : t['com.affine.study.generate.failed'](),
+        { duration: 10000 }
+      );
+    } finally {
+      workbench.open(`/study/synthesize?docId=${pageId}`, { at: 'active' });
+    }
+  }, [page, pageId, studyService, t, workbench]);
 
   const showResponsiveMenu = hideShare;
   const ResponsiveMenuItems = (
@@ -459,28 +452,17 @@ const PageHeaderMenuItem = ({
       </MenuItem>
       <MenuSeparator />
       {enableStudy && studyService?.enabled && currentMode === 'page' ? (
-        <MenuSub
+        <MenuItem
           prefixIcon={<TocIcon />}
           data-testid="editor-option-menu-generate-study-deck"
-          items={STUDY_GENERATE_MODELS.map(model => (
-            <MenuItem
-              key={model.id}
-              data-testid={`editor-option-menu-generate-study-deck-${model.id}`}
-              onSelect={() => {
-                handleGenerateStudyDeck(model.id).catch(error => {
-                  console.error(
-                    '[study.cards.generate] menu item failed',
-                    error
-                  );
-                });
-              }}
-            >
-              {t[model.labelKey]()}
-            </MenuItem>
-          ))}
+          onSelect={() => {
+            handleGenerateStudyDeck().catch(error => {
+              console.error('[study.cards.generate] menu item failed', error);
+            });
+          }}
         >
           {t['com.affine.study.generate.menu']()}
-        </MenuSub>
+        </MenuItem>
       ) : null}
       {!isJournal && (
         <MenuItem
