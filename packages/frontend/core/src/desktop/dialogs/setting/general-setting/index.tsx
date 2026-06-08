@@ -8,6 +8,7 @@ import {
   ExperimentIcon,
   FolderIcon,
   InformationIcon,
+  JournalIcon,
   KeyboardIcon,
   MeetingIcon,
   NotificationIcon,
@@ -29,6 +30,7 @@ import { MeetingsSettings } from './meetings';
 import { NotificationSettings } from './notifications';
 import { AFFiNEPricingPlans } from './plans';
 import { Shortcuts } from './shortcuts';
+import { StudySettings } from './study';
 
 export type GeneralSettingList = SettingSidebarItem[];
 
@@ -75,6 +77,12 @@ export const useGeneralSettingList = (): GeneralSettingList => {
         title: t['com.affine.keyboardShortcuts.title'](),
         icon: <KeyboardIcon />,
         testId: 'shortcuts-panel-trigger',
+      },
+      {
+        key: 'study',
+        title: t['com.affine.settings.study.title'](),
+        icon: <JournalIcon />,
+        testId: 'study-panel-trigger',
       },
     ];
     if (loggedIn) {
@@ -184,6 +192,8 @@ export const GeneralSetting = ({
       return <AFFiNEPricingPlans />;
     case 'billing':
       return <BillingSettings onChangeSettingState={onChangeSettingState} />;
+    case 'study':
+      return <StudySettings />;
     case 'experimental-features':
       return <ExperimentalFeatures />;
     case 'backup':
