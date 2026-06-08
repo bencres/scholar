@@ -611,9 +611,9 @@ export const StudyDeckDetailPage = () => {
             selectedIds={selectedIds}
             onSelectedChange={setSelectedIds}
             deleteLabel={t['com.affine.study.remove-from-deck']()}
-            onEdit={card =>
-              workbench.open(`/study/cards/${card.id}`, { at: 'active' })
-            }
+            onSave={async (card, draft) => {
+              await studyService.updateCard(card.id, cardDraftToPayload(draft));
+            }}
             onDelete={handleRemoveCard}
             onToggleSuspended={(card, active) => {
               studyService

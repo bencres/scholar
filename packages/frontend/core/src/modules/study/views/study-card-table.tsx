@@ -16,9 +16,15 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 
 import { StudyCardDetailPanel } from './study-card-detail-panel';
+import {
+  type CardDraft,
+  DEFAULT_CARD_DRAFT,
+  toCardDraft,
+} from './study-card-draft';
 import * as styles from './styles.css';
 
 export type CardSort =
@@ -46,11 +52,13 @@ export const StudyCardTable = ({
   onExpandedChange,
   selectedIds,
   onSelectedChange,
-  onEdit,
+  onSave,
   onDelete,
   onToggleSuspended,
   onViewSource,
   deleteLabel,
+  autoEditCardId,
+  onAutoEditConsumed,
 }: {
   cards: StudyCardContent[];
   decksByCardId: Map<string, StudyDeck[]>;
@@ -61,15 +69,19 @@ export const StudyCardTable = ({
   onExpandedChange: (cardId: string | null) => void;
   selectedIds: Set<string>;
   onSelectedChange: (ids: Set<string>) => void;
-  onEdit: (card: StudyCardContent) => void;
+  onSave: (card: StudyCardContent, draft: CardDraft) => void | Promise<void>;
   onDelete: (card: StudyCardContent) => void;
   onToggleSuspended: (card: StudyCardContent, active: boolean) => void;
   onViewSource?: (card: StudyCardContent) => void;
   deleteLabel?: string;
+  autoEditCardId?: string | null;
+  onAutoEditConsumed?: () => void;
 }) => {
   const t = useI18n();
   const selectionAnchorRef = useRef<string | null>(null);
   const shiftKeyRef = useRef(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<CardDraft>(DEFAULT_CARD_DRAFT);
 
   const allSelected =
     cards.length > 0 && cards.every(card => selectedIds.has(card.id));
@@ -80,6 +92,45 @@ export const StudyCardTable = ({
       selectionAnchorRef.current = null;
     }
   }, [selectedIds.size]);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditDraft(DEFAULT_CARD_DRAFT);
+  }, []);
+
+  const startEdit = useCallback(
+    (card: StudyCardContent) => {
+      setEditingId(card.id);
+      setEditDraft(toCardDraft(card));
+      onExpandedChange(card.id);
+    },
+    [onExpandedChange]
+  );
+
+  useEffect(() => {
+    if (!autoEditCardId) return;
+    const card = cards.find(item => item.id === autoEditCardId);
+    if (!card) return;
+    startEdit(card);
+    onAutoEditConsumed?.();
+  }, [autoEditCardId, cards, onAutoEditConsumed, startEdit]);
+
+  const toggleExpanded = useCallback(
+    (cardId: string) => {
+      if (expandedId === cardId) {
+        onExpandedChange(null);
+        if (editingId === cardId) {
+          cancelEdit();
+        }
+        return;
+      }
+      if (editingId && editingId !== cardId) {
+        cancelEdit();
+      }
+      onExpandedChange(cardId);
+    },
+    [cancelEdit, editingId, expandedId, onExpandedChange]
+  );
 
   const handleSelect = useCallback(
     (cardId: string, shiftKey: boolean) => {
@@ -117,13 +168,6 @@ export const StudyCardTable = ({
     onSelectedChange(new Set(cards.map(card => card.id)));
     selectionAnchorRef.current = cards[0]?.id ?? null;
   }, [allSelected, cards, onSelectedChange]);
-
-  const toggleExpanded = useCallback(
-    (cardId: string) => {
-      onExpandedChange(expandedId === cardId ? null : cardId);
-    },
-    [expandedId, onExpandedChange]
-  );
 
   const handleSortColumn = useCallback(
     (column: SortableColumn) => {
@@ -290,8 +334,24 @@ export const StudyCardTable = ({
                   decks={memberships}
                   schedulingState={scheduling?.state}
                   due={scheduling?.due}
-                  onEdit={() => onEdit(card)}
-                  onDelete={() => onDelete(card)}
+                  editing={editingId === card.id}
+                  draft={editDraft}
+                  onDraftChange={updater =>
+                    setEditDraft(current => updater(current))
+                  }
+                  onStartEdit={() => startEdit(card)}
+                  onSave={() => {
+                    Promise.resolve(onSave(card, editDraft))
+                      .then(() => cancelEdit())
+                      .catch(error => {
+                        console.error('[study.card-table] save failed', error);
+                      });
+                  }}
+                  onCancelEdit={cancelEdit}
+                  onDelete={() => {
+                    if (editingId === card.id) cancelEdit();
+                    onDelete(card);
+                  }}
                   onToggleSuspended={active => onToggleSuspended(card, active)}
                   onViewSource={
                     onViewSource && card.provenance.docId !== 'manual'

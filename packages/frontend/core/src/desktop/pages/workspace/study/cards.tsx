@@ -32,7 +32,7 @@ import {
 } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
 import { useLiveData, useService } from '@toeverything/infra';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type CardTypeFilter = 'all' | CardType;
 type StateFilter = 'all' | CardState;
@@ -74,7 +74,11 @@ function sortCards(
   return sorted;
 }
 
-export const StudyCardsPage = () => {
+export const StudyCardsPage = ({
+  autoEditCardId = null,
+}: {
+  autoEditCardId?: string | null;
+} = {}) => {
   const t = useI18n();
   const studyService = useService(StudyService);
   const workbench = useService(WorkbenchService).workbench;
@@ -89,6 +93,13 @@ export const StudyCardsPage = () => {
   const [newCardDraft, setNewCardDraft] =
     useState<CardDraft>(DEFAULT_CARD_DRAFT);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [autoEditRequest, setAutoEditRequest] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!autoEditCardId) return;
+    setExpandedId(autoEditCardId);
+    setAutoEditRequest(autoEditCardId);
+  }, [autoEditCardId]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 
   const schedulingByCard = useMemo(
@@ -143,7 +154,8 @@ export const StudyCardsPage = () => {
     );
     setNewCardDraft(DEFAULT_CARD_DRAFT);
     setShowCreate(false);
-    workbench.open(`/study/cards/${card.id}`, { at: 'active' });
+    setExpandedId(card.id);
+    setAutoEditRequest(card.id);
   };
 
   const handleBulkDelete = useCallback(async () => {
@@ -359,9 +371,11 @@ export const StudyCardsPage = () => {
             onExpandedChange={setExpandedId}
             selectedIds={selectedIds}
             onSelectedChange={setSelectedIds}
-            onEdit={card =>
-              workbench.open(`/study/cards/${card.id}`, { at: 'active' })
-            }
+            autoEditCardId={autoEditRequest}
+            onAutoEditConsumed={() => setAutoEditRequest(null)}
+            onSave={async (card, draft) => {
+              await studyService.updateCard(card.id, cardDraftToPayload(draft));
+            }}
             onDelete={card => {
               studyService.deleteCard(card.id).catch(error => {
                 console.error('[study.cards] delete card failed', error);

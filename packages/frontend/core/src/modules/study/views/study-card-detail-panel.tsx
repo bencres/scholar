@@ -7,6 +7,8 @@ import type { StudyDeck } from '@affine/core/modules/study/entities/deck';
 import { WorkbenchLink } from '@affine/core/modules/workbench';
 import { i18nTime, useI18n } from '@affine/i18n';
 
+import type { CardDraft } from './study-card-draft';
+import { StudyCardFormFields } from './study-card-form-fields';
 import * as styles from './styles.css';
 
 export const StudyCardDetailPanel = ({
@@ -14,7 +16,12 @@ export const StudyCardDetailPanel = ({
   decks,
   schedulingState,
   due,
-  onEdit,
+  editing,
+  draft,
+  onDraftChange,
+  onStartEdit,
+  onSave,
+  onCancelEdit,
   onDelete,
   onToggleSuspended,
   onViewSource,
@@ -24,7 +31,12 @@ export const StudyCardDetailPanel = ({
   decks: StudyDeck[];
   schedulingState?: CardState;
   due?: number;
-  onEdit: () => void;
+  editing: boolean;
+  draft: CardDraft;
+  onDraftChange: (updater: (current: CardDraft) => CardDraft) => void;
+  onStartEdit: () => void;
+  onSave: () => void;
+  onCancelEdit: () => void;
   onDelete: () => void;
   onToggleSuspended: (active: boolean) => void;
   onViewSource?: () => void;
@@ -48,6 +60,33 @@ export const StudyCardDetailPanel = ({
           relative: { max: [2, 'day'], yesterdayAndTomorrow: true },
           absolute: { accuracy: 'day', noYear: true },
         });
+
+  if (editing) {
+    return (
+      <div className={styles.cardTableDetailContent}>
+        <div className={styles.formTitle}>
+          {t['com.affine.study.edit-card']()}
+        </div>
+        <StudyCardFormFields draft={draft} onDraftChange={onDraftChange} />
+        <div className={styles.cardTableDetailActions}>
+          <Button
+            variant="primary"
+            disabled={!draft.question.trim()}
+            onClick={onSave}
+          >
+            {t['Save']()}
+          </Button>
+          <Button onClick={onCancelEdit}>{t['Cancel']()}</Button>
+          <Button onClick={onDelete}>{deleteLabel ?? t['Delete']()}</Button>
+          {onViewSource ? (
+            <Button onClick={onViewSource}>
+              {t['com.affine.study.view-source']()}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.cardTableDetailContent}>
@@ -152,7 +191,7 @@ export const StudyCardDetailPanel = ({
         </div>
       </div>
       <div className={styles.cardTableDetailActions}>
-        <Button onClick={onEdit}>{t['Edit']()}</Button>
+        <Button onClick={onStartEdit}>{t['Edit']()}</Button>
         <Button onClick={() => onToggleSuspended(!card.suspended)}>
           {card.suspended
             ? t['com.affine.study.card-library.filter.status.active']()
