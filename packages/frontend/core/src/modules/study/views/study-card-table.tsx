@@ -8,7 +8,15 @@ import type { StudyDeck } from '@affine/core/modules/study/entities/deck';
 import { i18nTime, useI18n } from '@affine/i18n';
 import { ArrowDownSmallIcon } from '@blocksuite/icons/rc';
 import clsx from 'clsx';
-import { type ReactNode, useCallback, useMemo } from 'react';
+import {
+  type MouseEvent,
+  type MutableRefObject,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 
 import { StudyCardDetailPanel } from './study-card-detail-panel';
 import * as styles from './styles.css';
@@ -58,32 +66,55 @@ export const StudyCardTable = ({
   onViewSource?: (card: StudyCardContent) => void;
 }) => {
   const t = useI18n();
+  const selectionAnchorRef = useRef<string | null>(null);
+  const shiftKeyRef = useRef(false);
 
   const allSelected =
     cards.length > 0 && cards.every(card => selectedIds.has(card.id));
   const someSelected = cards.some(card => selectedIds.has(card.id));
 
+  useEffect(() => {
+    if (selectedIds.size === 0) {
+      selectionAnchorRef.current = null;
+    }
+  }, [selectedIds.size]);
+
+  const handleSelect = useCallback(
+    (cardId: string, shiftKey: boolean) => {
+      if (shiftKey && selectionAnchorRef.current !== null) {
+        const anchorIndex = cards.findIndex(
+          card => card.id === selectionAnchorRef.current
+        );
+        const currentIndex = cards.findIndex(card => card.id === cardId);
+        if (anchorIndex !== -1 && currentIndex !== -1) {
+          const start = Math.min(anchorIndex, currentIndex);
+          const end = Math.max(anchorIndex, currentIndex);
+          onSelectedChange(
+            new Set(cards.slice(start, end + 1).map(card => card.id))
+          );
+          selectionAnchorRef.current = cardId;
+          return;
+        }
+      }
+
+      const next = new Set(selectedIds);
+      if (next.has(cardId)) next.delete(cardId);
+      else next.add(cardId);
+      onSelectedChange(next);
+      selectionAnchorRef.current = cardId;
+    },
+    [cards, onSelectedChange, selectedIds]
+  );
+
   const toggleSelectAll = useCallback(() => {
     if (allSelected) {
       onSelectedChange(new Set());
+      selectionAnchorRef.current = null;
       return;
     }
     onSelectedChange(new Set(cards.map(card => card.id)));
+    selectionAnchorRef.current = cards[0]?.id ?? null;
   }, [allSelected, cards, onSelectedChange]);
-
-  const toggleSelect = useCallback(
-    (cardId: string) => {
-      onSelectedChange(
-        (() => {
-          const next = new Set(selectedIds);
-          if (next.has(cardId)) next.delete(cardId);
-          else next.add(cardId);
-          return next;
-        })()
-      );
-    },
-    [onSelectedChange, selectedIds]
-  );
 
   const toggleExpanded = useCallback(
     (cardId: string) => {
@@ -267,8 +298,15 @@ export const StudyCardTable = ({
                   }
                 />
               }
-              onToggleSelect={() => toggleSelect(card.id)}
-              onToggleExpand={() => toggleExpanded(card.id)}
+              onSelect={shiftKey => handleSelect(card.id, shiftKey)}
+              onShiftKeyRef={shiftKeyRef}
+              onToggleExpand={shiftKey => {
+                if (shiftKey) {
+                  handleSelect(card.id, true);
+                  return;
+                }
+                toggleExpanded(card.id);
+              }}
             />
           );
         })}
@@ -288,7 +326,8 @@ const CardTableRow = ({
   stateLabel,
   statusLabel,
   detail,
-  onToggleSelect,
+  onSelect,
+  onShiftKeyRef,
   onToggleExpand,
 }: {
   card: StudyCardContent;
@@ -301,9 +340,14 @@ const CardTableRow = ({
   stateLabel?: string;
   statusLabel: string;
   detail: ReactNode;
-  onToggleSelect: () => void;
-  onToggleExpand: () => void;
+  onSelect: (shiftKey: boolean) => void;
+  onShiftKeyRef: MutableRefObject<boolean>;
+  onToggleExpand: (shiftKey: boolean) => void;
 }) => {
+  const handleRowClick = (event: MouseEvent) => {
+    onToggleExpand(event.shiftKey);
+  };
+
   return (
     <div className={styles.cardTableRowGroup}>
       <div
@@ -322,12 +366,18 @@ const CardTableRow = ({
           role="cell"
           onClick={event => event.stopPropagation()}
         >
-          <Checkbox checked={selected} onChange={onToggleSelect} />
+          <Checkbox
+            checked={selected}
+            onMouseDown={event => {
+              onShiftKeyRef.current = event.shiftKey;
+            }}
+            onChange={() => onSelect(onShiftKeyRef.current)}
+          />
         </div>
         <button
           type="button"
           className={clsx(styles.cardTableCell, styles.cardTableCellButton)}
-          onClick={onToggleExpand}
+          onClick={handleRowClick}
         >
           <span className={styles.cardTypeBadge}>{typeLabel}</span>
         </button>
@@ -338,7 +388,7 @@ const CardTableRow = ({
             styles.cardTableCellButton,
             styles.cardTableQuestionCell
           )}
-          onClick={onToggleExpand}
+          onClick={handleRowClick}
         >
           <span className={styles.cardTableQuestionText}>{card.question}</span>
         </button>
@@ -349,28 +399,28 @@ const CardTableRow = ({
             styles.cardTableCellButton,
             styles.cardTableDecksCell
           )}
-          onClick={onToggleExpand}
+          onClick={handleRowClick}
         >
           {decksLabel}
         </button>
         <button
           type="button"
           className={clsx(styles.cardTableCell, styles.cardTableCellButton)}
-          onClick={onToggleExpand}
+          onClick={handleRowClick}
         >
           {dueLabel}
         </button>
         <button
           type="button"
           className={clsx(styles.cardTableCell, styles.cardTableCellButton)}
-          onClick={onToggleExpand}
+          onClick={handleRowClick}
         >
           {stateLabel ?? '—'}
         </button>
         <button
           type="button"
           className={clsx(styles.cardTableCell, styles.cardTableCellButton)}
-          onClick={onToggleExpand}
+          onClick={handleRowClick}
         >
           <span
             className={clsx(
@@ -388,7 +438,7 @@ const CardTableRow = ({
             styles.cardTableCellButton,
             styles.cardTableExpandCell
           )}
-          onClick={onToggleExpand}
+          onClick={handleRowClick}
           aria-label="Toggle details"
         >
           <ArrowDownSmallIcon
