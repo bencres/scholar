@@ -3,6 +3,85 @@ import type { StudyCardsGenerateOutput } from '../schema/generate-output';
 const MAX_CONCEPTS = 3;
 const MAX_PREREQUISITES = 2;
 const MAX_MISCONCEPTIONS = 3;
+const MAX_DECK_CONCEPTS = 20;
+const MAX_CARDS = 30;
+const MAX_RUBRIC_ITEMS = 8;
+
+function truncateArray(value: unknown, max: number): unknown {
+  if (!Array.isArray(value)) {
+    return value;
+  }
+  return value.slice(0, max);
+}
+
+function coerceGeneratedCard(
+  value: unknown,
+  limits: {
+    concepts?: number;
+    prerequisites?: number;
+    misconceptions?: number;
+    rubric?: number;
+  }
+): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return value;
+  }
+  const card = value as Record<string, unknown>;
+  return {
+    ...card,
+    ...(limits.concepts !== undefined
+      ? { concepts: truncateArray(card.concepts, limits.concepts) }
+      : {}),
+    ...(limits.prerequisites !== undefined
+      ? {
+          prerequisites: truncateArray(
+            card.prerequisites,
+            limits.prerequisites
+          ),
+        }
+      : {}),
+    ...(limits.misconceptions !== undefined
+      ? {
+          misconceptions: truncateArray(
+            card.misconceptions,
+            limits.misconceptions
+          ),
+        }
+      : {}),
+    ...(limits.rubric !== undefined
+      ? { rubric: truncateArray(card.rubric, limits.rubric) }
+      : {}),
+  };
+}
+
+export function coerceStudyCardsGenerateJsonInput(json: unknown): unknown {
+  if (!json || typeof json !== 'object' || Array.isArray(json)) {
+    return json;
+  }
+  const input = json as Record<string, unknown>;
+  return {
+    ...input,
+    deckConcepts: truncateArray(input.deckConcepts, MAX_DECK_CONCEPTS),
+    recall: Array.isArray(input.recall)
+      ? input.recall.slice(0, MAX_CARDS).map(card =>
+          coerceGeneratedCard(card, {
+            concepts: MAX_CONCEPTS,
+            prerequisites: MAX_PREREQUISITES,
+            misconceptions: MAX_MISCONCEPTIONS,
+          })
+        )
+      : input.recall,
+    synthesis: Array.isArray(input.synthesis)
+      ? input.synthesis.slice(0, MAX_CARDS).map(card =>
+          coerceGeneratedCard(card, {
+            concepts: MAX_CONCEPTS,
+            prerequisites: MAX_PREREQUISITES,
+            rubric: MAX_RUBRIC_ITEMS,
+          })
+        )
+      : input.synthesis,
+  };
+}
 
 export type GeneratedCardGraphInput = {
   concepts?: string[];

@@ -77,6 +77,7 @@ import {
   shouldMarkLeech,
 } from '../utils/scheduling';
 import {
+  coerceStudyCardsGenerateJsonInput,
   sanitizeStudyCardsGenerateOutput,
   toStudyCardGraphFields,
 } from '../utils/study-graph-metadata';
@@ -472,7 +473,9 @@ export class StudyCommandService extends Service {
       this.setGeneratingStage(docIds, 'validating');
       stage = 'validate';
       const parsed = sanitizeStudyCardsGenerateOutput(
-        StudyCardsGenerateOutputSchema.parse(json)
+        StudyCardsGenerateOutputSchema.parse(
+          coerceStudyCardsGenerateJsonInput(json)
+        )
       );
       const cards = this.toPreviewCards(parsed, options);
       this.generationState$.setValue({
