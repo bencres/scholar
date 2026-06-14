@@ -23,7 +23,7 @@ const StudyCardGenerationMetadataSchema = z
 const StudyConceptSlugSchema = z.string().min(2).max(40);
 
 const StudyCardGraphMetadataSchema = z.object({
-  concepts: z.array(StudyConceptSlugSchema).min(1).max(3),
+  concepts: z.array(StudyConceptSlugSchema).min(1).max(7),
   prerequisites: z.array(StudyConceptSlugSchema).max(2).optional(),
 });
 

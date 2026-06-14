@@ -12,8 +12,8 @@ Return JSON only (no markdown wrapper, no code fences, no commentary). Fields: `
 
 Keep answers and rubrics concise so the full deck fits in one response.
 
-- **Recall:** closed Q→A. Required `concepts` (1–3 slugs). Optional `prerequisites` (0–2 slugs). Optional `misconceptions` (1–2 short slug phrases). Optional `blockIds` when a card maps to a section. Optional `metadata` when it materially helps downstream study modes.
-- **Synthesis:** open prompt + `rubric` (3–4 checkable strings). Required `concepts` (1–3 slugs). Optional `prerequisites` (0–2 slugs). Optional `blockIds`. Optional `metadata` when it materially helps downstream study modes.
+- **Recall:** closed Q→A. Required `concepts` (1–7 slugs, most relevant first). Optional `prerequisites` (0–2 slugs). Optional `misconceptions` (1–2 short slug phrases). Optional `blockIds` when a card maps to a section. Optional `metadata` when it materially helps downstream study modes.
+- **Synthesis:** open prompt + `rubric` (3–4 checkable strings). Required `concepts` (1–7 slugs, most relevant first). Optional `prerequisites` (0–2 slugs). Optional `blockIds`. Optional `metadata` when it materially helps downstream study modes.
 
 ## Learning graph metadata
 
@@ -21,7 +21,7 @@ Every card must include `concepts` so the app can build a concept-level learning
 
 - Emit stable **kebab-case slugs** (e.g. `connection-pooling`), not full sentences or display titles.
 - Provide `deckConcepts`: 8–15 slugs naming the main ideas in this deck. Reuse these slugs on cards.
-- Each card: **1–3 `concepts`** drawn from `deckConcepts` (add a new slug to `deckConcepts` if needed).
+- Each card: **1–7 `concepts`** drawn from `deckConcepts` (add a new slug to `deckConcepts` if needed). Order concepts by relevance to the card—**most central first**, then supporting ideas.
 - `prerequisites` only when confident (0–2 per card). Each prerequisite slug must appear in `deckConcepts` or another card's `concepts`.
 - `misconceptions` (recall only): short slug phrases for plausible wrong beliefs (e.g. `pool-size-fixes-db-limits`), not paragraphs.
 

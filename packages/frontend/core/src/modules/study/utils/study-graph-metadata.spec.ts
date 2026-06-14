@@ -81,7 +81,16 @@ describe('study graph metadata', () => {
           {
             question: 'What is ATP?',
             answer: 'Energy currency of the cell',
-            concepts: ['atp', 'nad', 'glycolysis', 'krebs'],
+            concepts: [
+              'atp',
+              'nad',
+              'glycolysis',
+              'krebs',
+              'mitochondria',
+              'electron-transport',
+              'oxidative-phosphorylation',
+              'citric-acid',
+            ],
           },
         ],
         synthesis: [
@@ -91,13 +100,22 @@ describe('study graph metadata', () => {
               'ATP carries phosphate-bond energy',
               'NADH carries electrons',
             ],
-            concepts: ['atp', 'nad', 'glycolysis', 'krebs'],
+            concepts: [
+              'atp',
+              'nad',
+              'glycolysis',
+              'krebs',
+              'mitochondria',
+              'electron-transport',
+              'oxidative-phosphorylation',
+              'citric-acid',
+            ],
           },
         ],
       })
     );
-    expect(parsed.recall[0]?.concepts).toHaveLength(3);
-    expect(parsed.synthesis[0]?.concepts).toHaveLength(3);
+    expect(parsed.recall[0]?.concepts).toHaveLength(7);
+    expect(parsed.synthesis[0]?.concepts).toHaveLength(7);
   });
 
   it('rejects generate output without concepts', () => {

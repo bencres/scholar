@@ -1,6 +1,6 @@
 import type { StudyCardsGenerateOutput } from '../schema/generate-output';
 
-const MAX_CONCEPTS = 3;
+const MAX_CONCEPTS = 7;
 const MAX_PREREQUISITES = 2;
 const MAX_MISCONCEPTIONS = 3;
 const MAX_DECK_CONCEPTS = 20;
