@@ -60,7 +60,7 @@ export function cylinderPathAt(
 
   const body = new SVGPathBuilder()
     .moveTo(left, y + topY)
-    .arcTo(rx, ry, 0, 0, 1, right, y + topY)
+    .arcTo(rx, ry, 0, 0, 0, right, y + topY)
     .lineTo(right, y + bottomY)
     .arcTo(rx, ry, 0, 0, 1, left, y + bottomY)
     .closePath()
@@ -68,7 +68,7 @@ export function cylinderPathAt(
 
   const rim = new SVGPathBuilder()
     .moveTo(left, y + topY)
-    .arcTo(rx, ry, 0, 0, 0, right, y + topY)
+    .arcTo(rx, ry, 0, 0, 1, right, y + topY)
     .build();
 
   return `${body} ${rim}`;
@@ -81,7 +81,7 @@ export function cylinderPoints({ x, y, w, h }: IBound): IVec[] {
   const segments = 8;
 
   for (let i = 0; i <= segments; i++) {
-    const angle = Math.PI - (Math.PI * i) / segments;
+    const angle = Math.PI + (Math.PI * i) / segments;
     points.push([cx + rx * Math.cos(angle), y + topY + ry * Math.sin(angle)]);
   }
 
@@ -110,11 +110,11 @@ export function drawCylinderPath(
 
   ctx.beginPath();
   ctx.moveTo(left, y + topY);
-  ctx.ellipse(cx, y + topY, rx, ry, 0, Math.PI, 0, true);
+  ctx.ellipse(cx, y + topY, rx, ry, 0, Math.PI, 0, false);
   ctx.lineTo(right, y + bottomY);
-  ctx.ellipse(cx, y + bottomY, rx, ry, 0, 0, Math.PI, true);
+  ctx.ellipse(cx, y + bottomY, rx, ry, 0, 0, Math.PI, false);
   ctx.lineTo(left, y + topY);
   ctx.closePath();
   ctx.moveTo(left, y + topY);
-  ctx.ellipse(cx, y + topY, rx, ry, 0, 0, Math.PI, true);
+  ctx.ellipse(cx, y + topY, rx, ry, 0, 0, Math.PI, false);
 }

@@ -22,14 +22,14 @@ describe('getCylinderMetrics', () => {
 describe('cylinderPath', () => {
   test('should generate cylinder path with stroke inset', () => {
     const result = cylinderPath(100, 80, 2);
-    expect(result.startsWith('M 1 10.75 A 49 9.75')).toBe(true);
-    expect(result.includes('A 49 9.75 0 0 0 99 10.75')).toBe(true);
+    expect(result.startsWith('M 1 10.75 A 49 9.75 0 0 0')).toBe(true);
+    expect(result.includes('A 49 9.75 0 0 1 99 10.75')).toBe(true);
   });
 
   test('should support absolute coordinates', () => {
     const result = cylinderPathAt(10, 20, 100, 80, 0);
     expect(result).toBe(
-      'M 10 30 A 50 10 0 0 1 110 30 L 110 90 A 50 10 0 0 1 10 90 Z M 10 30 A 50 10 0 0 0 110 30'
+      'M 10 30 A 50 10 0 0 0 110 30 L 110 90 A 50 10 0 0 1 10 90 Z M 10 30 A 50 10 0 0 1 110 30'
     );
   });
 });
