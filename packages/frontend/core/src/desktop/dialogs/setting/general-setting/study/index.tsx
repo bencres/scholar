@@ -23,6 +23,9 @@ export const StudySettings = () => {
   const defaultSynthesisCount = useLiveData(
     studyService.defaultSynthesisCount$
   );
+  const defaultGenerationFocus = useLiveData(
+    studyService.defaultGenerationFocus$
+  );
   const flashcardsTrackSchedule = useLiveData(
     studyService.flashcardsTrackSchedule$
   );
@@ -93,6 +96,19 @@ export const StudySettings = () => {
               </option>
             ))}
           </select>
+        </SettingRow>
+        <SettingRow
+          name={t['com.affine.settings.study.focus.name']()}
+          desc={t['com.affine.settings.study.focus.desc']()}
+        >
+          <input
+            className={styles.focusInput}
+            value={defaultGenerationFocus}
+            placeholder={t['com.affine.study.synthesize.focus.placeholder']()}
+            onChange={e =>
+              studyService.setDefaultGenerationFocus(e.target.value)
+            }
+          />
         </SettingRow>
       </SettingWrapper>
       <SettingWrapper title={t['com.affine.settings.study.flashcards']()}>

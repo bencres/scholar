@@ -13,11 +13,13 @@ import type { WorkspaceService } from '../../workspace';
 import {
   DEFAULT_STUDY_FLASHCARDS_TRACK_SCHEDULE,
   DEFAULT_STUDY_GENERATE_MODEL,
+  DEFAULT_STUDY_GENERATION_FOCUS,
   DEFAULT_STUDY_INCLUDE_RECALL,
   DEFAULT_STUDY_INCLUDE_SYNTHESIS,
   DEFAULT_STUDY_RECALL_COUNT,
   DEFAULT_STUDY_SYNTHESIS_COUNT,
   isStudyGenerateModelId,
+  STUDY_DEFAULT_GENERATION_FOCUS_KEY,
   STUDY_DEFAULT_INCLUDE_RECALL_KEY,
   STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY,
   STUDY_DEFAULT_RECALL_COUNT_KEY,
@@ -206,6 +208,13 @@ export class StudyCommandService extends Service {
     DEFAULT_STUDY_SYNTHESIS_COUNT
   );
 
+  readonly defaultGenerationFocus$ = LiveData.from(
+    this.globalStateService.globalState.watch<string>(
+      STUDY_DEFAULT_GENERATION_FOCUS_KEY
+    ),
+    DEFAULT_STUDY_GENERATION_FOCUS
+  );
+
   readonly flashcardsTrackSchedule$ = LiveData.from(
     this.globalStateService.globalState.watch<boolean>(
       STUDY_FLASHCARDS_TRACK_SCHEDULE_KEY
@@ -264,6 +273,13 @@ export class StudyCommandService extends Service {
     this.globalStateService.globalState.set(
       STUDY_DEFAULT_SYNTHESIS_COUNT_KEY,
       clamped
+    );
+  }
+
+  setDefaultGenerationFocus(value: string) {
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_GENERATION_FOCUS_KEY,
+      value
     );
   }
 

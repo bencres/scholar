@@ -64,9 +64,12 @@ export const StudyGeneratePage = () => {
   const defaultSynthesisCount = useLiveData(
     studyService.defaultSynthesisCount$
   );
+  const defaultGenerationFocus = useLiveData(
+    studyService.defaultGenerationFocus$
+  );
   const [searchParams] = useSearchParams();
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
-  const [focus, setFocus] = useState('');
+  const [focus, setFocus] = useState(defaultGenerationFocus);
   const [includeRecall, setIncludeRecall] = useState(defaultIncludeRecall);
   const [includeSynthesis, setIncludeSynthesis] = useState(
     defaultIncludeSynthesis
@@ -89,6 +92,10 @@ export const StudyGeneratePage = () => {
   useEffect(() => {
     setSynthesisCount(defaultSynthesisCount);
   }, [defaultSynthesisCount]);
+
+  useEffect(() => {
+    setFocus(defaultGenerationFocus);
+  }, [defaultGenerationFocus]);
 
   useEffect(() => {
     const docId = searchParams.get('docId');

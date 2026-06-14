@@ -11,6 +11,7 @@ import { JournalWeekDatePicker } from '@affine/core/blocksuite/block-suite-heade
 import { JournalTodayButton } from '@affine/core/blocksuite/block-suite-header/journal/today-button';
 import { PageHeaderMenuButton } from '@affine/core/blocksuite/block-suite-header/menu';
 import { DetailPageHeaderPresentButton } from '@affine/core/blocksuite/block-suite-header/present/detail-header-present-button';
+import { StudyGenerateButton } from '@affine/core/blocksuite/block-suite-header/study-generate';
 import { BlocksuiteHeaderTitle } from '@affine/core/blocksuite/block-suite-header/title';
 import { EditorModeSwitch } from '@affine/core/blocksuite/block-suite-mode-switch';
 import { useRegisterCopyLinkCommands } from '@affine/core/components/hooks/affine/use-register-copy-link-commands';
@@ -162,6 +163,7 @@ export function NormalPageHeader({ page, workspace }: PageHeaderProps) {
         {hideCollect ? null : (
           <>
             <FavoriteButton pageId={page?.id} />
+            <StudyGenerateButton docId={page.id} />
             <InfoButton docId={page.id} />
           </>
         )}

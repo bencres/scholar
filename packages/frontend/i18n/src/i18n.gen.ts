@@ -3606,6 +3606,14 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.generate.menu"](): string;
     /**
+      * `Generate cards`
+      */
+    ["com.affine.study.generate.modal.section"](): string;
+    /**
+      * `Enable at least one card type`
+      */
+    ["com.affine.study.generate.no-card-types"](): string;
+    /**
       * `Claude Haiku 4.5`
       */
     ["com.affine.study.generate.model.haiku"](): string;
@@ -6167,6 +6175,14 @@ export function useAFFiNEI18N(): {
       * `Model used for card generation.`
       */
     ["com.affine.settings.study.model.desc"](): string;
+    /**
+      * `Custom instructions`
+      */
+    ["com.affine.settings.study.focus.name"](): string;
+    /**
+      * `Default prompt guidance for card generation (e.g. focus on exam prep).`
+      */
+    ["com.affine.settings.study.focus.desc"](): string;
     /**
       * `Flashcards`
       */

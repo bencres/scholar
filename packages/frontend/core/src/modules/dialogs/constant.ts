@@ -44,6 +44,7 @@ export type GLOBAL_DIALOG_SCHEMA = {
 export type WORKSPACE_DIALOG_SCHEMA = {
   setting: (props: { activeTab?: SettingTab; scrollAnchor?: string }) => void;
   'doc-info': (props: { docId: string }) => void;
+  'study-generate': (props: { docId: string }) => void;
   'doc-selector': (props: {
     init: string[];
     onBeforeConfirm?: (ids: string[], cb: () => void) => void;
