@@ -31,7 +31,12 @@ type Config = {
   disabled: boolean;
 };
 
-export const ShapeComponentConfig: Config[] = [
+export type ShapeComponentConfigGroup = {
+  label: string;
+  shapes: Config[];
+};
+
+export const BasicShapeComponentConfig: Config[] = [
   {
     name: ShapeType.Rect,
     generalIcon: SquareIcon(),
@@ -67,6 +72,9 @@ export const ShapeComponentConfig: Config[] = [
     tooltip: 'Rounded rectangle',
     disabled: false,
   },
+];
+
+export const ArchitectureShapeComponentConfig: Config[] = [
   {
     name: ShapeType.Hexagon,
     generalIcon: GeneralHexagonIcon,
@@ -88,6 +96,22 @@ export const ShapeComponentConfig: Config[] = [
     tooltip: 'Cloud',
     disabled: false,
   },
+];
+
+export const ShapeComponentConfigGroups: ShapeComponentConfigGroup[] = [
+  {
+    label: 'Basic',
+    shapes: BasicShapeComponentConfig,
+  },
+  {
+    label: 'Architecture',
+    shapes: ArchitectureShapeComponentConfig,
+  },
+];
+
+export const ShapeComponentConfig: Config[] = [
+  ...BasicShapeComponentConfig,
+  ...ArchitectureShapeComponentConfig,
 ];
 
 export const ShapeComponentConfigMap = ShapeComponentConfig.reduce(

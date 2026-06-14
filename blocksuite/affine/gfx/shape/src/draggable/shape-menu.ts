@@ -25,7 +25,7 @@ import { property } from 'lit/decorators.js';
 import { when } from 'lit/directives/when.js';
 
 import { ShapeTool } from '../shape-tool';
-import { ShapeComponentConfig } from '../toolbar';
+import { ShapeComponentConfigGroups } from '../toolbar';
 
 export class EdgelessShapeMenu extends SignalWatcher(
   WithDisposable(LitElement)
@@ -50,6 +50,24 @@ export class EdgelessShapeMenu extends SignalWatcher(
     .shape-style-container svg {
       fill: var(--affine-icon-color);
       stroke: none;
+    }
+    .shape-groups {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .shape-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .shape-group-label {
+      font-size: 11px;
+      line-height: 1;
+      color: var(--affine-text-secondary-color);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding-left: 2px;
     }
     menu-divider {
       height: 24px;
@@ -169,24 +187,33 @@ export class EdgelessShapeMenu extends SignalWatcher(
               `
             )
           }
-          <div class="shape-type-container">
-            ${ShapeComponentConfig.map(
-              ({ name, generalIcon, scribbledIcon, tooltip }) => {
-                return html`
-                  <edgeless-tool-icon-button
-                    .tooltip=${tooltip}
-                    .active=${shapeName === name}
-                    .activeMode=${'background'}
-                    .iconSize=${'20px'}
-                    @click=${() => this.onChange(name)}
-                  >
-                    ${shapeStyle === ShapeStyle.General
-                      ? generalIcon
-                      : scribbledIcon}
-                  </edgeless-tool-icon-button>
-                `;
-              }
-            )}
+          <div class="shape-groups">
+            ${ShapeComponentConfigGroups.map(group => {
+              return html`
+                <div class="shape-group">
+                  <div class="shape-group-label">${group.label}</div>
+                  <div class="shape-type-container">
+                    ${group.shapes.map(
+                      ({ name, generalIcon, scribbledIcon, tooltip }) => {
+                        return html`
+                          <edgeless-tool-icon-button
+                            .tooltip=${tooltip}
+                            .active=${shapeName === name}
+                            .activeMode=${'background'}
+                            .iconSize=${'20px'}
+                            @click=${() => this.onChange(name)}
+                          >
+                            ${shapeStyle === ShapeStyle.General
+                              ? generalIcon
+                              : scribbledIcon}
+                          </edgeless-tool-icon-button>
+                        `;
+                      }
+                    )}
+                  </div>
+                </div>
+              `;
+            })}
           </div>
           <menu-divider .vertical=${true}></menu-divider>
           <edgeless-color-panel
