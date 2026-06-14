@@ -35,7 +35,7 @@ import {
 import { useI18n } from '@affine/i18n';
 import { AiIcon, ExplainIcon, FlashPanelIcon } from '@blocksuite/icons/rc';
 import { FrameworkScope, useLiveData, useService } from '@toeverything/infra';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import * as styles from './styles.css';
 
@@ -47,6 +47,7 @@ const CARD_COUNT_NODES = Array.from(
 export const StudyGenerateDialog = ({
   close,
   docId,
+  autoGenerate,
 }: DialogComponentProps<WORKSPACE_DIALOG_SCHEMA['study-generate']>) => {
   const t = useI18n();
   const docsService = useService(DocsService);
@@ -213,6 +214,18 @@ export const StudyGenerateDialog = ({
     runGenerate,
     t,
   ]);
+
+  const autoGenerateTriggered = useRef(false);
+  useEffect(() => {
+    if (!autoGenerate || !doc || autoGenerateTriggered.current) {
+      return;
+    }
+    if (generationState.status !== 'idle') {
+      return;
+    }
+    autoGenerateTriggered.current = true;
+    handleGenerate();
+  }, [autoGenerate, doc, generationState.status, handleGenerate]);
 
   const handleSave = useCallback(async () => {
     try {

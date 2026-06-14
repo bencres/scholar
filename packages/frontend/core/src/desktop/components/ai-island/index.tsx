@@ -1,63 +1,135 @@
+import { useNewDoc } from '@affine/core/modules/app-sidebar/views/add-page-button';
+import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
+import { DocsService } from '@affine/core/modules/doc';
+import { EditorService } from '@affine/core/modules/editor';
+import { FeatureFlagService } from '@affine/core/modules/feature-flag';
+import { GlobalContextService } from '@affine/core/modules/global-context';
+import { StudyService } from '@affine/core/modules/study';
 import { WorkbenchService } from '@affine/core/modules/workbench';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useI18n } from '@affine/i18n';
+import track from '@affine/track';
+import { FlashPanelIcon, PlusIcon } from '@blocksuite/icons/rc';
+import {
+  useLiveData,
+  useService,
+  useServiceOptional,
+} from '@toeverything/infra';
 import clsx from 'clsx';
-import { useCallback, useEffect, useState } from 'react';
+import { type MouseEvent, useCallback, useEffect, useState } from 'react';
 
 import { IslandContainer } from './container';
-import { AIIcon } from './icons';
-import { aiIslandBtn, aiIslandWrapper, toolStyle } from './styles.css';
+import {
+  aiIslandBtn,
+  aiIslandWrapper,
+  generateDeckBtn,
+  toolStyle,
+} from './styles.css';
 
-const hideChat: Array<string | ((path: string) => boolean)> = [
+const hideIsland: Array<string | ((path: string) => boolean)> = [
   '/chat',
   path => path.includes('attachments'),
 ];
 
 export const AIIsland = () => {
-  // to make sure ai island is hidden first and animate in
+  const t = useI18n();
   const [hide, setHide] = useState(true);
+  const [hovered, setHovered] = useState(false);
 
   const workbench = useService(WorkbenchService).workbench;
+  const createDoc = useNewDoc();
+  const globalContext = useService(GlobalContextService).globalContext;
+  const docsService = useService(DocsService);
+  const workspaceDialogService = useService(WorkspaceDialogService);
+  const featureFlagService = useService(FeatureFlagService);
+  const studyService = useServiceOptional(StudyService);
+  const editorService = useServiceOptional(EditorService);
+
   const activeView = useLiveData(workbench.activeView$);
   const haveChatTab = useLiveData(
-    activeView.sidebarTabs$.map(tabs => tabs.some(t => t.id === 'chat'))
+    activeView.sidebarTabs$.map(tabs => tabs.some(tab => tab.id === 'chat'))
   );
   const activeLocation = useLiveData(activeView.location$);
   const activeTab = useLiveData(activeView.activeSidebarTab$);
   const sidebarOpen = useLiveData(workbench.sidebarOpen$);
 
+  const docId = useLiveData(globalContext.docId.$);
+  const docRecordList = docsService.list;
+  const doc = useLiveData(docId ? docRecordList.doc$(docId) : undefined);
+  const inTrash = useLiveData(doc?.meta$)?.trash;
+  const enableStudy = useLiveData(featureFlagService.flags.enable_study.$);
+  const currentMode = useLiveData(editorService?.editor.mode$);
+
+  const canGenerateDeck =
+    !!docId &&
+    !inTrash &&
+    enableStudy &&
+    !!studyService?.enabled &&
+    currentMode === 'page';
+
   useEffect(() => {
-    let hide = true;
+    let shouldHide = true;
     if (haveChatTab) {
-      hide = !!sidebarOpen && activeTab?.id === 'chat';
+      shouldHide = !!sidebarOpen && activeTab?.id === 'chat';
     } else {
       const path = activeLocation.pathname;
-      hide = hideChat.some(item =>
+      shouldHide = hideIsland.some(item =>
         typeof item === 'string' ? path === item : item(path)
       );
     }
-    setHide(hide);
+    setHide(shouldHide);
   }, [activeLocation.pathname, activeTab, haveChatTab, sidebarOpen]);
 
-  const onOpenChat = useCallback(() => {
-    if (hide) return;
-    if (haveChatTab) {
-      workbench.openSidebar();
-      activeView.activeSidebarTab('chat');
-    } else {
-      workbench.open('/chat');
-      workbench.closeSidebar();
-    }
-  }, [activeView, haveChatTab, hide, workbench]);
+  const onCreatePage = useCallback(
+    (event?: MouseEvent) => {
+      if (hide) return;
+      createDoc(event, 'page');
+      track.$.navigationPanel.$.createDoc();
+      track.$.sidebar.newDoc.quickStart({ with: 'page' });
+    },
+    [createDoc, hide]
+  );
+
+  const onGenerateDeck = useCallback(
+    (event: MouseEvent) => {
+      event.stopPropagation();
+      if (hide || !docId || !canGenerateDeck) return;
+      workspaceDialogService.open('study-generate', {
+        docId,
+        autoGenerate: true,
+      });
+    },
+    [canGenerateDeck, docId, hide, workspaceDialogService]
+  );
 
   return (
     <IslandContainer className={clsx(toolStyle, { hide })}>
-      <div className={aiIslandWrapper} data-hide={hide}>
+      <div
+        className={aiIslandWrapper}
+        data-hide={hide}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {canGenerateDeck ? (
+          <button
+            type="button"
+            className={generateDeckBtn}
+            data-visible={hovered}
+            data-testid="note-island-generate-deck"
+            onClick={onGenerateDeck}
+            aria-label={t['com.affine.study.generate.menu']()}
+          >
+            <FlashPanelIcon width={16} height={16} />
+            <span>{t['com.affine.study.generate.title']()}</span>
+          </button>
+        ) : null}
         <button
+          type="button"
           className={aiIslandBtn}
-          data-testid="ai-island"
-          onClick={onOpenChat}
+          data-testid="note-island-new-page"
+          onClick={onCreatePage}
+          aria-label={t['New Page']()}
         >
-          <AIIcon />
+          <PlusIcon width={20} height={20} />
         </button>
       </div>
     </IslandContainer>
