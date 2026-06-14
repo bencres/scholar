@@ -14,6 +14,9 @@ import GanttChart from './edgeless/Gantt Chart.json';
 import MonthlyCalendar from './edgeless/Monthly Calendar.json';
 import ProjectPlanning from './edgeless/Project Planning.json';
 import ProjectTrackingKanban from './edgeless/Project Tracking Kanban.json';
+import ThreeTierArchitecture from './edgeless/3-Tier Architecture.json';
+import EventDriven from './edgeless/Event-Driven.json';
+import ExternalIntegration from './edgeless/External Integration.json';
 
 const templates = {
   'Brainstorming': [
@@ -39,6 +42,11 @@ const templates = {
     MonthlyCalendar,
     ProjectPlanning,
     ProjectTrackingKanban
+  ],
+  'Systems Design': [
+    ThreeTierArchitecture,
+    EventDriven,
+    ExternalIntegration
   ]
 }
 
