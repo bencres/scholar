@@ -17,7 +17,7 @@ import {
 } from '@blocksuite/affine-shared/services';
 import { hasClassNameInList } from '@blocksuite/affine-shared/utils';
 import type { IBound } from '@blocksuite/global/gfx';
-import { Bound } from '@blocksuite/global/gfx';
+import { Bound, CYLINDER_DEFAULT_HEIGHT_RATIO } from '@blocksuite/global/gfx';
 import type { PointerEventState } from '@blocksuite/std';
 import { BaseTool, type GfxController } from '@blocksuite/std/gfx';
 import { effect } from '@preact/signals-core';
@@ -70,6 +70,9 @@ export class ShapeTool extends BaseTool<ShapeToolOption> {
 
     if (shapeName === 'roundedRect') {
       width += 40;
+    }
+    if (shapeName === ShapeType.Cylinder) {
+      height = Math.max(height, width * CYLINDER_DEFAULT_HEIGHT_RATIO);
     }
     // create a shape block when drag start
     const [modelX, modelY] = viewport.toModelCoord(e.point.x, e.point.y);
@@ -356,6 +359,8 @@ export class ShapeTool extends BaseTool<ShapeToolOption> {
       ShapeType.Diamond,
       ShapeType.Triangle,
       ShapeType.Hexagon,
+      ShapeType.Cylinder,
+      ShapeType.Cloud,
       'roundedRect',
     ];
 

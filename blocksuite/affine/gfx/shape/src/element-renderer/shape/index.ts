@@ -22,6 +22,8 @@ import type { IBound } from '@blocksuite/global/gfx';
 import { Bound } from '@blocksuite/global/gfx';
 import { deltaInsertsToChunks } from '@blocksuite/std/inline';
 
+import { cloud } from './cloud.js';
+import { cylinder } from './cylinder.js';
 import { diamond } from './diamond.js';
 import { ellipse } from './ellipse.js';
 import { hexagon } from './hexagon.js';
@@ -45,6 +47,8 @@ const shapeRenderers: Record<
   triangle,
   ellipse,
   hexagon,
+  cylinder,
+  cloud,
 };
 
 export const shape: ElementRenderer<ShapeElementModel> = (

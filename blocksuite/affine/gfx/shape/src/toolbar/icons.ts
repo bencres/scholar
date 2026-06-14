@@ -291,3 +291,66 @@ export const hexagonSvg = html`<svg
     stroke="inherit"
   />
 </svg> `;
+
+export const GeneralCylinderIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M3 6C3 4.5 6.1 3.5 10 3.5C13.9 3.5 17 4.5 17 6V14C17 15.5 13.9 16.5 10 16.5C6.1 16.5 3 15.5 3 14V6ZM3 6C3 7.5 6.1 8.5 10 8.5C13.9 8.5 17 7.5 17 6"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+  />
+  <ellipse cx="10" cy="6" rx="7" ry="2.5" />
+</svg>`;
+
+export const ScribbledCylinderIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M3.2 6.1C3.2 4.7 6.2 3.6 10 3.6C13.8 3.6 16.8 4.7 16.8 6.1V13.9C16.8 15.3 13.8 16.4 10 16.4C6.2 16.4 3.2 15.3 3.2 13.9V6.1Z"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.4"
+  />
+  <path
+    d="M3.4 6.2C3.4 7.6 6.3 8.6 10 8.6C13.7 8.6 16.6 7.6 16.6 6.2"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.2"
+  />
+</svg>`;
+
+export const GeneralCloudIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M5 13.5H14.5C16.4 13.5 18 12.1 18 10.2C18 8.5 16.8 7 15 6.6C14.6 4.7 12.9 3.5 11 3.5C9.6 3.5 8.3 4.2 7.5 5.3C5.8 5.1 4.2 6.4 4 8.1C2.6 8.5 1.5 9.8 1.5 11.4C1.5 12.7 2.6 13.5 4 13.5H5Z"
+  />
+</svg>`;
+
+export const ScribbledCloudIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M5.2 13.4H14.3C16.1 13.4 17.6 12.1 17.6 10.3C17.6 8.7 16.5 7.3 14.9 6.9C14.5 5.1 12.9 3.9 11.1 3.9C9.7 3.9 8.5 4.6 7.7 5.6C6.1 5.4 4.6 6.6 4.3 8.2C3 8.6 2 9.9 2 11.4C2 12.6 3.1 13.4 4.4 13.4H5.2Z"
+    stroke="currentColor"
+    stroke-width="0.5"
+  />
+</svg>`;

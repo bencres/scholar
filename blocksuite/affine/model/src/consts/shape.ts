@@ -16,6 +16,8 @@ export enum ShapeType {
   Diamond = 'diamond',
   Triangle = 'triangle',
   Hexagon = 'hexagon',
+  Cylinder = 'cylinder',
+  Cloud = 'cloud',
 }
 
 export type ShapeName = ShapeType | 'roundedRect';

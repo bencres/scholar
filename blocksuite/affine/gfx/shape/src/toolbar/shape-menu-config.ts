@@ -10,7 +10,11 @@ import {
 import type { TemplateResult } from 'lit';
 
 import {
+  GeneralCloudIcon,
+  GeneralCylinderIcon,
   GeneralHexagonIcon,
+  ScribbledCloudIcon,
+  ScribbledCylinderIcon,
   ScribbledDiamondIcon,
   ScribbledEllipseIcon,
   ScribbledHexagonIcon,
@@ -68,6 +72,20 @@ export const ShapeComponentConfig: Config[] = [
     generalIcon: GeneralHexagonIcon,
     scribbledIcon: ScribbledHexagonIcon,
     tooltip: 'Hexagon',
+    disabled: false,
+  },
+  {
+    name: ShapeType.Cylinder,
+    generalIcon: GeneralCylinderIcon,
+    scribbledIcon: ScribbledCylinderIcon,
+    tooltip: 'Cylinder',
+    disabled: false,
+  },
+  {
+    name: ShapeType.Cloud,
+    generalIcon: GeneralCloudIcon,
+    scribbledIcon: ScribbledCloudIcon,
+    tooltip: 'Cloud',
     disabled: false,
   },
 ];

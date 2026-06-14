@@ -2,6 +2,8 @@ import type { Options } from '@blocksuite/affine-block-surface';
 import type { ShapeStyle } from '@blocksuite/affine-model';
 import type { XYWH } from '@blocksuite/global/gfx';
 
+import { CloudShape } from './cloud';
+import { CylinderShape } from './cylinder';
 import { DiamondShape } from './diamond';
 import { EllipseShape } from './ellipse';
 import { HexagonShape } from './hexagon';
@@ -28,6 +30,10 @@ export class ShapeFactory {
         return new EllipseShape(xywh, type, options, shapeStyle);
       case 'hexagon':
         return new HexagonShape(xywh, type, options, shapeStyle);
+      case 'cylinder':
+        return new CylinderShape(xywh, type, options, shapeStyle);
+      case 'cloud':
+        return new CloudShape(xywh, type, options, shapeStyle);
       case 'roundedRect':
         return new RoundedRectShape(xywh, type, options, shapeStyle);
       default:

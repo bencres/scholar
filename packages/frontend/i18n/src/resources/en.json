@@ -1583,6 +1583,8 @@
   "com.affine.settings.editorSettings.edgeless.shape.border-color": "Border color",
   "com.affine.settings.editorSettings.edgeless.shape.border-style": "Border style",
   "com.affine.settings.editorSettings.edgeless.shape.border-thickness": "Border thickness",
+  "com.affine.settings.editorSettings.edgeless.shape.cloud": "Cloud",
+  "com.affine.settings.editorSettings.edgeless.shape.cylinder": "Cylinder",
   "com.affine.settings.editorSettings.edgeless.shape.diamond": "Diamond",
   "com.affine.settings.editorSettings.edgeless.shape.ellipse": "Ellipse",
   "com.affine.settings.editorSettings.edgeless.shape.fill-color": "Fill color",

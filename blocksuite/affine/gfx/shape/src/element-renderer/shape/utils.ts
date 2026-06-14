@@ -17,6 +17,7 @@ import type {
 } from '@blocksuite/affine-model';
 import { FeatureFlagService } from '@blocksuite/affine-shared/services';
 import type { Bound, SerializedXYWH } from '@blocksuite/global/gfx';
+import { drawCloudPath, drawCylinderPath } from '@blocksuite/global/gfx';
 import { deltaInsertsToChunks } from '@blocksuite/std/inline';
 
 export type Colors = {
@@ -52,6 +53,12 @@ export function drawGeneralShape(
       break;
     case 'hexagon':
       drawHexagon(ctx, 0, 0, w, h);
+      break;
+    case 'cylinder':
+      drawCylinderPath(ctx, 0, 0, w, h);
+      break;
+    case 'cloud':
+      drawCloudPath(ctx, w, h);
   }
 
   ctx.lineWidth = shapeModel.strokeWidth;

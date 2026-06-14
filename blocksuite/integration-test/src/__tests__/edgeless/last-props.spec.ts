@@ -115,6 +115,34 @@ describe('apply last props', () => {
         .fillColor
     ).toBe(DefaultTheme.FillColorShortMap.Purple);
 
+    const cylinderId = service.crud.addElement('shape', {
+      shapeType: ShapeType.Cylinder,
+    });
+    if (!cylinderId) {
+      throw new Error('cylinderId is not found');
+    }
+    service.crud.updateElement(cylinderId, {
+      fillColor: DefaultTheme.FillColorShortMap.Green,
+    });
+    expect(
+      std.get(EditPropsStore).lastProps$.value[`shape:${ShapeType.Cylinder}`]
+        .fillColor
+    ).toBe(DefaultTheme.FillColorShortMap.Green);
+
+    const cloudId = service.crud.addElement('shape', {
+      shapeType: ShapeType.Cloud,
+    });
+    if (!cloudId) {
+      throw new Error('cloudId is not found');
+    }
+    service.crud.updateElement(cloudId, {
+      fillColor: DefaultTheme.FillColorShortMap.Blue,
+    });
+    expect(
+      std.get(EditPropsStore).lastProps$.value[`shape:${ShapeType.Cloud}`]
+        .fillColor
+    ).toBe(DefaultTheme.FillColorShortMap.Blue);
+
     // apply last props
     const rectId2 = service.crud.addElement('shape', {
       shapeType: ShapeType.Rect,
