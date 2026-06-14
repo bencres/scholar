@@ -1,5 +1,6 @@
 export * from './bound.js';
 export * from './curve.js';
+export * from './hexagon.js';
 export * from './math.js';
 export * from './model/index.js';
 export * from './perfect-freehand/index.js';

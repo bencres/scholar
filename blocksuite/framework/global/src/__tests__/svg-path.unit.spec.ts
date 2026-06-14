@@ -70,4 +70,14 @@ describe('SVGShapeBuilder', () => {
     const triangleResult = SVGShapeBuilder.triangle(100, 80, 0);
     expect(triangleResult).toBe('50,0 100,80 0,80');
   });
+
+  test('should generate hexagon polygon points', () => {
+    const result = SVGShapeBuilder.hexagon(100, 80, 2);
+    expect(result).toBe('25,1 75,1 99,40 75,79 25,79 1,40');
+  });
+
+  test('should generate hexagon path', () => {
+    const result = SVGShapeBuilder.hexagonPath(100, 80, 2);
+    expect(result).toBe('M 25 1 L 75 1 L 99 40 L 75 79 L 25 79 L 1 40 Z');
+  });
 });

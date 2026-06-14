@@ -1,3 +1,8 @@
+import {
+  flatTopHexagonPointsRelative,
+  flatTopHexagonPointsString,
+} from './hexagon.js';
+
 interface PathCommand {
   command: string;
   coordinates: number[];
@@ -156,5 +161,34 @@ export class SVGShapeBuilder {
       .lineTo(halfStroke, height - halfStroke)
       .closePath()
       .build();
+  }
+
+  /**
+   * Generate flat-top hexagon polygon points
+   */
+  static hexagon(
+    width: number,
+    height: number,
+    strokeWidth: number = 0
+  ): string {
+    return flatTopHexagonPointsString(width, height, strokeWidth);
+  }
+
+  /**
+   * Generate flat-top hexagon path using SVGPathBuilder
+   */
+  static hexagonPath(
+    width: number,
+    height: number,
+    strokeWidth: number = 0
+  ): string {
+    const points = flatTopHexagonPointsRelative(width, height, strokeWidth);
+    const pathBuilder = new SVGPathBuilder();
+
+    pathBuilder.moveTo(points[0][0], points[0][1]);
+    for (let i = 1; i < points.length; i++) {
+      pathBuilder.lineTo(points[i][0], points[i][1]);
+    }
+    return pathBuilder.closePath().build();
   }
 }
