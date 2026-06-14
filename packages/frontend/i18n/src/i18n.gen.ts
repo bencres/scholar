@@ -2963,6 +2963,22 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.synthesize.loading"](): string;
     /**
+      * `Preparing note content…`
+      */
+    ["com.affine.study.synthesize.loading.preparing"](): string;
+    /**
+      * `Generating cards from your selected notes…`
+      */
+    ["com.affine.study.synthesize.loading.generating"](): string;
+    /**
+      * `Processing generated cards…`
+      */
+    ["com.affine.study.synthesize.loading.parsing"](): string;
+    /**
+      * `Validating card quality…`
+      */
+    ["com.affine.study.synthesize.loading.validating"](): string;
+    /**
       * `Save deck`
       */
     ["com.affine.study.synthesize.save"](): string;
@@ -6416,6 +6432,14 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.settings.editorSettings.edgeless.shape.border-thickness"](): string;
     /**
+      * `Cloud`
+      */
+    ["com.affine.settings.editorSettings.edgeless.shape.cloud"](): string;
+    /**
+      * `Cylinder`
+      */
+    ["com.affine.settings.editorSettings.edgeless.shape.cylinder"](): string;
+    /**
       * `Diamond`
       */
     ["com.affine.settings.editorSettings.edgeless.shape.diamond"](): string;
@@ -6443,6 +6467,10 @@ export function useAFFiNEI18N(): {
       * `Font style`
       */
     ["com.affine.settings.editorSettings.edgeless.shape.font-style"](): string;
+    /**
+      * `Hexagon`
+      */
+    ["com.affine.settings.editorSettings.edgeless.shape.hexagon"](): string;
     /**
       * `List`
       */

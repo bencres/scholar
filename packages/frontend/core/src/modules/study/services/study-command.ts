@@ -149,9 +149,36 @@ function publishStudyGenerateDebug(debug: StudyGenerationDebug) {
   );
 }
 
+export type StudyGenerationStage =
+  | 'preparing'
+  | 'generating'
+  | 'parsing'
+  | 'validating';
+
+export const STUDY_GENERATION_STAGE_PROGRESS: Record<
+  StudyGenerationStage,
+  number
+> = {
+  preparing: 10,
+  generating: 20,
+  parsing: 75,
+  validating: 90,
+};
+
+export function getStudyGenerationProgress(
+  state: Extract<StudyGenerationState, { status: 'generating' }>
+): number {
+  return state.progress ?? STUDY_GENERATION_STAGE_PROGRESS[state.stage];
+}
+
 export type StudyGenerationState =
   | { status: 'idle' }
-  | { status: 'generating'; docIds: string[] }
+  | {
+      status: 'generating';
+      docIds: string[];
+      stage: StudyGenerationStage;
+      progress?: number;
+    }
   | {
       status: 'preview';
       docIds: string[];
@@ -319,6 +346,8 @@ export class StudyCommandService extends Service {
       throw new Error('Select at least one note page');
     }
 
+    this.setGeneratingStage(uniqueDocIds, 'preparing');
+
     const releases: Array<() => void> = [];
     const sections = [];
     try {
@@ -395,7 +424,7 @@ export class StudyCommandService extends Service {
       throw new Error(`Unsupported study generation model: ${selectedModel}`);
     }
 
-    this.generationState$.setValue({ status: 'generating', docIds });
+    this.setGeneratingStage(docIds, 'generating');
 
     let rawResponse: string | undefined;
     let stage: StudyGenerationDebug['stage'] = 'stream';
@@ -427,7 +456,13 @@ export class StudyCommandService extends Service {
         }
       );
 
-      rawResponse = await collectStreamText(stream);
+      rawResponse = await collectStreamText(stream, {
+        onChunk: index => {
+          if (index % 5 !== 0) return;
+          const progress = Math.min(70, 20 + Math.floor(index / 2));
+          this.setGeneratingStage(docIds, 'generating', progress);
+        },
+      });
       logStudyGenerateDebug('Raw model response', {
         modelId: selectedModel,
         docIds,
@@ -435,8 +470,10 @@ export class StudyCommandService extends Service {
         rawResponse,
       });
 
+      this.setGeneratingStage(docIds, 'parsing');
       stage = 'parse';
       const json = parseStudyCardsGenerateJson(rawResponse);
+      this.setGeneratingStage(docIds, 'validating');
       stage = 'validate';
       const parsed = sanitizeStudyCardsGenerateOutput(
         StudyCardsGenerateOutputSchema.parse(json)
@@ -474,6 +511,19 @@ export class StudyCommandService extends Service {
       });
       throw error;
     }
+  }
+
+  private setGeneratingStage(
+    docIds: string[],
+    stage: StudyGenerationStage,
+    progress?: number
+  ) {
+    this.generationState$.setValue({
+      status: 'generating',
+      docIds,
+      stage,
+      progress: progress ?? STUDY_GENERATION_STAGE_PROGRESS[stage],
+    });
   }
 
   setPreviewCardAccepted(cardId: string, accepted: boolean) {

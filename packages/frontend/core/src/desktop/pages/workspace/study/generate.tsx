@@ -10,6 +10,7 @@ import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
 import { StudyService } from '@affine/core/modules/study';
 import { StudyCardBrowseItem } from '@affine/core/modules/study/views/study-card-browse-item';
+import { StudyGenerationLoading } from '@affine/core/modules/study/views/study-generation-loading';
 import {
   StudyPageBody,
   StudyPageHeader,
@@ -284,9 +285,7 @@ export const StudyGeneratePage = () => {
         ) : null}
 
         {generationState.status === 'generating' ? (
-          <div className={styles.emptyState}>
-            {t['com.affine.study.synthesize.loading']()}
-          </div>
+          <StudyGenerationLoading state={generationState} />
         ) : null}
 
         {generationState.status === 'preview' ? (

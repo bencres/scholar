@@ -173,6 +173,29 @@ export const emptyState = style({
   borderRadius: 8,
 });
 
+export const generationLoading = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: 16,
+  padding: '48px 32px',
+  textAlign: 'center',
+  border: `1px dashed ${cssVarV2.layer.insideBorder.border}`,
+  borderRadius: 8,
+});
+
+export const generationLoadingMessage = style({
+  fontSize: 14,
+  lineHeight: '22px',
+  color: cssVarV2.text.secondary,
+  maxWidth: 360,
+});
+
+export const generationLoadingProgress = style({
+  width: '100%',
+  maxWidth: 320,
+});
+
 export const debugResponse = style({
   marginTop: 16,
   maxHeight: 320,

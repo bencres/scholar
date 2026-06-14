@@ -55,7 +55,6 @@ export const StudyGenerateDialog = ({
   const [recallCount, setRecallCount] = useState(defaultRecallCount);
   const [synthesisCount, setSynthesisCount] = useState(defaultSynthesisCount);
   const [focus, setFocus] = useState(defaultGenerationFocus);
-  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (!docId) return;
@@ -97,8 +96,8 @@ export const StudyGenerateDialog = ({
       return;
     }
 
-    setGenerating(true);
     close();
+    workbench.open(`/study/synthesize?docId=${docId}`, { at: 'active' });
 
     try {
       await studyService.generateFromDoc(
@@ -120,9 +119,6 @@ export const StudyGenerateDialog = ({
           : t['com.affine.study.generate.failed'](),
         { duration: 10000 }
       );
-    } finally {
-      setGenerating(false);
-      workbench.open(`/study/synthesize?docId=${docId}`, { at: 'active' });
     }
   }, [
     close,
@@ -278,7 +274,6 @@ export const StudyGenerateDialog = ({
             <div className={styles.actions}>
               <Button
                 variant="primary"
-                disabled={generating}
                 onClick={() => {
                   handleGenerate().catch(error => {
                     console.error('[study.cards.generate] modal failed', error);
