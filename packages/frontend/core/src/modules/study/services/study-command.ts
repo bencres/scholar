@@ -368,14 +368,10 @@ export class StudyCommandService extends Service {
         for (const docId of uniqueDocIds) {
           const { doc, release } = this.docsService.open(docId);
           releases.push(release);
-          const store = doc.blockSuiteDoc.getStore({ id: docId });
-          if (!store) {
-            continue;
-          }
           const section = extractDocSection(
             docId,
             doc.title$.value || 'Untitled',
-            store
+            doc.blockSuiteDoc
           );
           if (section) {
             sections.push(section);

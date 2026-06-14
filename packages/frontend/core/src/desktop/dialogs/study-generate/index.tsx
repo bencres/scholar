@@ -85,12 +85,6 @@ export const StudyGenerateDialog = ({
   const handleGenerate = useCallback(async () => {
     if (!docId || !doc) return;
 
-    const store = doc.blockSuiteDoc.getStore({ id: docId });
-    if (!store) {
-      toast(t['com.affine.study.generate.failed']());
-      return;
-    }
-
     if (!includeRecall && !includeSynthesis) {
       toast(t['com.affine.study.generate.no-card-types']());
       return;
@@ -101,7 +95,7 @@ export const StudyGenerateDialog = ({
 
     try {
       await studyService.generateFromDoc(
-        store,
+        doc.blockSuiteDoc,
         focus.trim() || undefined,
         modelId,
         {
@@ -277,6 +271,12 @@ export const StudyGenerateDialog = ({
                 onClick={() => {
                   handleGenerate().catch(error => {
                     console.error('[study.cards.generate] modal failed', error);
+                    toast(
+                      error instanceof Error
+                        ? error.message
+                        : t['com.affine.study.generate.failed'](),
+                      { duration: 10000 }
+                    );
                   });
                 }}
                 data-testid="study-generate-submit"
