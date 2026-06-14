@@ -70,7 +70,7 @@ export const StudyGeneratePage = () => {
   );
   const [searchParams] = useSearchParams();
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
-  const [focus, setFocus] = useState(defaultGenerationFocus);
+  const [focus, setFocus] = useState(defaultGenerationFocus ?? '');
   const [includeRecall, setIncludeRecall] = useState(defaultIncludeRecall);
   const [includeSynthesis, setIncludeSynthesis] = useState(
     defaultIncludeSynthesis
@@ -95,7 +95,7 @@ export const StudyGeneratePage = () => {
   }, [defaultSynthesisCount]);
 
   useEffect(() => {
-    setFocus(defaultGenerationFocus);
+    setFocus(defaultGenerationFocus ?? '');
   }, [defaultGenerationFocus]);
 
   useEffect(() => {
@@ -127,7 +127,7 @@ export const StudyGeneratePage = () => {
     try {
       await studyService.generateFromDocs(
         selectedDocIds,
-        focus.trim() || undefined,
+        (focus ?? '').trim() || undefined,
         undefined,
         {
           targetRecallCount: recallCount,

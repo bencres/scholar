@@ -54,7 +54,7 @@ export const StudyGenerateDialog = ({
   );
   const [recallCount, setRecallCount] = useState(defaultRecallCount);
   const [synthesisCount, setSynthesisCount] = useState(defaultSynthesisCount);
-  const [focus, setFocus] = useState(defaultGenerationFocus);
+  const [focus, setFocus] = useState(defaultGenerationFocus ?? '');
 
   useEffect(() => {
     if (!docId) return;
@@ -72,7 +72,7 @@ export const StudyGenerateDialog = ({
     setIncludeSynthesis(defaultIncludeSynthesis);
     setRecallCount(defaultRecallCount);
     setSynthesisCount(defaultSynthesisCount);
-    setFocus(defaultGenerationFocus);
+    setFocus(defaultGenerationFocus ?? '');
   }, [
     defaultGenerationFocus,
     defaultIncludeRecall,
@@ -96,7 +96,7 @@ export const StudyGenerateDialog = ({
     try {
       await studyService.generateFromDoc(
         doc.blockSuiteDoc,
-        focus.trim() || undefined,
+        (focus ?? '').trim() || undefined,
         modelId,
         {
           targetRecallCount: recallCount,
