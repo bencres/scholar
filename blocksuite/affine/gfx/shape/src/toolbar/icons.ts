@@ -1,4 +1,19 @@
+import {
+  cloudPath,
+  cylinderPath,
+  flatTopHexagonPointsString,
+} from '@blocksuite/global/gfx';
 import { html } from 'lit';
+
+const ARCH_ICON_SIZE = 18;
+const ARCH_ICON_OFFSET = 1;
+const architectureHexagonPoints = flatTopHexagonPointsString(
+  ARCH_ICON_SIZE,
+  ARCH_ICON_SIZE
+);
+const architectureCylinderPath = cylinderPath(ARCH_ICON_SIZE, ARCH_ICON_SIZE);
+const architectureCloudPath = cloudPath(ARCH_ICON_SIZE, ARCH_ICON_SIZE);
+const draggableHexagonPoints = flatTopHexagonPointsString(52, 48);
 
 export const ScribbledSquareIcon = html`<svg
   width="20"
@@ -261,7 +276,10 @@ export const GeneralHexagonIcon = html`<svg
   fill="currentColor"
   xmlns="http://www.w3.org/2000/svg"
 >
-  <path d="M5 3.5L15 3.5L18.5 10L15 16.5L5 16.5L1.5 10L5 3.5Z" />
+  <polygon
+    points="${architectureHexagonPoints}"
+    transform="translate(${ARCH_ICON_OFFSET}, ${ARCH_ICON_OFFSET})"
+  />
 </svg>`;
 
 export const ScribbledHexagonIcon = html`<svg
@@ -285,8 +303,8 @@ export const hexagonSvg = html`<svg
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
 >
-  <path
-    d="M13 1.5L39 1.5L50.5 24L39 46.5L13 46.5L1.5 24L13 1.5Z"
+  <polygon
+    points="${draggableHexagonPoints}"
     fill="currentColor"
     stroke="inherit"
   />
@@ -300,12 +318,9 @@ export const GeneralCylinderIcon = html`<svg
   xmlns="http://www.w3.org/2000/svg"
 >
   <path
-    d="M3 6C3 4.5 6.1 3.5 10 3.5C13.9 3.5 17 4.5 17 6V14C17 15.5 13.9 16.5 10 16.5C6.1 16.5 3 15.5 3 14V6ZM3 6C3 7.5 6.1 8.5 10 8.5C13.9 8.5 17 7.5 17 6"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.5"
+    d="${architectureCylinderPath}"
+    transform="translate(${ARCH_ICON_OFFSET}, ${ARCH_ICON_OFFSET})"
   />
-  <ellipse cx="10" cy="6" rx="7" ry="2.5" />
 </svg>`;
 
 export const ScribbledCylinderIcon = html`<svg
@@ -337,7 +352,8 @@ export const GeneralCloudIcon = html`<svg
   xmlns="http://www.w3.org/2000/svg"
 >
   <path
-    d="M5 13.5H14.5C16.4 13.5 18 12.1 18 10.2C18 8.5 16.8 7 15 6.6C14.6 4.7 12.9 3.5 11 3.5C9.6 3.5 8.3 4.2 7.5 5.3C5.8 5.1 4.2 6.4 4 8.1C2.6 8.5 1.5 9.8 1.5 11.4C1.5 12.7 2.6 13.5 4 13.5H5Z"
+    d="${architectureCloudPath}"
+    transform="translate(${ARCH_ICON_OFFSET}, ${ARCH_ICON_OFFSET})"
   />
 </svg>`;
 

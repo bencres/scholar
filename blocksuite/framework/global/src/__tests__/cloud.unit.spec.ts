@@ -12,14 +12,15 @@ describe('cloudPath', () => {
 
   test('should support absolute coordinates', () => {
     const result = cloudPathAt(10, 20, 100, 60, 0);
-    expect(result.startsWith('M 25 60.8')).toBe(true);
+    expect(result.startsWith('M 35 60.5')).toBe(true);
   });
 });
 
 describe('cloudPoints', () => {
   test('should map outline fractions to bound coordinates', () => {
     const points = cloudPoints({ x: 0, y: 0, w: 100, h: 100 });
-    expect(points[0]).toEqual([15, 68]);
-    expect(points.at(-1)).toEqual([85, 68]);
+    expect(points[0]).toEqual([25, 67.5]);
+    expect(points.at(-1)?.[0]).toBe(7.5);
+    expect(points.at(-1)?.[1]).toBeCloseTo(57);
   });
 });

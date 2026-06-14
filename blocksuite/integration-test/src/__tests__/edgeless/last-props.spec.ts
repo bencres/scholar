@@ -106,7 +106,7 @@ describe('apply last props', () => {
     const hexagonShape = service.crud.getElementById(
       hexagonId
     ) as ShapeElementModel;
-    expect(hexagonShape.fillColor).toBe(DefaultTheme.FillColorShortMap.Yellow);
+    expect(hexagonShape.fillColor).toBe(DefaultTheme.FillColorShortMap.Purple);
     service.crud.updateElement(hexagonId, {
       fillColor: DefaultTheme.FillColorShortMap.Purple,
     });

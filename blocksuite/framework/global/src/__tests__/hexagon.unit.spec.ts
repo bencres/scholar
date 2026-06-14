@@ -6,27 +6,38 @@ import {
 } from '../gfx/hexagon.js';
 
 describe('flatTopHexagonPoints', () => {
-  test('should generate hexagon vertices within bounds', () => {
+  test('should generate regular hexagon vertices within bounds', () => {
     const points = flatTopHexagonPoints({ x: 0, y: 0, w: 100, h: 80 });
-    expect(points).toEqual([
-      [25, 0],
-      [75, 0],
-      [100, 40],
-      [75, 80],
-      [25, 80],
-      [0, 40],
-    ]);
+    expect(points[0][0]).toBeCloseTo(26.906, 2);
+    expect(points[0][1]).toBeCloseTo(0);
+    expect(points[2][0]).toBeCloseTo(96.188, 2);
+    expect(points[2][1]).toBeCloseTo(40);
+    expect(points[4][0]).toBeCloseTo(26.906, 2);
+    expect(points[4][1]).toBeCloseTo(80);
+  });
+
+  test('should center a regular hexagon in a square bounding box', () => {
+    const points = flatTopHexagonPoints({ x: 0, y: 0, w: 100, h: 100 });
+    expect(points[0][1]).toBeCloseTo(6.698, 2);
+    expect(points[2][1]).toBeCloseTo(50);
+    expect(points[4][1]).toBeCloseTo(93.301, 2);
   });
 });
 
 describe('flatTopHexagonPointsString', () => {
   test('should generate hexagon polygon points with stroke offset', () => {
     const result = flatTopHexagonPointsString(100, 80, 2);
-    expect(result).toBe('25,1 75,1 99,40 75,79 25,79 1,40');
+    const [firstX, firstY] = result.split(' ')[0].split(',').map(Number);
+    expect(firstX).toBeCloseTo(27.483, 2);
+    expect(firstY).toBe(1);
+    expect(result).toContain('95.033');
   });
 
   test('should handle zero stroke width', () => {
     const result = flatTopHexagonPointsString(100, 80, 0);
-    expect(result).toBe('25,0 75,0 100,40 75,80 25,80 0,40');
+    const [firstX, firstY] = result.split(' ')[0].split(',').map(Number);
+    expect(firstX).toBeCloseTo(26.906, 2);
+    expect(firstY).toBe(0);
+    expect(result).toContain('96.188');
   });
 });

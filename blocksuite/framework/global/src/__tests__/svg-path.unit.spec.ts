@@ -73,11 +73,16 @@ describe('SVGShapeBuilder', () => {
 
   test('should generate hexagon polygon points', () => {
     const result = SVGShapeBuilder.hexagon(100, 80, 2);
-    expect(result).toBe('25,1 75,1 99,40 75,79 25,79 1,40');
+    const [firstX, firstY] = result.split(' ')[0].split(',').map(Number);
+    expect(firstX).toBeCloseTo(27.483, 2);
+    expect(firstY).toBe(1);
+    expect(result).toContain('95.033');
   });
 
   test('should generate hexagon path', () => {
     const result = SVGShapeBuilder.hexagonPath(100, 80, 2);
-    expect(result).toBe('M 25 1 L 75 1 L 99 40 L 75 79 L 25 79 L 1 40 Z');
+    expect(result.startsWith('M ')).toBe(true);
+    expect(result.endsWith('Z')).toBe(true);
+    expect(result).toContain('95.03332099679082 40');
   });
 });

@@ -17,7 +17,11 @@ import type {
 } from '@blocksuite/affine-model';
 import { FeatureFlagService } from '@blocksuite/affine-shared/services';
 import type { Bound, SerializedXYWH } from '@blocksuite/global/gfx';
-import { drawCloudPath, drawCylinderPath } from '@blocksuite/global/gfx';
+import {
+  drawCloudPath,
+  drawCylinderPath,
+  flatTopHexagonPointsRelative,
+} from '@blocksuite/global/gfx';
 import { deltaInsertsToChunks } from '@blocksuite/std/inline';
 
 export type Colors = {
@@ -181,18 +185,11 @@ function drawHexagon(
   width: number,
   height: number
 ) {
-  const points = [
-    [x + width * 0.25, y],
-    [x + width * 0.75, y],
-    [x + width, y + height / 2],
-    [x + width * 0.75, y + height],
-    [x + width * 0.25, y + height],
-    [x, y + height / 2],
-  ];
+  const points = flatTopHexagonPointsRelative(width, height);
   ctx.beginPath();
-  ctx.moveTo(points[0][0], points[0][1]);
+  ctx.moveTo(x + points[0][0], y + points[0][1]);
   for (let i = 1; i < points.length; i++) {
-    ctx.lineTo(points[i][0], points[i][1]);
+    ctx.lineTo(x + points[i][0], y + points[i][1]);
   }
   ctx.closePath();
 }

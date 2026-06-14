@@ -142,6 +142,24 @@ const ShapeObject = {
 
 export const ShapeSchema = z.object(ShapeObject).default(DEFAULT_SHAPE);
 
+const ArchitectureHexagonSchema = ShapeSchema.default({
+  ...DEFAULT_SHAPE,
+  fillColor: DefaultTheme.FillColorShortMap.Purple,
+  strokeColor: DefaultTheme.black,
+});
+
+const ArchitectureCylinderSchema = ShapeSchema.default({
+  ...DEFAULT_SHAPE,
+  fillColor: DefaultTheme.FillColorShortMap.Green,
+  strokeColor: DefaultTheme.black,
+});
+
+const ArchitectureCloudSchema = ShapeSchema.default({
+  ...DEFAULT_SHAPE,
+  fillColor: DefaultTheme.FillColorShortMap.Blue,
+  strokeColor: DefaultTheme.black,
+});
+
 export const RoundedShapeSchema = z
   .object(ShapeObject)
   .default({ ...DEFAULT_SHAPE, radius: 0.1 });
@@ -186,9 +204,9 @@ export const NodePropsSchema = z.object({
   // shapes
   'shape:diamond': ShapeSchema,
   'shape:ellipse': ShapeSchema,
-  'shape:hexagon': ShapeSchema,
-  'shape:cylinder': ShapeSchema,
-  'shape:cloud': ShapeSchema,
+  'shape:hexagon': ArchitectureHexagonSchema,
+  'shape:cylinder': ArchitectureCylinderSchema,
+  'shape:cloud': ArchitectureCloudSchema,
   'shape:rect': ShapeSchema,
   'shape:triangle': ShapeSchema,
   'shape:roundedRect': RoundedShapeSchema,

@@ -178,7 +178,7 @@ describe('Shape rendering with DOM renderer', () => {
     const polygon = shapeElement!.querySelector('polygon');
     expect(polygon).not.toBeNull();
     expect(polygon!.getAttribute('points')).toBe(
-      '20,1 60,1 79,30 60,59 20,59 1,30'
+      '23.25684219350085,1 56.74315780649915,1 73.4863156129983,30 56.74315780649915,59 23.25684219350085,59 6.513684387001703,30'
     );
   });
 
