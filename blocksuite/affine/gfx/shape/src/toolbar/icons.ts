@@ -253,3 +253,41 @@ export const roundedSvg = html`<svg
     stroke="inherit"
   />
 </svg> `;
+
+export const GeneralHexagonIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path d="M5 3.5L15 3.5L18.5 10L15 16.5L5 16.5L1.5 10L5 3.5Z" />
+</svg>`;
+
+export const ScribbledHexagonIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M5.2 3.8L14.8 3.6L18.3 10.1L14.9 16.4L5.1 16.6L1.7 9.9L5.2 3.8Z"
+    stroke="currentColor"
+    stroke-width="0.5"
+  />
+</svg>`;
+
+export const hexagonSvg = html`<svg
+  width="52"
+  height="48"
+  viewBox="0 0 52 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M13 1.5L39 1.5L50.5 24L39 46.5L13 46.5L1.5 24L13 1.5Z"
+    fill="currentColor"
+    stroke="inherit"
+  />
+</svg> `;

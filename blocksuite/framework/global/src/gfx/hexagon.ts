@@ -1,4 +1,5 @@
-import type { IBound, IVec } from './bound.js';
+import type { IBound } from './model/bound.js';
+import type { IVec } from './model/vec.js';
 
 /**
  * Flat-top regular hexagon vertices within a bounding box.

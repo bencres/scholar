@@ -4,6 +4,7 @@ import type { XYWH } from '@blocksuite/global/gfx';
 
 import { DiamondShape } from './diamond';
 import { EllipseShape } from './ellipse';
+import { HexagonShape } from './hexagon';
 import { RectShape } from './rect';
 import { RoundedRectShape } from './rounded-rect';
 import type { Shape } from './shape';
@@ -25,6 +26,8 @@ export class ShapeFactory {
         return new DiamondShape(xywh, type, options, shapeStyle);
       case 'ellipse':
         return new EllipseShape(xywh, type, options, shapeStyle);
+      case 'hexagon':
+        return new HexagonShape(xywh, type, options, shapeStyle);
       case 'roundedRect':
         return new RoundedRectShape(xywh, type, options, shapeStyle);
       default:

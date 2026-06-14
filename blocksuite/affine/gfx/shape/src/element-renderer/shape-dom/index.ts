@@ -194,7 +194,11 @@ export const shapeDomRenderer = (
   // Apply shape-specific clipping, border-radius, and potentially clear innerHTML
   applyShapeSpecificStyles(model, element, zoom);
 
-  if (model.shapeType === 'diamond' || model.shapeType === 'triangle') {
+  if (
+    model.shapeType === 'diamond' ||
+    model.shapeType === 'triangle' ||
+    model.shapeType === 'hexagon'
+  ) {
     // For diamond and triangle, fill and border are handled by inline SVG
     element.style.border = 'none'; // Ensure no standard CSS border interferes
     element.style.backgroundColor = 'transparent'; // Host element is transparent
@@ -210,9 +214,15 @@ export const shapeDomRenderer = (
         unscaledHeight,
         strokeW
       );
-    } else {
+    } else if (model.shapeType === 'triangle') {
       // triangle - generate triangle points using shared utility
       svgPoints = SVGShapeBuilder.triangle(
+        unscaledWidth,
+        unscaledHeight,
+        strokeW
+      );
+    } else {
+      svgPoints = SVGShapeBuilder.hexagon(
         unscaledWidth,
         unscaledHeight,
         strokeW

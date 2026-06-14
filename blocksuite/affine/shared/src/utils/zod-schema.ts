@@ -186,6 +186,7 @@ export const NodePropsSchema = z.object({
   // shapes
   'shape:diamond': ShapeSchema,
   'shape:ellipse': ShapeSchema,
+  'shape:hexagon': ShapeSchema,
   'shape:rect': ShapeSchema,
   'shape:triangle': ShapeSchema,
   'shape:roundedRect': RoundedShapeSchema,

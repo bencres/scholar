@@ -96,6 +96,25 @@ describe('apply last props', () => {
       std.get(EditPropsStore).lastProps$.value['shape:roundedRect'].fillColor
     ).toBe(DefaultTheme.FillColorShortMap.Green);
 
+    // hexagon shape
+    const hexagonId = service.crud.addElement('shape', {
+      shapeType: ShapeType.Hexagon,
+    });
+    if (!hexagonId) {
+      throw new Error('hexagonId is not found');
+    }
+    const hexagonShape = service.crud.getElementById(
+      hexagonId
+    ) as ShapeElementModel;
+    expect(hexagonShape.fillColor).toBe(DefaultTheme.FillColorShortMap.Yellow);
+    service.crud.updateElement(hexagonId, {
+      fillColor: DefaultTheme.FillColorShortMap.Purple,
+    });
+    expect(
+      std.get(EditPropsStore).lastProps$.value[`shape:${ShapeType.Hexagon}`]
+        .fillColor
+    ).toBe(DefaultTheme.FillColorShortMap.Purple);
+
     // apply last props
     const rectId2 = service.crud.addElement('shape', {
       shapeType: ShapeType.Rect,

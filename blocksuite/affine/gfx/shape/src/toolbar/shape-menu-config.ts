@@ -10,8 +10,10 @@ import {
 import type { TemplateResult } from 'lit';
 
 import {
+  GeneralHexagonIcon,
   ScribbledDiamondIcon,
   ScribbledEllipseIcon,
+  ScribbledHexagonIcon,
   ScribbledRoundedRectangleIcon,
   ScribbledSquareIcon,
   ScribbledTriangleIcon,
@@ -59,6 +61,13 @@ export const ShapeComponentConfig: Config[] = [
     generalIcon: RoundedRectangleIcon(),
     scribbledIcon: ScribbledRoundedRectangleIcon,
     tooltip: 'Rounded rectangle',
+    disabled: false,
+  },
+  {
+    name: ShapeType.Hexagon,
+    generalIcon: GeneralHexagonIcon,
+    scribbledIcon: ScribbledHexagonIcon,
+    tooltip: 'Hexagon',
     disabled: false,
   },
 ];

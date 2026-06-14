@@ -191,6 +191,10 @@ export const ShapeSettings = () => {
           t['com.affine.settings.editorSettings.edgeless.shape.triangle'](),
       },
       {
+        value: ShapeType.Hexagon,
+        label: t['com.affine.settings.editorSettings.edgeless.shape.hexagon'](),
+      },
+      {
         value: 'roundedRect',
         label:
           t[

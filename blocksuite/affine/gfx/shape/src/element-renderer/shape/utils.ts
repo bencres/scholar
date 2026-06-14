@@ -49,6 +49,9 @@ export function drawGeneralShape(
       break;
     case 'triangle':
       drawTriangle(ctx, 0, 0, w, h);
+      break;
+    case 'hexagon':
+      drawHexagon(ctx, 0, 0, w, h);
   }
 
   ctx.lineWidth = shapeModel.strokeWidth;
@@ -161,6 +164,29 @@ function drawTriangle(
   ctx.moveTo(width / 2, y);
   ctx.lineTo(width, height);
   ctx.lineTo(x, height);
+  ctx.closePath();
+}
+
+function drawHexagon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) {
+  const points = [
+    [x + width * 0.25, y],
+    [x + width * 0.75, y],
+    [x + width, y + height / 2],
+    [x + width * 0.75, y + height],
+    [x + width * 0.25, y + height],
+    [x, y + height / 2],
+  ];
+  ctx.beginPath();
+  ctx.moveTo(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i++) {
+    ctx.lineTo(points[i][0], points[i][1]);
+  }
   ctx.closePath();
 }
 

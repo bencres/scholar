@@ -1590,6 +1590,7 @@
   "com.affine.settings.editorSettings.edgeless.shape.font": "Font",
   "com.affine.settings.editorSettings.edgeless.shape.font-size": "Font size",
   "com.affine.settings.editorSettings.edgeless.shape.font-style": "Font style",
+  "com.affine.settings.editorSettings.edgeless.shape.hexagon": "Hexagon",
   "com.affine.settings.editorSettings.edgeless.shape.list": "List",
   "com.affine.settings.editorSettings.edgeless.shape.rounded-rectangle": "Rounded Rectangle",
   "com.affine.settings.editorSettings.edgeless.shape.square": "Square",

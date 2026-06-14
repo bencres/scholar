@@ -155,4 +155,30 @@ describe('Shape rendering with DOM renderer', () => {
     expectPxCloseTo(shapeElement!.style.width, 80 * zoom);
     expectPxCloseTo(shapeElement!.style.height, 60 * zoom);
   });
+
+  test('should correctly render hexagon shape', async () => {
+    const surfaceView = getSurface(window.doc, window.editor);
+    const surfaceModel = surfaceView.model;
+    const shapeProps = {
+      type: 'shape',
+      subType: 'hexagon',
+      xywh: '[150, 150, 80, 60]',
+      fillColor: '#ff0000',
+      strokeColor: '#000000',
+      filled: true,
+    };
+    const shapeId = surfaceModel.addElement(shapeProps);
+    const shapeElement = await waitForShapeElement(surfaceView, shapeId);
+
+    expect(shapeElement).not.toBeNull();
+    const zoom = surfaceView.renderer.viewport.zoom;
+    expectPxCloseTo(shapeElement!.style.width, 80 * zoom);
+    expectPxCloseTo(shapeElement!.style.height, 60 * zoom);
+
+    const polygon = shapeElement!.querySelector('polygon');
+    expect(polygon).not.toBeNull();
+    expect(polygon!.getAttribute('points')).toBe(
+      '20,1 60,1 79,30 60,59 20,59 1,30'
+    );
+  });
 });
