@@ -15,7 +15,12 @@ export { WorkspacesService } from './services/workspaces';
 
 import type { Framework } from '@toeverything/infra';
 
-import { GlobalCache, GlobalState, NbstoreService } from '../storage';
+import {
+  CacheStorage,
+  GlobalCache,
+  GlobalState,
+  NbstoreService,
+} from '../storage';
 import { WorkspaceEngine } from './entities/engine';
 import { WorkspaceList } from './entities/list';
 import { WorkspaceProfile } from './entities/profile';
