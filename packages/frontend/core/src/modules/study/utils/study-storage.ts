@@ -19,6 +19,16 @@ export function getDecksForCard(cardId: string, decks: StudyDeck[]) {
   return decks.filter(deck => deck.cardIds.includes(cardId));
 }
 
+export function getDecksForDoc(docId: string, decks: StudyDeck[]) {
+  return decks.filter(deck => {
+    const primary = deck.sourceDocId ?? deck.metadata?.sourcePage?.docId;
+    if (primary === docId) {
+      return true;
+    }
+    return deck.metadata?.sourceLinks?.includes(docId) ?? false;
+  });
+}
+
 export function isCardInAnyDeck(cardId: string, decks: StudyDeck[]) {
   return decks.some(deck => deck.cardIds.includes(cardId));
 }

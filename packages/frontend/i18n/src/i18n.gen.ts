@@ -3646,6 +3646,28 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.study.generate.failed"](): string;
     /**
+      * `Generate another deck?`
+      */
+    ["com.affine.study.generate.existing-deck.title"](): string;
+    /**
+      * `This note already has study deck(s): {{decks}}. Generating again will create a new deck.`
+      */
+    ["com.affine.study.generate.existing-deck.description"](options: {
+        readonly decks: string;
+    }): string;
+    /**
+      * `Generate anyway`
+      */
+    ["com.affine.study.generate.existing-deck.confirm"](): string;
+    /**
+      * `Deck saved`
+      */
+    ["com.affine.study.generate.saved.title"](): string;
+    /**
+      * `View deck`
+      */
+    ["com.affine.study.generate.view-deck"](): string;
+    /**
       * `Again`
       */
     ["com.affine.study.grade.again"](): string;
@@ -4134,9 +4156,9 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.page-properties.config-properties"](): string;
     /**
-      * `Backlinks`
+      * `Study decks`
       */
-    ["com.affine.page-properties.backlinks"](): string;
+    ["com.affine.page-properties.study-decks"](): string;
     /**
       * `Type`
       */

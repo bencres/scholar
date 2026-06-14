@@ -1,8 +1,7 @@
 import { getAIRequestService } from '@affine/core/blocksuite/ai/runtime/request';
 import { collectStreamText } from '@affine/core/blocksuite/ai/utils/stream-objects';
 import { DebugLogger } from '@affine/debug';
-import type { AffineTextAttributes } from '@blocksuite/affine/shared/types';
-import { type DeltaInsert, type Store, Text } from '@blocksuite/affine/store';
+import { type Store } from '@blocksuite/affine/store';
 import { LiveData, Service } from '@toeverything/infra';
 import { nanoid } from 'nanoid';
 
@@ -618,38 +617,7 @@ export class StudyCommandService extends Service {
       )
     );
     this.resetGeneration();
-    await this.addDeckLinkToDoc(state.docIds[0], deck);
     return deck;
-  }
-
-  private async addDeckLinkToDoc(docId: string, deck: StudyDeck) {
-    try {
-      const { doc, release } = this.docsService.open(docId);
-      const disposePriorityLoad = doc.addPriorityLoad(10);
-      await doc.waitForSyncReady();
-      disposePriorityLoad();
-      const workspaceId = this.workspaceService.workspace.id;
-      const deckPath = `/workspace/${workspaceId}/study/decks/${deck.id}`;
-      const text = new Text([
-        { insert: deck.name, attributes: { link: deckPath } },
-      ] as DeltaInsert<AffineTextAttributes>[]);
-      const [frame] = doc.blockSuiteDoc.getBlocksByFlavour('affine:note');
-      if (frame) {
-        doc.blockSuiteDoc.addBlock('affine:divider' as never, {}, frame.id);
-        doc.blockSuiteDoc.addBlock(
-          'affine:paragraph' as never,
-          { text },
-          frame.id
-        );
-      }
-      release();
-    } catch (e) {
-      logStudyGenerateDebug('Failed to add deck link to doc', {
-        docId,
-        deckId: deck.id,
-        error: e instanceof Error ? e.message : String(e),
-      });
-    }
   }
 
   async createDeck(input: {

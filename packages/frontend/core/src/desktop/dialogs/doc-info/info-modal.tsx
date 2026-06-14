@@ -16,6 +16,7 @@ import type {
 } from '@affine/core/modules/doc-info/types';
 import { DocLinksService } from '@affine/core/modules/doc-link';
 import { GuardService } from '@affine/core/modules/permissions';
+import { StudyDocDecksSection } from '@affine/core/modules/study/views/doc-study-decks-section';
 import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
 import { useI18n } from '@affine/i18n';
 import track from '@affine/track';
@@ -162,6 +163,7 @@ export const InfoTable = ({
         </PropertyCollapsibleContent>
       </PropertyCollapsibleSection>
       <Divider size="thinner" />
+      <StudyDocDecksSection docId={docId} onNavigate={onClose} />
       <DocDatabaseBacklinkInfo onChange={onBacklinkPropertyChange} />
       {backlinks && backlinks.length > 0 ? (
         <>

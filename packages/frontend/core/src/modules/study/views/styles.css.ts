@@ -1198,3 +1198,24 @@ export const activityChartAxis = style({
   fontSize: 12,
   color: cssVarV2.text.secondary,
 });
+
+export const docDeckLinks = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 4,
+  padding: '0 16px 12px',
+});
+
+export const docDeckLink = style({
+  display: 'block',
+  padding: '6px 8px',
+  borderRadius: 4,
+  fontSize: 14,
+  color: cssVarV2.text.primary,
+  textDecoration: 'none',
+  selectors: {
+    '&:hover': {
+      backgroundColor: cssVarV2.layer.background.hoverOverlay,
+    },
+  },
+});
