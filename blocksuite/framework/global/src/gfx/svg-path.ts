@@ -1,99 +1,17 @@
+import { cloudPath } from './cloud.js';
+import { cylinderPath } from './cylinder.js';
 import {
   flatTopHexagonPointsRelative,
   flatTopHexagonPointsString,
 } from './hexagon.js';
+import { SVGPathBuilder } from './svg-path-builder.js';
 
-interface PathCommand {
-  command: string;
-  coordinates: number[];
-}
-
-/**
- * A utility class for building SVG path strings using command-based API.
- * Supports moveTo, lineTo, curveTo operations and can build complete path strings.
- */
-export class SVGPathBuilder {
-  private commands: PathCommand[] = [];
-
-  /**
-   * Move to a specific point without drawing
-   */
-  moveTo(x: number, y: number): this {
-    this.commands.push({
-      command: 'M',
-      coordinates: [x, y],
-    });
-    return this;
-  }
-
-  /**
-   * Draw a line to a specific point
-   */
-  lineTo(x: number, y: number): this {
-    this.commands.push({
-      command: 'L',
-      coordinates: [x, y],
-    });
-    return this;
-  }
-
-  /**
-   * Draw a cubic Bézier curve
-   */
-  curveTo(
-    cp1x: number,
-    cp1y: number,
-    cp2x: number,
-    cp2y: number,
-    x: number,
-    y: number
-  ): this {
-    this.commands.push({
-      command: 'C',
-      coordinates: [cp1x, cp1y, cp2x, cp2y, x, y],
-    });
-    return this;
-  }
-
-  /**
-   * Close the current path
-   */
-  closePath(): this {
-    this.commands.push({
-      command: 'Z',
-      coordinates: [],
-    });
-    return this;
-  }
-
-  /**
-   * Build the complete SVG path string
-   */
-  build(): string {
-    const pathSegments = this.commands.map(cmd => {
-      const coords = cmd.coordinates.join(' ');
-      return coords ? `${cmd.command} ${coords}` : cmd.command;
-    });
-
-    return pathSegments.join(' ');
-  }
-
-  /**
-   * Clear all commands and reset the builder
-   */
-  clear(): this {
-    this.commands = [];
-    return this;
-  }
-}
+export { SVGPathBuilder } from './svg-path-builder.js';
 
 /**
  * Create SVG polygon points string for common shapes
  */
 export class SVGShapeBuilder {
-  /**
-   * Generate diamond (rhombus) polygon points
-   */
   static diamond(
     width: number,
     height: number,
@@ -108,9 +26,6 @@ export class SVGShapeBuilder {
     ].join(' ');
   }
 
-  /**
-   * Generate triangle polygon points
-   */
   static triangle(
     width: number,
     height: number,
@@ -124,9 +39,6 @@ export class SVGShapeBuilder {
     ].join(' ');
   }
 
-  /**
-   * Generate diamond path using SVGPathBuilder
-   */
   static diamondPath(
     width: number,
     height: number,
@@ -144,9 +56,6 @@ export class SVGShapeBuilder {
       .build();
   }
 
-  /**
-   * Generate triangle path using SVGPathBuilder
-   */
   static trianglePath(
     width: number,
     height: number,
@@ -163,9 +72,6 @@ export class SVGShapeBuilder {
       .build();
   }
 
-  /**
-   * Generate flat-top hexagon polygon points
-   */
   static hexagon(
     width: number,
     height: number,
@@ -174,9 +80,6 @@ export class SVGShapeBuilder {
     return flatTopHexagonPointsString(width, height, strokeWidth);
   }
 
-  /**
-   * Generate flat-top hexagon path using SVGPathBuilder
-   */
   static hexagonPath(
     width: number,
     height: number,
@@ -190,5 +93,17 @@ export class SVGShapeBuilder {
       pathBuilder.lineTo(points[i][0], points[i][1]);
     }
     return pathBuilder.closePath().build();
+  }
+
+  static cylinder(
+    width: number,
+    height: number,
+    strokeWidth: number = 0
+  ): string {
+    return cylinderPath(width, height, strokeWidth);
+  }
+
+  static cloud(width: number, height: number, strokeWidth: number = 0): string {
+    return cloudPath(width, height, strokeWidth);
   }
 }
