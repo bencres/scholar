@@ -9,3 +9,7 @@ export function studySidecarStorageKey(workspaceId: string) {
 export function studyDailyReminderStorageKey(workspaceId: string) {
   return `study-daily-reminder:${workspaceId}`;
 }
+
+export function studySyncMetaStorageKey(workspaceId: string) {
+  return `study-sync-meta:${workspaceId}`;
+}

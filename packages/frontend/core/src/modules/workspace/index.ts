@@ -64,6 +64,7 @@ export function configureWorkspaceModule(framework: Framework) {
     .service(WorkspaceTransformService, [
       WorkspaceFactoryService,
       WorkspaceDestroyService,
+      CacheStorage,
     ])
     .service(WorkspaceRepositoryService, [
       WorkspaceFlavoursService,
