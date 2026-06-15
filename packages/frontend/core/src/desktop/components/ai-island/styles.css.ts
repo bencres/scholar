@@ -14,6 +14,7 @@ export const aiIslandWrapper = style({
   width: 44,
   height: 44,
   position: 'relative',
+  overflow: 'visible',
   transform: 'translateY(0)',
   transition: 'transform 0.2s ease',
 
@@ -21,6 +22,10 @@ export const aiIslandWrapper = style({
     '&[data-hide="true"]': {
       transform: 'translateY(120px)',
       transitionDelay: '0.2s',
+    },
+    '&[data-can-generate="true"]': {
+      paddingTop: 52,
+      marginTop: -52,
     },
   },
 });
@@ -75,7 +80,14 @@ export const generateDeckBtn = style({
     'opacity 0.2s ease, transform 0.2s ease, pointer-events 0s linear 0.2s',
 
   selectors: {
-    '&[data-visible="true"]': {
+    [`${aiIslandWrapper}:hover &`]: {
+      opacity: 1,
+      transform: 'translateY(0)',
+      pointerEvents: 'auto',
+      transition:
+        'opacity 0.2s ease, transform 0.2s ease, pointer-events 0s linear 0s',
+    },
+    [`${aiIslandWrapper}:focus-within &`]: {
       opacity: 1,
       transform: 'translateY(0)',
       pointerEvents: 'auto',

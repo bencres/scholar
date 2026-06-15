@@ -51,7 +51,6 @@ import { html } from 'lit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import * as styles from './chat.css';
-import { StudyChatPanelDefaults } from './study-chat-panel';
 
 registerAIAppEffects();
 
@@ -483,7 +482,6 @@ export const EditorChatPanel = ({
             />
             <div ref={onChatToolContainerRef} />
           </div>
-          {doc ? <StudyChatPanelDefaults docId={doc.id} /> : null}
           <div className={styles.content} ref={onChatContainerRef} />
         </div>
       )}

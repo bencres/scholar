@@ -1,7 +1,6 @@
 import { useNewDoc } from '@affine/core/modules/app-sidebar/views/add-page-button';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { DocsService } from '@affine/core/modules/doc';
-import { EditorService } from '@affine/core/modules/editor';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { GlobalContextService } from '@affine/core/modules/global-context';
 import { StudyService } from '@affine/core/modules/study';
@@ -33,7 +32,6 @@ const hideIsland: Array<string | ((path: string) => boolean)> = [
 export const AIIsland = () => {
   const t = useI18n();
   const [hide, setHide] = useState(true);
-  const [hovered, setHovered] = useState(false);
 
   const workbench = useService(WorkbenchService).workbench;
   const createDoc = useNewDoc();
@@ -42,7 +40,6 @@ export const AIIsland = () => {
   const workspaceDialogService = useService(WorkspaceDialogService);
   const featureFlagService = useService(FeatureFlagService);
   const studyService = useServiceOptional(StudyService);
-  const editorService = useServiceOptional(EditorService);
 
   const activeView = useLiveData(workbench.activeView$);
   const haveChatTab = useLiveData(
@@ -53,18 +50,18 @@ export const AIIsland = () => {
   const sidebarOpen = useLiveData(workbench.sidebarOpen$);
 
   const docId = useLiveData(globalContext.docId.$);
+  const docMode = useLiveData(globalContext.docMode.$);
   const docRecordList = docsService.list;
   const doc = useLiveData(docId ? docRecordList.doc$(docId) : undefined);
   const inTrash = useLiveData(doc?.meta$)?.trash;
   const enableStudy = useLiveData(featureFlagService.flags.enable_study.$);
-  const currentMode = useLiveData(editorService?.editor.mode$);
 
   const canGenerateDeck =
     !!docId &&
     !inTrash &&
     enableStudy &&
     !!studyService?.enabled &&
-    currentMode === 'page';
+    docMode !== 'edgeless';
 
   useEffect(() => {
     let shouldHide = true;
@@ -106,14 +103,12 @@ export const AIIsland = () => {
       <div
         className={aiIslandWrapper}
         data-hide={hide}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        data-can-generate={canGenerateDeck}
       >
         {canGenerateDeck ? (
           <button
             type="button"
             className={generateDeckBtn}
-            data-visible={hovered}
             data-testid="note-island-generate-deck"
             onClick={onGenerateDeck}
             aria-label={t['com.affine.study.generate.menu']()}

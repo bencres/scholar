@@ -9,6 +9,7 @@ export const islandContainer = style({
   flexDirection: 'column',
   alignItems: 'center',
   gap: '12px',
+  overflow: 'visible',
   selectors: {
     '&.trash': {
       bottom: '78px',
