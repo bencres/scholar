@@ -6,6 +6,7 @@ import {
 } from '@affine/graphql';
 
 import type { CopilotClient } from './copilot-client';
+import { COPILOT_GQL_TIMEOUT } from './copilot-client';
 
 function isElectronBuild() {
   return typeof BUILD_CONFIG !== 'undefined' && BUILD_CONFIG.isElectron;
@@ -85,6 +86,7 @@ export async function createWorkspaceByokLocalLease(
           providers: leaseProviders,
         },
       },
+      timeout: COPILOT_GQL_TIMEOUT,
     });
     return result.createWorkspaceByokLocalLease.leaseId;
   } catch (error) {
