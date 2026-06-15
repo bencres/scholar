@@ -156,12 +156,16 @@ export function useRegisterWorkspaceCommands() {
 
   // register AffineLayoutCommands
   useEffect(() => {
-    const unsub = registerAffineLayoutCommands({ t, appSidebarService });
+    const unsub = registerAffineLayoutCommands({
+      t,
+      appSidebarService,
+      workbenchService,
+    });
 
     return () => {
       unsub();
     };
-  }, [appSidebarService, store, t]);
+  }, [appSidebarService, store, t, workbenchService]);
 
   // register AffineCreationCommands
   useEffect(() => {

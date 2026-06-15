@@ -1631,6 +1631,14 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.cmdk.affine.left-sidebar.expand"](): string;
     /**
+      * `Collapse right sidebar`
+      */
+    ["com.affine.cmdk.affine.right-sidebar.collapse"](): string;
+    /**
+      * `Expand right sidebar`
+      */
+    ["com.affine.cmdk.affine.right-sidebar.expand"](): string;
+    /**
       * `Go to all docs`
       */
     ["com.affine.cmdk.affine.navigation.goto-all-pages"](): string;

@@ -397,6 +397,8 @@
   "com.affine.cmdk.affine.insert-link": "Insert this link to the current doc",
   "com.affine.cmdk.affine.left-sidebar.collapse": "Collapse left sidebar",
   "com.affine.cmdk.affine.left-sidebar.expand": "Expand left sidebar",
+  "com.affine.cmdk.affine.right-sidebar.collapse": "Collapse right sidebar",
+  "com.affine.cmdk.affine.right-sidebar.expand": "Expand right sidebar",
   "com.affine.cmdk.affine.navigation.goto-all-pages": "Go to all docs",
   "com.affine.cmdk.affine.navigation.goto-edgeless-list": "Go to edgeless list",
   "com.affine.cmdk.affine.navigation.goto-page-list": "Go to page list",
