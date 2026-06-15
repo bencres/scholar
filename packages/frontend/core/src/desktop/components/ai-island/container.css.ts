@@ -4,7 +4,7 @@ export const islandContainer = style({
   position: 'absolute',
   right: 16,
   bottom: 16,
-  zIndex: 1,
+  zIndex: 4,
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',

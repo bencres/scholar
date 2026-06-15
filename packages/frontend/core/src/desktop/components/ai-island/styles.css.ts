@@ -11,8 +11,6 @@ export const toolStyle = style({
 });
 
 export const aiIslandWrapper = style({
-  width: 44,
-  height: 44,
   position: 'relative',
   overflow: 'visible',
   transform: 'translateY(0)',
@@ -23,16 +21,20 @@ export const aiIslandWrapper = style({
       transform: 'translateY(120px)',
       transitionDelay: '0.2s',
     },
-    '&[data-can-generate="true"]': {
-      paddingTop: 52,
-      marginTop: -52,
-    },
   },
 });
 
+export const aiIslandStack = style({
+  display: 'flex',
+  flexDirection: 'column-reverse',
+  alignItems: 'flex-end',
+  gap: 8,
+});
+
 export const aiIslandBtn = style({
-  width: 'inherit',
-  height: 'inherit',
+  width: 44,
+  height: 44,
+  flexShrink: 0,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -56,14 +58,10 @@ export const aiIslandBtn = style({
 });
 
 export const generateDeckBtn = style({
-  position: 'absolute',
-  right: 0,
-  bottom: '100%',
-  marginBottom: 8,
   display: 'flex',
   alignItems: 'center',
   gap: 6,
-  padding: '8px 12px',
+  padding: '0 12px',
   borderRadius: 20,
   border: `0.5px solid ${cssVar('borderColor')}`,
   boxShadow: '0px 2px 8px rgba(0,0,0,0.08)',
@@ -73,26 +71,32 @@ export const generateDeckBtn = style({
   fontWeight: 500,
   whiteSpace: 'nowrap',
   cursor: 'pointer',
+  overflow: 'hidden',
+  maxHeight: 0,
   opacity: 0,
-  transform: 'translateY(8px)',
+  transform: 'translateY(6px)',
   pointerEvents: 'none',
   transition:
-    'opacity 0.2s ease, transform 0.2s ease, pointer-events 0s linear 0.2s',
+    'max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0.2s',
 
   selectors: {
-    [`${aiIslandWrapper}:hover &`]: {
+    [`${aiIslandStack}:hover &`]: {
+      maxHeight: 40,
+      padding: '8px 12px',
       opacity: 1,
       transform: 'translateY(0)',
       pointerEvents: 'auto',
       transition:
-        'opacity 0.2s ease, transform 0.2s ease, pointer-events 0s linear 0s',
+        'max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0s',
     },
-    [`${aiIslandWrapper}:focus-within &`]: {
+    [`${aiIslandStack}:focus-within &`]: {
+      maxHeight: 40,
+      padding: '8px 12px',
       opacity: 1,
       transform: 'translateY(0)',
       pointerEvents: 'auto',
       transition:
-        'opacity 0.2s ease, transform 0.2s ease, pointer-events 0s linear 0s',
+        'max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0s',
     },
     '&:hover': {
       background: cssVar('hoverColor'),

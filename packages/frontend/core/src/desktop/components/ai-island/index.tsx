@@ -19,6 +19,7 @@ import { type MouseEvent, useCallback, useEffect, useState } from 'react';
 import { IslandContainer } from './container';
 import {
   aiIslandBtn,
+  aiIslandStack,
   aiIslandWrapper,
   generateDeckBtn,
   toolStyle,
@@ -100,32 +101,30 @@ export const AIIsland = () => {
 
   return (
     <IslandContainer className={clsx(toolStyle, { hide })}>
-      <div
-        className={aiIslandWrapper}
-        data-hide={hide}
-        data-can-generate={canGenerateDeck}
-      >
-        {canGenerateDeck ? (
+      <div className={aiIslandWrapper} data-hide={hide}>
+        <div className={aiIslandStack}>
           <button
             type="button"
-            className={generateDeckBtn}
-            data-testid="note-island-generate-deck"
-            onClick={onGenerateDeck}
-            aria-label={t['com.affine.study.generate.menu']()}
+            className={aiIslandBtn}
+            data-testid="note-island-new-page"
+            onClick={onCreatePage}
+            aria-label={t['New Page']()}
           >
-            <FlashPanelIcon width={16} height={16} />
-            <span>{t['com.affine.study.generate.title']()}</span>
+            <PlusIcon width={20} height={20} />
           </button>
-        ) : null}
-        <button
-          type="button"
-          className={aiIslandBtn}
-          data-testid="note-island-new-page"
-          onClick={onCreatePage}
-          aria-label={t['New Page']()}
-        >
-          <PlusIcon width={20} height={20} />
-        </button>
+          {canGenerateDeck ? (
+            <button
+              type="button"
+              className={generateDeckBtn}
+              data-testid="note-island-generate-deck"
+              onClick={onGenerateDeck}
+              aria-label={t['com.affine.study.generate.menu']()}
+            >
+              <FlashPanelIcon width={16} height={16} />
+              <span>{t['com.affine.study.generate.title']()}</span>
+            </button>
+          ) : null}
+        </div>
       </div>
     </IslandContainer>
   );
