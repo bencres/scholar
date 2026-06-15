@@ -4,22 +4,26 @@ import {
   type Signal,
 } from '@blocksuite/affine/shared/utils';
 import { signal } from '@preact/signals-core';
-import { LiveData, Service } from '@toeverything/infra';
+import { LiveData, OnEvent, Service } from '@toeverything/infra';
 
 import type { GraphQLService, SubscriptionService } from '../../cloud';
+import { AccountChanged } from '../../cloud/events/account-changed';
+import { ServerStarted } from '../../cloud/events/server-started';
 import type { GlobalStateService } from '../../storage';
+import {
+  type AIModel,
+  CHAT_PROMPT_MODELS,
+  getFallbackChatModels,
+  mapPromptModels,
+} from '../constants/chat-models';
 
 const AI_MODEL_ID_KEY = 'AIModelId';
+const MODEL_FETCH_TIMEOUT = 60_000;
 
-export interface AIModel {
-  name: string;
-  id: string;
-  version: string;
-  category: string;
-  isPro: boolean;
-  isDefault: boolean;
-}
+export type { AIModel };
 
+@OnEvent(AccountChanged, s => s.onAccountChanged)
+@OnEvent(ServerStarted, s => s.onServerStarted)
 export class AIModelService extends Service {
   modelId: Signal<string | undefined>;
 
@@ -63,10 +67,21 @@ export class AIModelService extends Service {
     this.globalStateService.globalState.set(AI_MODEL_ID_KEY, modelId);
   };
 
+  reloadModels = async (prompt?: string) => {
+    await this.initModels(prompt);
+  };
+
+  private onAccountChanged() {
+    this.initModels().catch(console.error);
+  }
+
+  private onServerStarted() {
+    this.initModels().catch(console.error);
+  }
+
   private readonly init = async () => {
     await this.initModels();
 
-    // subscribe to ai purchase status
     const sub = this.subscriptionService.subscription.ai$.subscribe(
       subscription => {
         const isSubscribed = subscription?.status === SubscriptionStatus.Active;
@@ -82,22 +97,22 @@ export class AIModelService extends Service {
   };
 
   private readonly initModels = async (prompt?: string) => {
-    const promptName = prompt || 'Chat With AFFiNE AI';
-    const models = await this.getModelsByPrompt(promptName);
-    if (models) {
-      const { defaultModel, optionalModels, proModels } = models;
-      this.models.value = optionalModels.map(model => {
-        const [category] = model.name.split(' ');
-        const version = model.name.slice(category.length + 1);
-        return {
-          name: model.name,
-          id: model.id,
-          version,
-          category,
-          isPro: proModels.some(proModel => proModel.id === model.id),
-          isDefault: model.id === defaultModel,
-        };
-      });
+    const promptName = prompt || CHAT_PROMPT_MODELS.promptName;
+    try {
+      const models = await this.getModelsByPrompt(promptName);
+      if (models?.optionalModels.length) {
+        this.models.value = mapPromptModels(models);
+        return;
+      }
+    } catch (error) {
+      console.warn(
+        'Failed to load AI chat models, using fallback list.',
+        error
+      );
+    }
+
+    if (!this.models.value.length) {
+      this.models.value = getFallbackChatModels();
     }
   };
 
@@ -106,6 +121,7 @@ export class AIModelService extends Service {
       .gql({
         query: getPromptModelsQuery,
         variables: { promptName },
+        timeout: MODEL_FETCH_TIMEOUT,
       })
       .then(res => res.currentUser?.copilot?.models);
   };
