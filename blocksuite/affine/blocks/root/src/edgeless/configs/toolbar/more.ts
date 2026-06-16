@@ -378,6 +378,8 @@ export const moreActions = [
     icon: DeleteIcon(),
     variant: 'destructive',
     run(ctx) {
+      if (ctx.readonly) return;
+
       const models = ctx.getSurfaceModels();
       if (!models.length) return;
 

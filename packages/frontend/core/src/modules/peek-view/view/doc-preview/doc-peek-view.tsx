@@ -151,7 +151,7 @@ function DocPeekPreviewEditor({
 
   const canEdit = useGuard('Doc_Update', doc.id);
 
-  const readonly = !canEdit || isInTrash;
+  const readonly = canEdit === false || isInTrash;
 
   return (
     <AffineErrorBoundary>

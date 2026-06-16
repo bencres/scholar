@@ -184,7 +184,7 @@ const DetailPageImpl = () => {
   const canEdit = useGuard('Doc_Update', doc.id);
 
   const readonly =
-    !canEdit ||
+    canEdit === false ||
     isInTrash ||
     !enableKeyboardToolbar ||
     (mode === 'edgeless' && !enableEdgelessEditing);
