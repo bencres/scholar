@@ -64,7 +64,7 @@ export const aiIslandBtn = style({
 export const generateDeckBtn = style({
   position: 'absolute',
   right: 0,
-  bottom: 'calc(100% - 4px)',
+  bottom: 'calc(100% + 8px)',
   display: 'flex',
   alignItems: 'center',
   gap: 6,
