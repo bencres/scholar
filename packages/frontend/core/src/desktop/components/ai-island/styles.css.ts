@@ -26,16 +26,13 @@ export const aiIslandWrapper = style({
 
 export const aiIslandStack = style({
   display: 'flex',
-  flexDirection: 'column-reverse',
   alignItems: 'flex-end',
 });
 
 export const aiIslandHoverZone = style({
-  display: 'flex',
-  flexDirection: 'column-reverse',
-  alignItems: 'flex-end',
-  gap: 8,
-  width: 'fit-content',
+  position: 'relative',
+  width: 44,
+  height: 44,
 });
 
 export const aiIslandBtn = style({
@@ -65,9 +62,13 @@ export const aiIslandBtn = style({
 });
 
 export const generateDeckBtn = style({
+  position: 'absolute',
+  right: 0,
+  bottom: 'calc(100% - 4px)',
   display: 'flex',
   alignItems: 'center',
   gap: 6,
+  padding: '8px 12px',
   borderRadius: 20,
   border: `0.5px solid ${cssVar('borderColor')}`,
   boxShadow: '0px 2px 8px rgba(0,0,0,0.08)',
@@ -77,36 +78,27 @@ export const generateDeckBtn = style({
   fontWeight: 500,
   whiteSpace: 'nowrap',
   cursor: 'pointer',
-  overflow: 'hidden',
-  maxHeight: 0,
-  maxWidth: 0,
-  padding: 0,
+  transformOrigin: 'bottom center',
+  transform: 'scaleY(0)',
   opacity: 0,
-  transform: 'translateY(-6px)',
   pointerEvents: 'none',
   transition:
-    'max-height 0.2s ease, max-width 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0.2s',
+    'transform 0.2s ease, opacity 0.2s ease, pointer-events 0s linear 0.2s',
 
   selectors: {
-    [`${aiIslandHoverZone}:hover &`]: {
-      maxWidth: 300,
-      maxHeight: 40,
-      padding: '8px 12px',
+    [`${aiIslandBtn}:hover ~ &, &:hover`]: {
+      transform: 'scaleY(1)',
       opacity: 1,
-      transform: 'translateY(0)',
       pointerEvents: 'auto',
       transition:
-        'max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0s',
+        'transform 0.2s ease, opacity 0.2s ease, pointer-events 0s linear 0s',
     },
     [`${aiIslandHoverZone}:focus-within &`]: {
-      maxWidth: 300,
-      maxHeight: 40,
-      padding: '8px 12px',
+      transform: 'scaleY(1)',
       opacity: 1,
-      transform: 'translateY(0)',
       pointerEvents: 'auto',
       transition:
-        'max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0s',
+        'transform 0.2s ease, opacity 0.2s ease, pointer-events 0s linear 0s',
     },
     '&:hover': {
       background: cssVar('hoverColor'),
