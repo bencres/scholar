@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { CopilotSessionInvalidInput } from '../../../base';
+import { Config, CopilotSessionInvalidInput } from '../../../base';
 import { llmResolveRequestedModelMatch } from '../../../native';
 import { CopilotProviderRegistryService } from '../providers/registry-service';
 
@@ -12,10 +12,20 @@ export type ResolveModelInput = {
 
 @Injectable()
 export class ModelSelectionPolicy {
-  constructor(private readonly registries: CopilotProviderRegistryService) {}
+  constructor(
+    private readonly registries: CopilotProviderRegistryService,
+    private readonly config: Config
+  ) {}
 
   private getRegistry() {
     return this.registries.getRegistry();
+  }
+
+  private resolveModelVariable(modelId: string): string {
+    const variables: Record<string, () => string> = {
+      'fast-text': () => this.config.copilot.models.fastText,
+    };
+    return variables[modelId]?.() ?? modelId;
   }
 
   private matchRequestedModel(
@@ -38,13 +48,14 @@ export class ModelSelectionPolicy {
     if (!input.defaultModel) {
       throw new CopilotSessionInvalidInput('Model is required');
     }
+    const defaultModel = this.resolveModelVariable(input.defaultModel);
     const matched = this.matchRequestedModel(
       input.optionalModels ?? [],
       input.requestedModelId,
-      input.defaultModel
+      defaultModel
     );
     return {
-      selectedModel: matched.selectedModel ?? input.defaultModel,
+      selectedModel: matched.selectedModel ?? defaultModel,
       matchedOptionalModel: matched.matchedOptionalModel,
     };
   }

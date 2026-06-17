@@ -184,6 +184,9 @@ declare global {
   interface AppConfigSchema {
     copilot: {
       enabled: boolean;
+      models: {
+        fastText: ConfigItem<string>;
+      };
       byok: {
         enabled: ConfigItem<boolean>;
         allowedProviders: ConfigItem<
@@ -218,6 +221,12 @@ defineModuleConfig('copilot', {
     desc: 'Whether to enable the copilot plugin. <br> Document: <a href="https://docs.affine.pro/self-host-affine/administer/ai" target="_blank">https://docs.affine.pro/self-host-affine/administer/ai</a>',
     default: false,
     env: ['COPILOT_ENABLED', 'boolean'],
+  },
+  'models.fastText': {
+    desc: 'The model used for lightweight text tasks (summarization, title generation, etc.). Referenced as "fast-text" in built-in prompt definitions.',
+    default: 'claude-haiku-4-5',
+    shape: z.string(),
+    env: 'COPILOT_FAST_TEXT_MODEL',
   },
   'byok.enabled': {
     desc: 'Whether to enable workspace BYOK.',
