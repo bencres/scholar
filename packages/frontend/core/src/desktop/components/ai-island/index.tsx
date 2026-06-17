@@ -14,7 +14,13 @@ import {
   useServiceOptional,
 } from '@toeverything/infra';
 import clsx from 'clsx';
-import { type MouseEvent, useCallback, useEffect, useState } from 'react';
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { IslandContainer } from './container';
 import {
@@ -23,6 +29,7 @@ import {
   aiIslandStack,
   aiIslandWrapper,
   generateDeckBtn,
+  generateDeckBtnVisible,
   toolStyle,
 } from './styles.css';
 
@@ -34,6 +41,8 @@ const hideIsland: Array<string | ((path: string) => boolean)> = [
 export const AIIsland = () => {
   const t = useI18n();
   const [hide, setHide] = useState(true);
+  const [showGenerate, setShowGenerate] = useState(false);
+  const hideGenerateTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const workbench = useService(WorkbenchService).workbench;
   const createDoc = useNewDoc();
@@ -78,6 +87,39 @@ export const AIIsland = () => {
     setHide(shouldHide);
   }, [activeLocation.pathname, activeTab, haveChatTab, sidebarOpen]);
 
+  useEffect(() => {
+    return () => {
+      if (hideGenerateTimeoutRef.current) {
+        clearTimeout(hideGenerateTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!canGenerateDeck) {
+      setShowGenerate(false);
+    }
+  }, [canGenerateDeck]);
+
+  const revealGenerate = useCallback(() => {
+    if (!canGenerateDeck) return;
+    if (hideGenerateTimeoutRef.current) {
+      clearTimeout(hideGenerateTimeoutRef.current);
+      hideGenerateTimeoutRef.current = undefined;
+    }
+    setShowGenerate(true);
+  }, [canGenerateDeck]);
+
+  const scheduleHideGenerate = useCallback(() => {
+    if (hideGenerateTimeoutRef.current) {
+      clearTimeout(hideGenerateTimeoutRef.current);
+    }
+    hideGenerateTimeoutRef.current = setTimeout(() => {
+      setShowGenerate(false);
+      hideGenerateTimeoutRef.current = undefined;
+    }, 150);
+  }, []);
+
   const onCreatePage = useCallback(
     (event?: MouseEvent) => {
       if (hide) return;
@@ -110,6 +152,8 @@ export const AIIsland = () => {
               className={aiIslandBtn}
               data-testid="note-island-new-page"
               onClick={onCreatePage}
+              onMouseEnter={revealGenerate}
+              onMouseLeave={scheduleHideGenerate}
               aria-label={t['New Page']()}
             >
               <PlusIcon width={20} height={20} />
@@ -117,9 +161,14 @@ export const AIIsland = () => {
             {canGenerateDeck ? (
               <button
                 type="button"
-                className={generateDeckBtn}
+                className={clsx(
+                  generateDeckBtn,
+                  showGenerate && generateDeckBtnVisible
+                )}
                 data-testid="note-island-generate-deck"
                 onClick={onGenerateDeck}
+                onMouseEnter={revealGenerate}
+                onMouseLeave={scheduleHideGenerate}
                 aria-label={t['com.affine.study.generate.menu']()}
               >
                 <FlashPanelIcon width={16} height={16} />

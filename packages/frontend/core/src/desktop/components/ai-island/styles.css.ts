@@ -61,6 +61,16 @@ export const aiIslandBtn = style({
   },
 });
 
+export const generateDeckBtnVisible = style({});
+
+const generateDeckBtnVisibleStyles = {
+  transform: 'scaleY(1)',
+  opacity: 1,
+  pointerEvents: 'auto',
+  transition:
+    'transform 0.2s ease, opacity 0.2s ease, pointer-events 0s linear 0s',
+} as const;
+
 export const generateDeckBtn = style({
   position: 'absolute',
   right: 0,
@@ -86,20 +96,8 @@ export const generateDeckBtn = style({
     'transform 0.2s ease, opacity 0.2s ease, pointer-events 0s linear 0.2s',
 
   selectors: {
-    [`${aiIslandBtn}:hover ~ &, &:hover`]: {
-      transform: 'scaleY(1)',
-      opacity: 1,
-      pointerEvents: 'auto',
-      transition:
-        'transform 0.2s ease, opacity 0.2s ease, pointer-events 0s linear 0s',
-    },
-    [`${aiIslandHoverZone}:focus-within &`]: {
-      transform: 'scaleY(1)',
-      opacity: 1,
-      pointerEvents: 'auto',
-      transition:
-        'transform 0.2s ease, opacity 0.2s ease, pointer-events 0s linear 0s',
-    },
+    [`&.${generateDeckBtnVisible}`]: generateDeckBtnVisibleStyles,
+    [`${aiIslandHoverZone}:focus-within &`]: generateDeckBtnVisibleStyles,
     '&:hover': {
       background: cssVar('hoverColor'),
     },
