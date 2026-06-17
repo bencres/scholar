@@ -28,7 +28,14 @@ export const aiIslandStack = style({
   display: 'flex',
   flexDirection: 'column-reverse',
   alignItems: 'flex-end',
+});
+
+export const aiIslandHoverZone = style({
+  display: 'flex',
+  flexDirection: 'column-reverse',
+  alignItems: 'flex-end',
   gap: 8,
+  width: 'fit-content',
 });
 
 export const aiIslandBtn = style({
@@ -61,7 +68,6 @@ export const generateDeckBtn = style({
   display: 'flex',
   alignItems: 'center',
   gap: 6,
-  padding: '0 12px',
   borderRadius: 20,
   border: `0.5px solid ${cssVar('borderColor')}`,
   boxShadow: '0px 2px 8px rgba(0,0,0,0.08)',
@@ -73,14 +79,17 @@ export const generateDeckBtn = style({
   cursor: 'pointer',
   overflow: 'hidden',
   maxHeight: 0,
+  maxWidth: 0,
+  padding: 0,
   opacity: 0,
   transform: 'translateY(6px)',
   pointerEvents: 'none',
   transition:
-    'max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0.2s',
+    'max-height 0.2s ease, max-width 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0.2s',
 
   selectors: {
-    [`${aiIslandStack}:hover &`]: {
+    [`${aiIslandHoverZone}:hover &`]: {
+      maxWidth: 300,
       maxHeight: 40,
       padding: '8px 12px',
       opacity: 1,
@@ -89,7 +98,8 @@ export const generateDeckBtn = style({
       transition:
         'max-height 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0s',
     },
-    [`${aiIslandStack}:focus-within &`]: {
+    [`${aiIslandHoverZone}:focus-within &`]: {
+      maxWidth: 300,
       maxHeight: 40,
       padding: '8px 12px',
       opacity: 1,
