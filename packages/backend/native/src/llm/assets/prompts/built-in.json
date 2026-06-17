@@ -63,7 +63,7 @@
   {
     "name": "Conversation Summary",
     "action": "Conversation Summary",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "config": {
       "requireContent": false
     },
@@ -81,7 +81,7 @@
   {
     "name": "Summary",
     "action": "Summary",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -96,7 +96,7 @@
   {
     "name": "Summary as title",
     "action": "Summary as title",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -111,7 +111,7 @@
   {
     "name": "Summary the webpage",
     "action": "Summary the webpage",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "user",
@@ -122,7 +122,7 @@
   {
     "name": "Explain this",
     "action": "Explain this",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "builtins": ["language"],
     "messages": [
       {
@@ -205,7 +205,7 @@
   {
     "name": "Summarize the meeting structured",
     "action": "Summarize the meeting structured",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -220,7 +220,7 @@
   {
     "name": "Summarize the meeting",
     "action": "Summarize the meeting",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -235,7 +235,7 @@
   {
     "name": "Find action for summary",
     "action": "Find action for summary",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -361,7 +361,7 @@
   {
     "name": "Brainstorm mindmap",
     "action": "Brainstorm mindmap",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -376,7 +376,7 @@
   {
     "name": "Expand mind map",
     "action": "Expand mind map",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -410,7 +410,7 @@
   {
     "name": "Improve grammar for it",
     "action": "Improve grammar for it",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -440,7 +440,7 @@
   {
     "name": "Find action items from it",
     "action": "Find action items from it",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -455,7 +455,7 @@
   {
     "name": "Check code error",
     "action": "Check code error",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -470,7 +470,7 @@
   {
     "name": "Create a presentation",
     "action": "Create a presentation",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -754,7 +754,7 @@
   {
     "name": "mindmap.generate",
     "action": "mindmap.generate",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "config": {
       "frequencyPenalty": 0.5,
       "presencePenalty": 0.5,
@@ -779,7 +779,7 @@
   {
     "name": "slides.outline",
     "action": "slides.outline",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -884,7 +884,7 @@
   {
     "name": "workflow:presentation:step1",
     "action": "workflow:presentation:step1",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "config": {
       "temperature": 0.7
     },
@@ -902,7 +902,7 @@
   {
     "name": "workflow:presentation:step2",
     "action": "workflow:presentation:step2",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -921,7 +921,7 @@
   {
     "name": "workflow:presentation:step4",
     "action": "workflow:presentation:step4",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "messages": [
       {
         "role": "system",
@@ -946,7 +946,7 @@
   {
     "name": "workflow:brainstorm:step1",
     "action": "workflow:brainstorm:step1",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "config": {
       "temperature": 0.7
     },
@@ -964,7 +964,7 @@
   {
     "name": "workflow:brainstorm:step2",
     "action": "workflow:brainstorm:step2",
-    "model": "gpt-5-mini",
+    "model": "fast-text",
     "config": {
       "frequencyPenalty": 0.5,
       "presencePenalty": 0.5,
