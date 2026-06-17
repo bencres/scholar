@@ -105,6 +105,15 @@ export const AIIsland = () => {
       <div className={aiIslandWrapper} data-hide={hide}>
         <div className={aiIslandStack}>
           <div className={aiIslandHoverZone}>
+            <button
+              type="button"
+              className={aiIslandBtn}
+              data-testid="note-island-new-page"
+              onClick={onCreatePage}
+              aria-label={t['New Page']()}
+            >
+              <PlusIcon width={20} height={20} />
+            </button>
             {canGenerateDeck ? (
               <button
                 type="button"
@@ -117,15 +126,6 @@ export const AIIsland = () => {
                 <span>{t['com.affine.study.generate.title']()}</span>
               </button>
             ) : null}
-            <button
-              type="button"
-              className={aiIslandBtn}
-              data-testid="note-island-new-page"
-              onClick={onCreatePage}
-              aria-label={t['New Page']()}
-            >
-              <PlusIcon width={20} height={20} />
-            </button>
           </div>
         </div>
       </div>

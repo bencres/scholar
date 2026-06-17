@@ -82,7 +82,7 @@ export const generateDeckBtn = style({
   maxWidth: 0,
   padding: 0,
   opacity: 0,
-  transform: 'translateY(6px)',
+  transform: 'translateY(-6px)',
   pointerEvents: 'none',
   transition:
     'max-height 0.2s ease, max-width 0.2s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, pointer-events 0s linear 0.2s',
