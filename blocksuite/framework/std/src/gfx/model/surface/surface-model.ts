@@ -590,7 +590,8 @@ export class SurfaceBlockModel extends BlockModel<SurfaceBlockProps> {
       if (
         isGroup(element) &&
         oldValues['childIds'] &&
-        element.childIds.length === 0
+        element.childIds.length === 0 &&
+        !this.store.readonly
       ) {
         this.deleteElement(id);
       }

@@ -523,6 +523,7 @@ export class EdgelessPageKeyboardManager extends PageKeyboardManager {
   private _delete() {
     const edgeless = this.rootComponent;
 
+    if (edgeless.store.readonly) return;
     if (edgeless.service.locked) return;
     if (edgeless.service.selection.editing) {
       return;

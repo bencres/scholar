@@ -1,4 +1,5 @@
 import type { CacheStorage } from '../../storage';
+import { studySyncMetaStorageKey } from './storage-keys';
 
 const STUDY_SYNC_META_VERSION = 1;
 
@@ -20,10 +21,6 @@ type StudyStorageSyncMetaV1 = {
 
 type StudyStorageSyncMeta = StudyStorageSyncMetaV1;
 
-function syncMetaKey(workspaceId: string) {
-  return `study-sync-meta:${workspaceId}`;
-}
-
 function normalizeSyncMeta(raw: unknown): StudyStorageSyncMeta {
   if (
     raw &&
@@ -41,7 +38,7 @@ export async function readStudySyncMeta(
   workspaceId: string
 ) {
   return normalizeSyncMeta(
-    await cacheStorage.get<unknown>(syncMetaKey(workspaceId))
+    await cacheStorage.get<unknown>(studySyncMetaStorageKey(workspaceId))
   );
 }
 
@@ -51,5 +48,8 @@ export async function patchStudySyncMeta(
   patch: Partial<StudyStorageSyncMeta>
 ) {
   const current = await readStudySyncMeta(cacheStorage, workspaceId);
-  await cacheStorage.set(syncMetaKey(workspaceId), { ...current, ...patch });
+  await cacheStorage.set(studySyncMetaStorageKey(workspaceId), {
+    ...current,
+    ...patch,
+  });
 }

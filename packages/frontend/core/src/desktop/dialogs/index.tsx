@@ -22,6 +22,7 @@ import { DocSelectorDialog } from './selectors/doc';
 import { TagSelectorDialog } from './selectors/tag';
 import { SettingDialog } from './setting';
 import { SignInDialog } from './sign-in';
+import { StudyGenerateDialog } from './study-generate';
 import { VerifyEmailDialog } from './verify-email';
 
 const GLOBAL_DIALOGS = {
@@ -41,6 +42,7 @@ const GLOBAL_DIALOGS = {
 
 const WORKSPACE_DIALOGS = {
   'doc-info': DocInfoDialog,
+  'study-generate': StudyGenerateDialog,
   'collection-editor': CollectionEditorDialog,
   'tag-selector': TagSelectorDialog,
   'doc-selector': DocSelectorDialog,

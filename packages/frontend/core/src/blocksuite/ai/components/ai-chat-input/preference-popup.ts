@@ -136,9 +136,14 @@ export class ChatInputPreference extends SignalWatcher(
     return activeModel || defaultModel;
   });
 
-  openPreference(e: Event) {
+  openPreference = async (e: Event) => {
     const element = e.currentTarget;
     if (!(element instanceof HTMLElement)) return;
+
+    if (!this.aiModelService.models.value.length) {
+      await this.aiModelService.reloadModels();
+    }
+
     const modelItems = [];
     const searchItems = [];
 
@@ -229,7 +234,7 @@ export class ChatInputPreference extends SignalWatcher(
         testId: 'chat-input-preference',
       },
     });
-  }
+  };
 
   override render() {
     return html`<button

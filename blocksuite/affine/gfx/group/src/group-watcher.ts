@@ -18,7 +18,8 @@ const groupRelationWatcher: SurfaceMiddleware = (
       if (
         element instanceof SurfaceGroupLikeModel &&
         props['childIds'] &&
-        element.childIds.length === 0
+        element.childIds.length === 0 &&
+        !surface.store.readonly
       ) {
         surface.deleteElement(id);
       }

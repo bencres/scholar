@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { StudyCardsGenerateOutputSchema } from '../schema/generate-output';
+import {
+  parseStudyRubricInput,
+  StudyCardsGenerateOutputSchema,
+} from '../schema/generate-output';
 import { buildStudyLearningGraphSnapshot } from './learning-graph';
 import {
   buildDeckConceptVocabulary,
+  coerceStudyCardsGenerateJsonInput,
   normalizeConceptId,
   sanitizeGeneratedCardGraphFields,
   sanitizeStudyCardsGenerateOutput,
@@ -70,6 +74,87 @@ describe('study graph metadata', () => {
     expect(vocabulary.has('cell-respiration')).toBe(true);
     expect(vocabulary.has('atp-cycle')).toBe(true);
     expect(vocabulary.has('mitochondria')).toBe(true);
+  });
+
+  it('parses comma-separated synthesis rubric strings', () => {
+    expect(
+      parseStudyRubricInput(
+        'Names fleet connection cap, Explains per-instance pool math, Proposes proxy or smaller pools'
+      )
+    ).toEqual([
+      'Names fleet connection cap',
+      'Explains per-instance pool math',
+      'Proposes proxy or smaller pools',
+    ]);
+
+    const parsed = StudyCardsGenerateOutputSchema.parse(
+      coerceStudyCardsGenerateJsonInput({
+        deckName: 'Test',
+        recall: [
+          {
+            question: 'What is ATP?',
+            answer: 'Energy currency of the cell',
+            concepts: ['atp-cycle'],
+          },
+        ],
+        synthesis: [
+          {
+            question: 'Compare ATP and NADH roles in metabolism.',
+            rubric: 'ATP carries phosphate-bond energy, NADH carries electrons',
+            concepts: ['atp-cycle'],
+          },
+        ],
+      })
+    );
+    expect(parsed.synthesis[0]?.rubric).toEqual([
+      'ATP carries phosphate-bond energy',
+      'NADH carries electrons',
+    ]);
+  });
+
+  it('coerces overlong concept lists before schema validation', () => {
+    const parsed = StudyCardsGenerateOutputSchema.parse(
+      coerceStudyCardsGenerateJsonInput({
+        deckName: 'Test',
+        recall: [
+          {
+            question: 'What is ATP?',
+            answer: 'Energy currency of the cell',
+            concepts: [
+              'atp',
+              'nad',
+              'glycolysis',
+              'krebs',
+              'mitochondria',
+              'electron-transport',
+              'oxidative-phosphorylation',
+              'citric-acid',
+            ],
+          },
+        ],
+        synthesis: [
+          {
+            question: 'Compare ATP and NADH roles in metabolism.',
+            rubric: [
+              'ATP carries phosphate-bond energy',
+              'NADH carries electrons',
+            ],
+            concepts: [
+              'atp',
+              'nad',
+              'glycolysis',
+              'krebs',
+              'mitochondria',
+              'electron-transport',
+              'oxidative-phosphorylation',
+              'citric-acid',
+            ],
+          },
+        ],
+      })
+    );
+    expect(parsed.recall[0]?.concepts).toHaveLength(7);
+    expect(parsed.synthesis[0]?.concepts).toHaveLength(7);
   });
 
   it('rejects generate output without concepts', () => {

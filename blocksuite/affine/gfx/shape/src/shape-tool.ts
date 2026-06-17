@@ -17,7 +17,16 @@ import {
 } from '@blocksuite/affine-shared/services';
 import { hasClassNameInList } from '@blocksuite/affine-shared/utils';
 import type { IBound } from '@blocksuite/global/gfx';
-import { Bound } from '@blocksuite/global/gfx';
+import {
+  Bound,
+  CLOUD_DEFAULT_HEIGHT,
+  CLOUD_DEFAULT_WIDTH,
+  CYLINDER_DEFAULT_HEIGHT,
+  CYLINDER_DEFAULT_HEIGHT_RATIO,
+  CYLINDER_DEFAULT_WIDTH,
+  HEXAGON_DEFAULT_HEIGHT,
+  HEXAGON_DEFAULT_WIDTH,
+} from '@blocksuite/global/gfx';
 import type { PointerEventState } from '@blocksuite/std';
 import { BaseTool, type GfxController } from '@blocksuite/std/gfx';
 import { effect } from '@preact/signals-core';
@@ -58,6 +67,25 @@ export class ShapeTool extends BaseTool<ShapeToolOption> {
     };
   } | null = null;
 
+  private _getDefaultShapeSize(shapeName: ShapeName) {
+    switch (shapeName) {
+      case ShapeType.Hexagon:
+        return { width: HEXAGON_DEFAULT_WIDTH, height: HEXAGON_DEFAULT_HEIGHT };
+      case ShapeType.Cylinder:
+        return {
+          width: CYLINDER_DEFAULT_WIDTH,
+          height: CYLINDER_DEFAULT_HEIGHT,
+        };
+      case ShapeType.Cloud:
+        return { width: CLOUD_DEFAULT_WIDTH, height: CLOUD_DEFAULT_HEIGHT };
+      default:
+        return {
+          width: SHAPE_OVERLAY_WIDTH,
+          height: SHAPE_OVERLAY_HEIGHT,
+        };
+    }
+  }
+
   private _addNewShape(
     e: PointerEventState,
     width: number,
@@ -70,6 +98,9 @@ export class ShapeTool extends BaseTool<ShapeToolOption> {
 
     if (shapeName === 'roundedRect') {
       width += 40;
+    }
+    if (shapeName === ShapeType.Cylinder) {
+      height = Math.max(height, width * CYLINDER_DEFAULT_HEIGHT_RATIO);
     }
     // create a shape block when drag start
     const [modelX, modelY] = viewport.toModelCoord(e.point.x, e.point.y);
@@ -191,7 +222,10 @@ export class ShapeTool extends BaseTool<ShapeToolOption> {
 
     this.doc.captureSync();
 
-    const id = this._addNewShape(e, SHAPE_OVERLAY_WIDTH, SHAPE_OVERLAY_HEIGHT);
+    const { width, height } = this._getDefaultShapeSize(
+      this.activatedOption.shapeName
+    );
+    const id = this._addNewShape(e, width, height);
 
     const element = this.gfx.getElementById(id);
     if (!element) return;
@@ -355,6 +389,9 @@ export class ShapeTool extends BaseTool<ShapeToolOption> {
       ShapeType.Ellipse,
       ShapeType.Diamond,
       ShapeType.Triangle,
+      ShapeType.Hexagon,
+      ShapeType.Cylinder,
+      ShapeType.Cloud,
       'roundedRect',
     ];
 

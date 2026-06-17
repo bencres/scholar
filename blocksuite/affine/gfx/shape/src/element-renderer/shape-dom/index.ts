@@ -9,6 +9,7 @@ import { manageClassNames, setStyles } from './utils';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 type RetainedShapeDom = {
+  path: SVGPathElement | null;
   polygon: SVGPolygonElement | null;
   svg: SVGSVGElement | null;
   text: HTMLDivElement | null;
@@ -16,6 +17,11 @@ type RetainedShapeDom = {
 
 type RetainedShapeSvg = {
   polygon: SVGPolygonElement;
+  svg: SVGSVGElement;
+};
+
+type RetainedShapeSvgPath = {
+  path: SVGPathElement;
   svg: SVGSVGElement;
 };
 
@@ -31,6 +37,7 @@ function getRetainedShapeDom(element: HTMLElement): RetainedShapeDom {
   const retained = {
     svg: null,
     polygon: null,
+    path: null,
     text: null,
   };
   retainedShapeDom.set(element, retained);
@@ -69,7 +76,7 @@ function applyShapeSpecificStyles(
   // No 'else' needed to clear styles, as they are reset at the beginning of the function.
 }
 
-function getOrCreateSvg(
+function getOrCreateSvgPolygon(
   retained: RetainedShapeDom,
   element: HTMLElement
 ): RetainedShapeSvg {
@@ -79,6 +86,8 @@ function getOrCreateSvg(
       polygon: retained.polygon,
     };
   }
+
+  removeSvg(retained);
 
   const svg = document.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('width', '100%');
@@ -95,10 +104,61 @@ function getOrCreateSvg(
   return { svg, polygon };
 }
 
+function getOrCreateSvgPath(
+  retained: RetainedShapeDom,
+  element: HTMLElement
+): RetainedShapeSvgPath {
+  if (retained.svg && retained.path) {
+    return {
+      svg: retained.svg,
+      path: retained.path,
+    };
+  }
+
+  removeSvg(retained);
+
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('height', '100%');
+  svg.setAttribute('preserveAspectRatio', 'none');
+
+  const path = document.createElementNS(SVG_NS, 'path');
+  svg.append(path);
+
+  retained.svg = svg;
+  retained.path = path;
+  element.prepend(svg);
+
+  return { svg, path };
+}
+
 function removeSvg(retained: RetainedShapeDom) {
   retained.svg?.remove();
   retained.svg = null;
   retained.polygon = null;
+  retained.path = null;
+}
+
+function applySvgStrokeAttributes(
+  element: SVGPolygonElement | SVGPathElement,
+  model: ShapeElementModel,
+  strokeColor: string,
+  strokeW: number
+) {
+  const finalStrokeColor =
+    model.strokeStyle !== 'none' && strokeW > 0 ? strokeColor : 'transparent';
+  const finalStrokeDasharray =
+    model.strokeStyle === 'dash' && finalStrokeColor !== 'transparent'
+      ? '12, 12'
+      : 'none';
+
+  element.setAttribute('stroke', finalStrokeColor);
+  element.setAttribute('stroke-width', String(strokeW));
+  if (finalStrokeDasharray !== 'none') {
+    element.setAttribute('stroke-dasharray', finalStrokeDasharray);
+  } else {
+    element.removeAttribute('stroke-dasharray');
+  }
 }
 
 function getOrCreateText(retained: RetainedShapeDom, element: HTMLElement) {
@@ -194,52 +254,58 @@ export const shapeDomRenderer = (
   // Apply shape-specific clipping, border-radius, and potentially clear innerHTML
   applyShapeSpecificStyles(model, element, zoom);
 
-  if (model.shapeType === 'diamond' || model.shapeType === 'triangle') {
-    // For diamond and triangle, fill and border are handled by inline SVG
-    element.style.border = 'none'; // Ensure no standard CSS border interferes
-    element.style.backgroundColor = 'transparent'; // Host element is transparent
-    const { polygon, svg } = getOrCreateSvg(retained, element);
-
+  if (
+    model.shapeType === 'diamond' ||
+    model.shapeType === 'triangle' ||
+    model.shapeType === 'hexagon'
+  ) {
+    element.style.border = 'none';
+    element.style.backgroundColor = 'transparent';
+    const { polygon, svg } = getOrCreateSvgPolygon(retained, element);
     const strokeW = model.strokeWidth;
 
     let svgPoints = '';
     if (model.shapeType === 'diamond') {
-      // Generate diamond points using shared utility
       svgPoints = SVGShapeBuilder.diamond(
         unscaledWidth,
         unscaledHeight,
         strokeW
       );
-    } else {
-      // triangle - generate triangle points using shared utility
+    } else if (model.shapeType === 'triangle') {
       svgPoints = SVGShapeBuilder.triangle(
+        unscaledWidth,
+        unscaledHeight,
+        strokeW
+      );
+    } else {
+      svgPoints = SVGShapeBuilder.hexagon(
         unscaledWidth,
         unscaledHeight,
         strokeW
       );
     }
 
-    // Determine if stroke should be visible and its color
-    const finalStrokeColor =
-      model.strokeStyle !== 'none' && strokeW > 0 ? strokeColor : 'transparent';
-    // Determine dash array, only if stroke is visible and style is 'dash'
-    const finalStrokeDasharray =
-      model.strokeStyle === 'dash' && finalStrokeColor !== 'transparent'
-        ? '12, 12'
-        : 'none';
-    // Determine fill color
     const finalFillColor = model.filled ? fillColor : 'transparent';
 
     svg.setAttribute('viewBox', `0 0 ${unscaledWidth} ${unscaledHeight}`);
     polygon.setAttribute('points', svgPoints);
     polygon.setAttribute('fill', finalFillColor);
-    polygon.setAttribute('stroke', finalStrokeColor);
-    polygon.setAttribute('stroke-width', String(strokeW));
-    if (finalStrokeDasharray !== 'none') {
-      polygon.setAttribute('stroke-dasharray', finalStrokeDasharray);
-    } else {
-      polygon.removeAttribute('stroke-dasharray');
-    }
+    applySvgStrokeAttributes(polygon, model, strokeColor, strokeW);
+  } else if (model.shapeType === 'cylinder' || model.shapeType === 'cloud') {
+    element.style.border = 'none';
+    element.style.backgroundColor = 'transparent';
+    const { path, svg } = getOrCreateSvgPath(retained, element);
+    const strokeW = model.strokeWidth;
+    const pathD =
+      model.shapeType === 'cylinder'
+        ? SVGShapeBuilder.cylinder(unscaledWidth, unscaledHeight, strokeW)
+        : SVGShapeBuilder.cloud(unscaledWidth, unscaledHeight, strokeW);
+    const finalFillColor = model.filled ? fillColor : 'transparent';
+
+    svg.setAttribute('viewBox', `0 0 ${unscaledWidth} ${unscaledHeight}`);
+    path.setAttribute('d', pathD);
+    path.setAttribute('fill', finalFillColor);
+    applySvgStrokeAttributes(path, model, strokeColor, strokeW);
   } else {
     // Standard rendering for other shapes (e.g., rect, ellipse)
     removeSvg(retained);

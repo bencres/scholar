@@ -1,0 +1,39 @@
+#:schema https://conductor.build/schemas/settings.repo.schema.json
+
+# Gitignored env files needed for local server and Docker dev services.
+file_include_globs = """
+packages/backend/server/.env
+.docker/dev/.env
+"""
+
+[scripts]
+setup = """
+git -C "$CONDUCTOR_ROOT_PATH" fetch --prune origin && git -C "$CONDUCTOR_ROOT_PATH" pull --ff-only || true
+corepack enable
+yarn install
+yarn affine @affine/server-native build
+yarn affine @affine/native build
+test -f packages/backend/server/.env || cp packages/backend/server/.env.example packages/backend/server/.env
+test -f .docker/dev/.env || cp .docker/dev/.env.example .docker/dev/.env
+"""
+
+run = """
+npx --yes concurrently@9 -k -n server,web -c blue,green \
+  "yarn affine server dev" \
+  "yarn affine dev -p web"
+"""
+
+archive = "true"
+
+# Web dev server (8080) and API proxy (3010) use fixed ports; Postgres/Redis/Mailpit
+# from .docker/dev/compose.yml are shared across workspaces.
+run_mode = "nonconcurrent"
+
+[prompts]
+general = """
+Target branch is origin/canary. Before server work, ensure dev services are up:
+  docker compose -f .docker/dev/compose.yml up -d
+Then run migrations once per database:
+  yarn affine server init
+Default test login: dev@affine.pro / dev
+"""

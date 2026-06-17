@@ -12,8 +12,8 @@ Return JSON only (no markdown wrapper, no code fences, no commentary). Fields: `
 
 Keep answers and rubrics concise so the full deck fits in one response.
 
-- **Recall:** closed Q→A. Required `concepts` (1–3 slugs). Optional `prerequisites` (0–2 slugs). Optional `misconceptions` (1–2 short slug phrases). Optional `blockIds` when a card maps to a section. Optional `metadata` when it materially helps downstream study modes.
-- **Synthesis:** open prompt + `rubric` (3–4 checkable strings). Required `concepts` (1–3 slugs). Optional `prerequisites` (0–2 slugs). Optional `blockIds`. Optional `metadata` when it materially helps downstream study modes.
+- **Recall:** closed Q→A. Required `concepts` (1–7 slugs, most relevant first). Optional `prerequisites` (0–2 slugs). Optional `misconceptions` (1–2 short slug phrases). Optional `blockIds` when a card maps to a section. Optional `metadata` when it materially helps downstream study modes.
+- **Synthesis:** open prompt + `rubric` (comma-separated string of 3–4 checkable criteria, most important first). Required `concepts` (1–7 slugs, most relevant first). Optional `prerequisites` (0–2 slugs). Optional `blockIds`. Optional `metadata` when it materially helps downstream study modes.
 
 ## Learning graph metadata
 
@@ -21,7 +21,7 @@ Every card must include `concepts` so the app can build a concept-level learning
 
 - Emit stable **kebab-case slugs** (e.g. `connection-pooling`), not full sentences or display titles.
 - Provide `deckConcepts`: 8–15 slugs naming the main ideas in this deck. Reuse these slugs on cards.
-- Each card: **1–3 `concepts`** drawn from `deckConcepts` (add a new slug to `deckConcepts` if needed).
+- Each card: **1–7 `concepts`** drawn from `deckConcepts` (add a new slug to `deckConcepts` if needed). Order concepts by relevance to the card—**most central first**, then supporting ideas.
 - `prerequisites` only when confident (0–2 per card). Each prerequisite slug must appear in `deckConcepts` or another card's `concepts`.
 - `misconceptions` (recall only): short slug phrases for plausible wrong beliefs (e.g. `pool-size-fixes-db-limits`), not paragraphs.
 
@@ -55,12 +55,12 @@ Draw from lenses such as:
 - **Comparison:** vs. the obvious alternative, and what **flips** the decision.
 - **Transfer:** same pattern in another domain.
 
-**Rubric rules:** 3–4 bullets, each **checkable**. "Discusses tradeoffs" is weak; "names that total connections = instances × pool size" is strong. Ground rubrics in engineering reasoning, not note wording.
+**Rubric rules:** 3–4 criteria as a **comma-separated string** (not a JSON array), ordered from most to least important. Each criterion must be checkable. "Discusses tradeoffs" is weak; "names that total connections = instances × pool size" is strong. Ground rubrics in engineering reasoning, not note wording.
 
 **Example synthesis (scenario lens):**
 
 - question: "Your service runs fine with pool size 20 until you scale to 50 instances and the database rejects connections. What went wrong, why does raising per-instance pool size make it worse, and what's the actual fix?"
-- rubric: ["Total connections = instances × pool size exceeds DB max_connections", "Per-process pooling becomes a thundering herd fleet-wide", "Raising per-instance size multiplies rejections", "Fleet-level fix: proxy (e.g. PgBouncer), smaller per-instance pools, or a shared cap", "Pooling optimizes one process; connection limits are a global resource"]
+- rubric: "Total connections = instances × pool size exceeds DB max_connections, Per-process pooling becomes a thundering herd fleet-wide, Raising per-instance size multiplies rejections, Fleet-level fix: proxy (e.g. PgBouncer), smaller per-instance pools, or a shared cap"
 
 ## Adapt to source type (infer from content)
 
@@ -104,7 +104,7 @@ Return **only** a single raw JSON object matching this shape. Do not wrap it in 
   "synthesis": [
     {
       "question": "string",
-      "rubric": ["string"],
+      "rubric": "ATP carries phosphate-bond energy, NADH carries electrons",
       "concepts": ["slug-one"],
       "prerequisites": ["slug-two"],
       "blockIds": ["string"],

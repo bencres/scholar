@@ -17,6 +17,7 @@ import { TimeRow } from '@affine/core/desktop/dialogs/doc-info/time-row';
 import type { DocCustomPropertyInfo } from '@affine/core/modules/db';
 import { DocDatabaseBacklinkInfo } from '@affine/core/modules/doc-info';
 import { DocLinksService } from '@affine/core/modules/doc-link';
+import { StudyDocDecksSection } from '@affine/core/modules/study/views/doc-study-decks-section';
 import { WorkspacePropertyService } from '@affine/core/modules/workspace-property';
 import { useI18n } from '@affine/i18n';
 import { PlusIcon } from '@blocksuite/icons/rc';
@@ -123,6 +124,7 @@ export const DocInfoSheet = ({
             </PropertyCollapsibleContent>
           </PropertyCollapsibleSection>
           <Divider size="thinner" />
+          <StudyDocDecksSection docId={docId} />
 
           <DocDatabaseBacklinkInfo />
 

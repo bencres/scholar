@@ -1,64 +1,182 @@
+import { useNewDoc } from '@affine/core/modules/app-sidebar/views/add-page-button';
+import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
+import { DocsService } from '@affine/core/modules/doc';
+import { FeatureFlagService } from '@affine/core/modules/feature-flag';
+import { GlobalContextService } from '@affine/core/modules/global-context';
+import { StudyService } from '@affine/core/modules/study';
 import { WorkbenchService } from '@affine/core/modules/workbench';
-import { useLiveData, useService } from '@toeverything/infra';
+import { useI18n } from '@affine/i18n';
+import track from '@affine/track';
+import { FlashPanelIcon, PlusIcon } from '@blocksuite/icons/rc';
+import {
+  useLiveData,
+  useService,
+  useServiceOptional,
+} from '@toeverything/infra';
 import clsx from 'clsx';
-import { useCallback, useEffect, useState } from 'react';
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { IslandContainer } from './container';
-import { AIIcon } from './icons';
-import { aiIslandBtn, aiIslandWrapper, toolStyle } from './styles.css';
+import {
+  aiIslandBtn,
+  aiIslandHoverZone,
+  aiIslandStack,
+  aiIslandWrapper,
+  generateDeckBtn,
+  generateDeckBtnVisible,
+  toolStyle,
+} from './styles.css';
 
-const hideChat: Array<string | ((path: string) => boolean)> = [
+const hideIsland: Array<string | ((path: string) => boolean)> = [
   '/chat',
   path => path.includes('attachments'),
 ];
 
 export const AIIsland = () => {
-  // to make sure ai island is hidden first and animate in
+  const t = useI18n();
   const [hide, setHide] = useState(true);
+  const [showGenerate, setShowGenerate] = useState(false);
+  const hideGenerateTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const workbench = useService(WorkbenchService).workbench;
+  const createDoc = useNewDoc();
+  const globalContext = useService(GlobalContextService).globalContext;
+  const docsService = useService(DocsService);
+  const workspaceDialogService = useService(WorkspaceDialogService);
+  const featureFlagService = useService(FeatureFlagService);
+  const studyService = useServiceOptional(StudyService);
+
   const activeView = useLiveData(workbench.activeView$);
   const haveChatTab = useLiveData(
-    activeView.sidebarTabs$.map(tabs => tabs.some(t => t.id === 'chat'))
+    activeView.sidebarTabs$.map(tabs => tabs.some(tab => tab.id === 'chat'))
   );
   const activeLocation = useLiveData(activeView.location$);
   const activeTab = useLiveData(activeView.activeSidebarTab$);
   const sidebarOpen = useLiveData(workbench.sidebarOpen$);
 
+  const docId = useLiveData(globalContext.docId.$);
+  const docMode = useLiveData(globalContext.docMode.$);
+  const docRecordList = docsService.list;
+  const doc = useLiveData(docId ? docRecordList.doc$(docId) : undefined);
+  const inTrash = useLiveData(doc?.meta$)?.trash;
+  const enableStudy = useLiveData(featureFlagService.flags.enable_study.$);
+
+  const canGenerateDeck =
+    !!docId &&
+    !inTrash &&
+    enableStudy &&
+    !!studyService?.enabled &&
+    docMode !== 'edgeless';
+
   useEffect(() => {
-    let hide = true;
+    let shouldHide = true;
     if (haveChatTab) {
-      hide = !!sidebarOpen && activeTab?.id === 'chat';
+      shouldHide = !!sidebarOpen && activeTab?.id === 'chat';
     } else {
       const path = activeLocation.pathname;
-      hide = hideChat.some(item =>
+      shouldHide = hideIsland.some(item =>
         typeof item === 'string' ? path === item : item(path)
       );
     }
-    setHide(hide);
+    setHide(shouldHide);
   }, [activeLocation.pathname, activeTab, haveChatTab, sidebarOpen]);
 
-  const onOpenChat = useCallback(() => {
-    if (hide) return;
-    if (haveChatTab) {
-      workbench.openSidebar();
-      activeView.activeSidebarTab('chat');
-    } else {
-      workbench.open('/chat');
-      workbench.closeSidebar();
+  useEffect(() => {
+    return () => {
+      if (hideGenerateTimeoutRef.current) {
+        clearTimeout(hideGenerateTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!canGenerateDeck) {
+      setShowGenerate(false);
     }
-  }, [activeView, haveChatTab, hide, workbench]);
+  }, [canGenerateDeck]);
+
+  const revealGenerate = useCallback(() => {
+    if (!canGenerateDeck) return;
+    if (hideGenerateTimeoutRef.current) {
+      clearTimeout(hideGenerateTimeoutRef.current);
+      hideGenerateTimeoutRef.current = undefined;
+    }
+    setShowGenerate(true);
+  }, [canGenerateDeck]);
+
+  const scheduleHideGenerate = useCallback(() => {
+    if (hideGenerateTimeoutRef.current) {
+      clearTimeout(hideGenerateTimeoutRef.current);
+    }
+    hideGenerateTimeoutRef.current = setTimeout(() => {
+      setShowGenerate(false);
+      hideGenerateTimeoutRef.current = undefined;
+    }, 150);
+  }, []);
+
+  const onCreatePage = useCallback(
+    (event?: MouseEvent) => {
+      if (hide) return;
+      createDoc(event, 'page');
+      track.$.navigationPanel.$.createDoc();
+      track.$.sidebar.newDoc.quickStart({ with: 'page' });
+    },
+    [createDoc, hide]
+  );
+
+  const onGenerateDeck = useCallback(
+    (event: MouseEvent) => {
+      event.stopPropagation();
+      if (hide || !docId || !canGenerateDeck) return;
+      workspaceDialogService.open('study-generate', {
+        docId,
+        autoGenerate: true,
+      });
+    },
+    [canGenerateDeck, docId, hide, workspaceDialogService]
+  );
 
   return (
     <IslandContainer className={clsx(toolStyle, { hide })}>
       <div className={aiIslandWrapper} data-hide={hide}>
-        <button
-          className={aiIslandBtn}
-          data-testid="ai-island"
-          onClick={onOpenChat}
-        >
-          <AIIcon />
-        </button>
+        <div className={aiIslandStack}>
+          <div className={aiIslandHoverZone}>
+            <button
+              type="button"
+              className={aiIslandBtn}
+              data-testid="note-island-new-page"
+              onClick={onCreatePage}
+              onMouseEnter={revealGenerate}
+              onMouseLeave={scheduleHideGenerate}
+              aria-label={t['New Page']()}
+            >
+              <PlusIcon width={20} height={20} />
+            </button>
+            {canGenerateDeck ? (
+              <button
+                type="button"
+                className={clsx(
+                  generateDeckBtn,
+                  showGenerate && generateDeckBtnVisible
+                )}
+                data-testid="note-island-generate-deck"
+                onClick={onGenerateDeck}
+                onMouseEnter={revealGenerate}
+                onMouseLeave={scheduleHideGenerate}
+                aria-label={t['com.affine.study.generate.menu']()}
+              >
+                <FlashPanelIcon width={16} height={16} />
+                <span>{t['com.affine.study.generate.title']()}</span>
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
     </IslandContainer>
   );

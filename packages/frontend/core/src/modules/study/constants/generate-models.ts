@@ -1,6 +1,29 @@
 export const STUDY_GENERATE_MODEL_STORAGE_KEY = 'StudyGenerateModelId';
+export const STUDY_DEFAULT_INCLUDE_RECALL_KEY = 'StudyDefaultIncludeRecall';
+export const STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY =
+  'StudyDefaultIncludeSynthesis';
+export const STUDY_DEFAULT_RECALL_COUNT_KEY = 'StudyDefaultRecallCount';
+export const STUDY_DEFAULT_SYNTHESIS_COUNT_KEY = 'StudyDefaultSynthesisCount';
+export const STUDY_DEFAULT_GENERATION_FOCUS_KEY = 'StudyDefaultGenerationFocus';
+export const STUDY_FLASHCARDS_TRACK_SCHEDULE_KEY =
+  'StudyFlashcardsTrackSchedule';
 
 export const DEFAULT_STUDY_GENERATE_MODEL = 'claude-sonnet-4-6';
+export const DEFAULT_STUDY_FLASHCARDS_TRACK_SCHEDULE = true;
+export const DEFAULT_STUDY_INCLUDE_RECALL = true;
+export const DEFAULT_STUDY_INCLUDE_SYNTHESIS = false;
+export const DEFAULT_STUDY_RECALL_COUNT = 7;
+export const DEFAULT_STUDY_SYNTHESIS_COUNT = 5;
+export const STUDY_GENERATE_CARD_COUNT_MIN = 1;
+export const STUDY_GENERATE_CARD_COUNT_MAX = 8;
+
+export function clampStudyGenerateCardCount(value: number) {
+  return Math.max(
+    STUDY_GENERATE_CARD_COUNT_MIN,
+    Math.min(STUDY_GENERATE_CARD_COUNT_MAX, Math.round(value))
+  );
+}
+export const DEFAULT_STUDY_GENERATION_FOCUS = '';
 
 export const STUDY_GENERATE_MODELS = [
   {

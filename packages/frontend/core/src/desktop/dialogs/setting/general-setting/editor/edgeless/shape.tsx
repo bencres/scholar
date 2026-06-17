@@ -191,6 +191,19 @@ export const ShapeSettings = () => {
           t['com.affine.settings.editorSettings.edgeless.shape.triangle'](),
       },
       {
+        value: ShapeType.Hexagon,
+        label: t['com.affine.settings.editorSettings.edgeless.shape.hexagon'](),
+      },
+      {
+        value: ShapeType.Cylinder,
+        label:
+          t['com.affine.settings.editorSettings.edgeless.shape.cylinder'](),
+      },
+      {
+        value: ShapeType.Cloud,
+        label: t['com.affine.settings.editorSettings.edgeless.shape.cloud'](),
+      },
+      {
         value: 'roundedRect',
         label:
           t[

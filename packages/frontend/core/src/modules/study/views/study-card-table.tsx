@@ -1,0 +1,525 @@
+import { Checkbox } from '@affine/component';
+import type {
+  CardState,
+  StudyCardContent,
+  StudyCardScheduling,
+} from '@affine/core/modules/study/entities/card';
+import type { StudyDeck } from '@affine/core/modules/study/entities/deck';
+import { i18nTime, useI18n } from '@affine/i18n';
+import { ArrowDownSmallIcon } from '@blocksuite/icons/rc';
+import clsx from 'clsx';
+import {
+  type MouseEvent,
+  type MutableRefObject,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import { StudyCardDetailPanel } from './study-card-detail-panel';
+import {
+  type CardDraft,
+  DEFAULT_CARD_DRAFT,
+  toCardDraft,
+} from './study-card-draft';
+import * as styles from './styles.css';
+
+export type CardSort =
+  | 'created-desc'
+  | 'created-asc'
+  | 'updated-desc'
+  | 'updated-asc'
+  | 'due-asc'
+  | 'due-desc'
+  | 'type'
+  | 'question-asc'
+  | 'question-desc';
+
+type SortableColumn = 'question' | 'type' | 'due' | 'updated' | 'created';
+
+const COLUMN_GRID = '36px 72px minmax(180px, 1fr) 120px 88px 88px 72px 32px';
+
+export const StudyCardTable = ({
+  cards,
+  decksByCardId,
+  schedulingByCard,
+  sort,
+  onSortChange,
+  expandedId,
+  onExpandedChange,
+  selectedIds,
+  onSelectedChange,
+  onSave,
+  onDelete,
+  onToggleSuspended,
+  onViewSource,
+  deleteLabel,
+  autoEditCardId,
+  onAutoEditConsumed,
+}: {
+  cards: StudyCardContent[];
+  decksByCardId: Map<string, StudyDeck[]>;
+  schedulingByCard: Map<string, StudyCardScheduling>;
+  sort: CardSort;
+  onSortChange: (sort: CardSort) => void;
+  expandedId: string | null;
+  onExpandedChange: (cardId: string | null) => void;
+  selectedIds: Set<string>;
+  onSelectedChange: (ids: Set<string>) => void;
+  onSave: (card: StudyCardContent, draft: CardDraft) => void | Promise<void>;
+  onDelete: (card: StudyCardContent) => void;
+  onToggleSuspended: (card: StudyCardContent, active: boolean) => void;
+  onViewSource?: (card: StudyCardContent) => void;
+  deleteLabel?: string;
+  autoEditCardId?: string | null;
+  onAutoEditConsumed?: () => void;
+}) => {
+  const t = useI18n();
+  const selectionAnchorRef = useRef<string | null>(null);
+  const shiftKeyRef = useRef(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<CardDraft>(DEFAULT_CARD_DRAFT);
+
+  const allSelected =
+    cards.length > 0 && cards.every(card => selectedIds.has(card.id));
+  const someSelected = cards.some(card => selectedIds.has(card.id));
+
+  useEffect(() => {
+    if (selectedIds.size === 0) {
+      selectionAnchorRef.current = null;
+    }
+  }, [selectedIds.size]);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditDraft(DEFAULT_CARD_DRAFT);
+  }, []);
+
+  const startEdit = useCallback(
+    (card: StudyCardContent) => {
+      setEditingId(card.id);
+      setEditDraft(toCardDraft(card));
+      onExpandedChange(card.id);
+    },
+    [onExpandedChange]
+  );
+
+  useEffect(() => {
+    if (!autoEditCardId) return;
+    const card = cards.find(item => item.id === autoEditCardId);
+    if (!card) return;
+    startEdit(card);
+    onAutoEditConsumed?.();
+  }, [autoEditCardId, cards, onAutoEditConsumed, startEdit]);
+
+  const toggleExpanded = useCallback(
+    (cardId: string) => {
+      if (expandedId === cardId) {
+        onExpandedChange(null);
+        if (editingId === cardId) {
+          cancelEdit();
+        }
+        return;
+      }
+      if (editingId && editingId !== cardId) {
+        cancelEdit();
+      }
+      onExpandedChange(cardId);
+    },
+    [cancelEdit, editingId, expandedId, onExpandedChange]
+  );
+
+  const handleSelect = useCallback(
+    (cardId: string, shiftKey: boolean) => {
+      if (shiftKey && selectionAnchorRef.current !== null) {
+        const anchorIndex = cards.findIndex(
+          card => card.id === selectionAnchorRef.current
+        );
+        const currentIndex = cards.findIndex(card => card.id === cardId);
+        if (anchorIndex !== -1 && currentIndex !== -1) {
+          const start = Math.min(anchorIndex, currentIndex);
+          const end = Math.max(anchorIndex, currentIndex);
+          onSelectedChange(
+            new Set(cards.slice(start, end + 1).map(card => card.id))
+          );
+          selectionAnchorRef.current = cardId;
+          return;
+        }
+      }
+
+      const next = new Set(selectedIds);
+      if (next.has(cardId)) next.delete(cardId);
+      else next.add(cardId);
+      onSelectedChange(next);
+      selectionAnchorRef.current = cardId;
+    },
+    [cards, onSelectedChange, selectedIds]
+  );
+
+  const toggleSelectAll = useCallback(() => {
+    if (allSelected) {
+      onSelectedChange(new Set());
+      selectionAnchorRef.current = null;
+      return;
+    }
+    onSelectedChange(new Set(cards.map(card => card.id)));
+    selectionAnchorRef.current = cards[0]?.id ?? null;
+  }, [allSelected, cards, onSelectedChange]);
+
+  const handleSortColumn = useCallback(
+    (column: SortableColumn) => {
+      const toggles: Record<SortableColumn, [CardSort, CardSort]> = {
+        question: ['question-asc', 'question-desc'],
+        type: ['type', 'type'],
+        due: ['due-asc', 'due-desc'],
+        updated: ['updated-desc', 'updated-asc'],
+        created: ['created-desc', 'created-asc'],
+      };
+      const [asc, desc] = toggles[column];
+      if (sort === asc) {
+        onSortChange(desc);
+        return;
+      }
+      onSortChange(asc);
+    },
+    [onSortChange, sort]
+  );
+
+  const sortDirection = useMemo(
+    () =>
+      ({
+        'question-asc': 'asc',
+        'question-desc': 'desc',
+        'due-asc': 'asc',
+        'due-desc': 'desc',
+        'updated-desc': 'desc',
+        'updated-asc': 'asc',
+        'created-desc': 'desc',
+        'created-asc': 'asc',
+      }) as Partial<Record<CardSort, 'asc' | 'desc'>>,
+    []
+  );
+
+  const renderSortHeader = (
+    column: SortableColumn,
+    label: string,
+    activeSorts: CardSort[]
+  ) => {
+    const active = activeSorts.includes(sort);
+    const direction = active ? sortDirection[sort] : undefined;
+    return (
+      <button
+        type="button"
+        className={clsx(
+          styles.cardTableHeaderCell,
+          styles.cardTableHeaderSortable,
+          active && styles.cardTableHeaderActive
+        )}
+        onClick={() => handleSortColumn(column)}
+      >
+        <span>{label}</span>
+        {active && direction ? (
+          <ArrowDownSmallIcon
+            className={clsx(
+              styles.cardTableSortIcon,
+              direction === 'asc' && styles.cardTableSortIconAsc
+            )}
+          />
+        ) : null}
+      </button>
+    );
+  };
+
+  const stateLabels: Record<CardState, string> = {
+    new: t['com.affine.study.card-library.state.new'](),
+    learning: t['com.affine.study.card-library.state.learning'](),
+    review: t['com.affine.study.card-library.state.review'](),
+    relearning: t['com.affine.study.card-library.state.relearning'](),
+  };
+
+  const formatDue = (due?: number) => {
+    if (due === undefined) return t['com.affine.study.card-library.due.none']();
+    return i18nTime(due, {
+      relative: { max: [2, 'day'], yesterdayAndTomorrow: true },
+      absolute: { accuracy: 'day', noYear: true },
+    });
+  };
+
+  const formatDecks = (memberships: StudyDeck[]) => {
+    if (memberships.length === 0) {
+      return t['com.affine.study.card-unassigned']();
+    }
+    if (memberships.length === 1) return memberships[0].name;
+    return t['com.affine.study.card-library.deck-count']({
+      count: String(memberships.length),
+    });
+  };
+
+  return (
+    <div className={styles.cardTable}>
+      <div
+        className={styles.cardTableHeader}
+        style={{ gridTemplateColumns: COLUMN_GRID }}
+        role="row"
+      >
+        <div className={styles.cardTableHeaderCell} role="columnheader">
+          <Checkbox
+            checked={allSelected}
+            indeterminate={!allSelected && someSelected}
+            onChange={toggleSelectAll}
+            aria-label={t['com.affine.study.card-library.select-all']()}
+          />
+        </div>
+        {renderSortHeader(
+          'type',
+          t['com.affine.study.card-library.column.type'](),
+          ['type']
+        )}
+        {renderSortHeader(
+          'question',
+          t['com.affine.study.card-library.column.question'](),
+          ['question-asc', 'question-desc']
+        )}
+        <div className={styles.cardTableHeaderCell} role="columnheader">
+          {t['com.affine.study.card-library.column.decks']()}
+        </div>
+        {renderSortHeader(
+          'due',
+          t['com.affine.study.card-library.column.due'](),
+          ['due-asc', 'due-desc']
+        )}
+        <div className={styles.cardTableHeaderCell} role="columnheader">
+          {t['com.affine.study.card-library.column.state']()}
+        </div>
+        <div className={styles.cardTableHeaderCell} role="columnheader">
+          {t['com.affine.study.card-library.column.status']()}
+        </div>
+        <div className={styles.cardTableHeaderCell} role="columnheader" />
+      </div>
+      <div className={styles.cardTableBody} role="rowgroup">
+        {cards.map(card => {
+          const memberships = decksByCardId.get(card.id) ?? [];
+          const scheduling = schedulingByCard.get(card.id);
+          const expanded = expandedId === card.id;
+          const selected = selectedIds.has(card.id);
+          const typeLabel =
+            card.type === 'recall'
+              ? t['com.affine.study.card-type.recall']()
+              : t['com.affine.study.card-type.synthesis']();
+
+          return (
+            <CardTableRow
+              key={card.id}
+              card={card}
+              columnGrid={COLUMN_GRID}
+              expanded={expanded}
+              selected={selected}
+              typeLabel={typeLabel}
+              decksLabel={formatDecks(memberships)}
+              dueLabel={formatDue(scheduling?.due)}
+              stateLabel={
+                scheduling ? stateLabels[scheduling.state] : undefined
+              }
+              statusLabel={
+                card.suspended
+                  ? t['com.affine.study.card-library.filter.status.suspended']()
+                  : t['com.affine.study.card-library.filter.status.active']()
+              }
+              detail={
+                <StudyCardDetailPanel
+                  card={card}
+                  decks={memberships}
+                  schedulingState={scheduling?.state}
+                  due={scheduling?.due}
+                  editing={editingId === card.id}
+                  draft={editDraft}
+                  onDraftChange={updater =>
+                    setEditDraft(current => updater(current))
+                  }
+                  onStartEdit={() => startEdit(card)}
+                  onSave={() => {
+                    Promise.resolve(onSave(card, editDraft))
+                      .then(() => cancelEdit())
+                      .catch(error => {
+                        console.error('[study.card-table] save failed', error);
+                      });
+                  }}
+                  onCancelEdit={cancelEdit}
+                  onDelete={() => {
+                    if (editingId === card.id) cancelEdit();
+                    onDelete(card);
+                  }}
+                  onToggleSuspended={active => onToggleSuspended(card, active)}
+                  onViewSource={
+                    onViewSource && card.provenance.docId !== 'manual'
+                      ? () => onViewSource(card)
+                      : undefined
+                  }
+                  deleteLabel={deleteLabel}
+                />
+              }
+              onSelect={shiftKey => handleSelect(card.id, shiftKey)}
+              onShiftKeyRef={shiftKeyRef}
+              onToggleExpand={shiftKey => {
+                if (shiftKey) {
+                  handleSelect(card.id, true);
+                  return;
+                }
+                toggleExpanded(card.id);
+              }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const CardTableRow = ({
+  card,
+  columnGrid,
+  expanded,
+  selected,
+  typeLabel,
+  decksLabel,
+  dueLabel,
+  stateLabel,
+  statusLabel,
+  detail,
+  onSelect,
+  onShiftKeyRef,
+  onToggleExpand,
+}: {
+  card: StudyCardContent;
+  columnGrid: string;
+  expanded: boolean;
+  selected: boolean;
+  typeLabel: string;
+  decksLabel: string;
+  dueLabel: string;
+  stateLabel?: string;
+  statusLabel: string;
+  detail: ReactNode;
+  onSelect: (shiftKey: boolean) => void;
+  onShiftKeyRef: MutableRefObject<boolean>;
+  onToggleExpand: (shiftKey: boolean) => void;
+}) => {
+  const handleRowClick = (event: MouseEvent) => {
+    onToggleExpand(event.shiftKey);
+  };
+
+  return (
+    <div className={styles.cardTableRowGroup}>
+      <div
+        className={clsx(
+          styles.cardTableRow,
+          expanded && styles.cardTableRowExpanded,
+          selected && styles.cardTableRowSelected,
+          card.suspended && styles.cardTableRowSuspended
+        )}
+        style={{ gridTemplateColumns: columnGrid }}
+        role="row"
+        aria-expanded={expanded}
+      >
+        <div
+          className={styles.cardTableCell}
+          role="cell"
+          onClick={event => event.stopPropagation()}
+        >
+          <Checkbox
+            checked={selected}
+            onMouseDown={event => {
+              onShiftKeyRef.current = event.shiftKey;
+            }}
+            onChange={() => onSelect(onShiftKeyRef.current)}
+          />
+        </div>
+        <button
+          type="button"
+          className={clsx(styles.cardTableCell, styles.cardTableCellButton)}
+          onClick={handleRowClick}
+        >
+          <span className={styles.cardTypeBadge}>{typeLabel}</span>
+        </button>
+        <button
+          type="button"
+          className={clsx(
+            styles.cardTableCell,
+            styles.cardTableCellButton,
+            styles.cardTableQuestionCell
+          )}
+          onClick={handleRowClick}
+        >
+          <span className={styles.cardTableQuestionText}>{card.question}</span>
+        </button>
+        <button
+          type="button"
+          className={clsx(
+            styles.cardTableCell,
+            styles.cardTableCellButton,
+            styles.cardTableDecksCell
+          )}
+          onClick={handleRowClick}
+        >
+          {decksLabel}
+        </button>
+        <button
+          type="button"
+          className={clsx(styles.cardTableCell, styles.cardTableCellButton)}
+          onClick={handleRowClick}
+        >
+          {dueLabel}
+        </button>
+        <button
+          type="button"
+          className={clsx(styles.cardTableCell, styles.cardTableCellButton)}
+          onClick={handleRowClick}
+        >
+          {stateLabel ?? '—'}
+        </button>
+        <button
+          type="button"
+          className={clsx(styles.cardTableCell, styles.cardTableCellButton)}
+          onClick={handleRowClick}
+        >
+          <span
+            className={clsx(
+              styles.cardTableStatusBadge,
+              card.suspended && styles.cardTableStatusSuspended
+            )}
+          >
+            {statusLabel}
+          </span>
+        </button>
+        <button
+          type="button"
+          className={clsx(
+            styles.cardTableCell,
+            styles.cardTableCellButton,
+            styles.cardTableExpandCell
+          )}
+          onClick={handleRowClick}
+          aria-label="Toggle details"
+        >
+          <ArrowDownSmallIcon
+            className={clsx(
+              styles.cardTableExpandIcon,
+              expanded && styles.cardTableExpandIconOpen
+            )}
+          />
+        </button>
+      </div>
+      <div
+        className={clsx(
+          styles.cardTableDetailWrapper,
+          expanded && styles.cardTableDetailWrapperOpen
+        )}
+      >
+        <div className={styles.cardTableDetailInner}>{detail}</div>
+      </div>
+    </div>
+  );
+};

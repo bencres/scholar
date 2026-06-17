@@ -1,7 +1,7 @@
 import { getAIRequestService } from '@affine/core/blocksuite/ai/runtime/request';
 import { collectStreamText } from '@affine/core/blocksuite/ai/utils/stream-objects';
 import { DebugLogger } from '@affine/debug';
-import type { Store } from '@blocksuite/affine/store';
+import { type Store } from '@blocksuite/affine/store';
 import { LiveData, Service } from '@toeverything/infra';
 import { nanoid } from 'nanoid';
 
@@ -10,8 +10,20 @@ import type { FeatureFlagService } from '../../feature-flag';
 import type { GlobalStateService } from '../../storage';
 import type { WorkspaceService } from '../../workspace';
 import {
+  DEFAULT_STUDY_FLASHCARDS_TRACK_SCHEDULE,
   DEFAULT_STUDY_GENERATE_MODEL,
+  DEFAULT_STUDY_GENERATION_FOCUS,
+  DEFAULT_STUDY_INCLUDE_RECALL,
+  DEFAULT_STUDY_INCLUDE_SYNTHESIS,
+  DEFAULT_STUDY_RECALL_COUNT,
+  DEFAULT_STUDY_SYNTHESIS_COUNT,
   isStudyGenerateModelId,
+  STUDY_DEFAULT_GENERATION_FOCUS_KEY,
+  STUDY_DEFAULT_INCLUDE_RECALL_KEY,
+  STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY,
+  STUDY_DEFAULT_RECALL_COUNT_KEY,
+  STUDY_DEFAULT_SYNTHESIS_COUNT_KEY,
+  STUDY_FLASHCARDS_TRACK_SCHEDULE_KEY,
   STUDY_GENERATE_MODEL_STORAGE_KEY,
 } from '../constants/generate-models';
 import type {
@@ -64,6 +76,7 @@ import {
   shouldMarkLeech,
 } from '../utils/scheduling';
 import {
+  coerceStudyCardsGenerateJsonInput,
   sanitizeStudyCardsGenerateOutput,
   toStudyCardGraphFields,
 } from '../utils/study-graph-metadata';
@@ -85,6 +98,8 @@ export type StudyGenerationOptions = {
   targetRecallCount?: number;
   targetSynthesisCount?: number;
   includeCardMetadata?: boolean;
+  includeRecall?: boolean;
+  includeSynthesis?: boolean;
 };
 
 declare global {
@@ -134,9 +149,36 @@ function publishStudyGenerateDebug(debug: StudyGenerationDebug) {
   );
 }
 
+export type StudyGenerationStage =
+  | 'preparing'
+  | 'generating'
+  | 'parsing'
+  | 'validating';
+
+export const STUDY_GENERATION_STAGE_PROGRESS: Record<
+  StudyGenerationStage,
+  number
+> = {
+  preparing: 10,
+  generating: 20,
+  parsing: 75,
+  validating: 90,
+};
+
+export function getStudyGenerationProgress(
+  state: Extract<StudyGenerationState, { status: 'generating' }>
+): number {
+  return state.progress ?? STUDY_GENERATION_STAGE_PROGRESS[state.stage];
+}
+
 export type StudyGenerationState =
   | { status: 'idle' }
-  | { status: 'generating'; docIds: string[] }
+  | {
+      status: 'generating';
+      docIds: string[];
+      stage: StudyGenerationStage;
+      progress?: number;
+    }
   | {
       status: 'preview';
       docIds: string[];
@@ -165,6 +207,48 @@ export class StudyCommandService extends Service {
     DEFAULT_STUDY_GENERATE_MODEL
   );
 
+  readonly defaultIncludeRecall$ = LiveData.from(
+    this.globalStateService.globalState.watch<boolean>(
+      STUDY_DEFAULT_INCLUDE_RECALL_KEY
+    ),
+    DEFAULT_STUDY_INCLUDE_RECALL
+  );
+
+  readonly defaultIncludeSynthesis$ = LiveData.from(
+    this.globalStateService.globalState.watch<boolean>(
+      STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY
+    ),
+    DEFAULT_STUDY_INCLUDE_SYNTHESIS
+  );
+
+  readonly defaultRecallCount$ = LiveData.from(
+    this.globalStateService.globalState.watch<number>(
+      STUDY_DEFAULT_RECALL_COUNT_KEY
+    ),
+    DEFAULT_STUDY_RECALL_COUNT
+  );
+
+  readonly defaultSynthesisCount$ = LiveData.from(
+    this.globalStateService.globalState.watch<number>(
+      STUDY_DEFAULT_SYNTHESIS_COUNT_KEY
+    ),
+    DEFAULT_STUDY_SYNTHESIS_COUNT
+  );
+
+  readonly defaultGenerationFocus$ = LiveData.from(
+    this.globalStateService.globalState.watch<string>(
+      STUDY_DEFAULT_GENERATION_FOCUS_KEY
+    ),
+    DEFAULT_STUDY_GENERATION_FOCUS
+  );
+
+  readonly flashcardsTrackSchedule$ = LiveData.from(
+    this.globalStateService.globalState.watch<boolean>(
+      STUDY_FLASHCARDS_TRACK_SCHEDULE_KEY
+    ),
+    DEFAULT_STUDY_FLASHCARDS_TRACK_SCHEDULE
+  );
+
   constructor(
     private readonly workspaceService: WorkspaceService,
     private readonly docsService: DocsService,
@@ -186,6 +270,50 @@ export class StudyCommandService extends Service {
     this.globalStateService.globalState.set(
       STUDY_GENERATE_MODEL_STORAGE_KEY,
       modelId
+    );
+  }
+
+  setDefaultIncludeRecall(value: boolean) {
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_INCLUDE_RECALL_KEY,
+      value
+    );
+  }
+
+  setDefaultIncludeSynthesis(value: boolean) {
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_INCLUDE_SYNTHESIS_KEY,
+      value
+    );
+  }
+
+  setDefaultRecallCount(value: number) {
+    const clamped = Math.max(1, Math.min(30, Math.floor(value)));
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_RECALL_COUNT_KEY,
+      clamped
+    );
+  }
+
+  setDefaultSynthesisCount(value: number) {
+    const clamped = Math.max(1, Math.min(30, Math.floor(value)));
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_SYNTHESIS_COUNT_KEY,
+      clamped
+    );
+  }
+
+  setDefaultGenerationFocus(value: string) {
+    this.globalStateService.globalState.set(
+      STUDY_DEFAULT_GENERATION_FOCUS_KEY,
+      value
+    );
+  }
+
+  setFlashcardsTrackSchedule(value: boolean) {
+    this.globalStateService.globalState.set(
+      STUDY_FLASHCARDS_TRACK_SCHEDULE_KEY,
+      value
     );
   }
 
@@ -218,6 +346,8 @@ export class StudyCommandService extends Service {
       throw new Error('Select at least one note page');
     }
 
+    this.setGeneratingStage(uniqueDocIds, 'preparing');
+
     const releases: Array<() => void> = [];
     const sections = [];
     try {
@@ -238,14 +368,10 @@ export class StudyCommandService extends Service {
         for (const docId of uniqueDocIds) {
           const { doc, release } = this.docsService.open(docId);
           releases.push(release);
-          const store = doc.blockSuiteDoc.getStore({ id: docId });
-          if (!store) {
-            continue;
-          }
           const section = extractDocSection(
             docId,
             doc.title$.value || 'Untitled',
-            store
+            doc.blockSuiteDoc
           );
           if (section) {
             sections.push(section);
@@ -294,7 +420,7 @@ export class StudyCommandService extends Service {
       throw new Error(`Unsupported study generation model: ${selectedModel}`);
     }
 
-    this.generationState$.setValue({ status: 'generating', docIds });
+    this.setGeneratingStage(docIds, 'generating');
 
     let rawResponse: string | undefined;
     let stage: StudyGenerationDebug['stage'] = 'stream';
@@ -326,7 +452,13 @@ export class StudyCommandService extends Service {
         }
       );
 
-      rawResponse = await collectStreamText(stream);
+      rawResponse = await collectStreamText(stream, {
+        onChunk: index => {
+          if (index % 5 !== 0) return;
+          const progress = Math.min(70, 20 + Math.floor(index / 2));
+          this.setGeneratingStage(docIds, 'generating', progress);
+        },
+      });
       logStudyGenerateDebug('Raw model response', {
         modelId: selectedModel,
         docIds,
@@ -334,13 +466,17 @@ export class StudyCommandService extends Service {
         rawResponse,
       });
 
+      this.setGeneratingStage(docIds, 'parsing');
       stage = 'parse';
       const json = parseStudyCardsGenerateJson(rawResponse);
+      this.setGeneratingStage(docIds, 'validating');
       stage = 'validate';
       const parsed = sanitizeStudyCardsGenerateOutput(
-        StudyCardsGenerateOutputSchema.parse(json)
+        StudyCardsGenerateOutputSchema.parse(
+          coerceStudyCardsGenerateJsonInput(json)
+        )
       );
-      const cards = this.toPreviewCards(parsed);
+      const cards = this.toPreviewCards(parsed, options);
       this.generationState$.setValue({
         status: 'preview',
         docIds,
@@ -373,6 +509,19 @@ export class StudyCommandService extends Service {
       });
       throw error;
     }
+  }
+
+  private setGeneratingStage(
+    docIds: string[],
+    stage: StudyGenerationStage,
+    progress?: number
+  ) {
+    this.generationState$.setValue({
+      status: 'generating',
+      docIds,
+      stage,
+      progress: progress ?? STUDY_GENERATION_STAGE_PROGRESS[stage],
+    });
   }
 
   setPreviewCardAccepted(cardId: string, accepted: boolean) {
@@ -965,7 +1114,12 @@ export class StudyCommandService extends Service {
     }
   }
 
-  private toPreviewCards(output: StudyCardsGenerateOutput): StudyCardPreview[] {
+  private toPreviewCards(
+    output: StudyCardsGenerateOutput,
+    options?: Pick<StudyGenerationOptions, 'includeRecall' | 'includeSynthesis'>
+  ): StudyCardPreview[] {
+    const acceptRecall = options?.includeRecall !== false;
+    const acceptSynthesis = options?.includeSynthesis !== false;
     return [
       ...output.recall.map(item => ({
         id: nanoid(),
@@ -977,7 +1131,7 @@ export class StudyCommandService extends Service {
         misconceptions: item.misconceptions,
         blockIds: item.blockIds,
         metadata: item.metadata,
-        accepted: true,
+        accepted: acceptRecall,
       })),
       ...output.synthesis.map(item => ({
         id: nanoid(),
@@ -988,7 +1142,7 @@ export class StudyCommandService extends Service {
         rubric: item.rubric,
         blockIds: item.blockIds,
         metadata: item.metadata,
-        accepted: true,
+        accepted: acceptSynthesis,
       })),
     ];
   }

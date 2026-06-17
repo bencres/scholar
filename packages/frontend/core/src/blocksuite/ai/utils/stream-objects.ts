@@ -52,11 +52,14 @@ export function mergeStreamContent(chunks: StreamObject[]): string {
 }
 
 export async function collectStreamText(
-  stream: AsyncIterable<string>
+  stream: AsyncIterable<string>,
+  options?: { onChunk?: (index: number) => void }
 ): Promise<string> {
   let plainText = '';
   let streamObjects: StreamObject[] = [];
+  let chunkIndex = 0;
   for await (const chunk of stream) {
+    options?.onChunk?.(chunkIndex++);
     try {
       const parsed = StreamObjectSchema.safeParse(JSON.parse(chunk));
       if (parsed.success) {

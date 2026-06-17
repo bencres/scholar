@@ -14,6 +14,7 @@ export type SettingTab =
   | 'editor'
   | 'account'
   | 'meetings'
+  | 'study'
   | `workspace:${'preference' | 'properties' | 'members' | 'storage' | 'billing' | 'license' | 'integrations' | 'embedding' | 'byok' | 'search'}`;
 
 export type GLOBAL_DIALOG_SCHEMA = {
@@ -43,6 +44,7 @@ export type GLOBAL_DIALOG_SCHEMA = {
 export type WORKSPACE_DIALOG_SCHEMA = {
   setting: (props: { activeTab?: SettingTab; scrollAnchor?: string }) => void;
   'doc-info': (props: { docId: string }) => void;
+  'study-generate': (props: { docId: string; autoGenerate?: boolean }) => void;
   'doc-selector': (props: {
     init: string[];
     onBeforeConfirm?: (ids: string[], cb: () => void) => void;

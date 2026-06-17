@@ -2,6 +2,8 @@ import { Service } from '@toeverything/infra';
 import { applyUpdate } from 'yjs';
 
 import { transformWorkspaceDBLocalToCloud } from '../../db/utils';
+import type { CacheStorage } from '../../storage';
+import { transformWorkspaceStudyLocalToCloud } from '../../study/utils/transform-workspace-study-local-to-cloud';
 import type { Workspace } from '../entities/workspace';
 import type { WorkspaceMetadata } from '../metadata';
 import type { WorkspaceDestroyService } from './destroy';
@@ -10,7 +12,8 @@ import type { WorkspaceFactoryService } from './factory';
 export class WorkspaceTransformService extends Service {
   constructor(
     private readonly factory: WorkspaceFactoryService,
-    private readonly destroy: WorkspaceDestroyService
+    private readonly destroy: WorkspaceDestroyService,
+    private readonly cacheStorage: CacheStorage
   ) {
     super();
   }
@@ -64,6 +67,12 @@ export class WorkspaceTransformService extends Service {
           localDocStorage,
           docStorage,
           accountId
+        );
+
+        await transformWorkspaceStudyLocalToCloud(
+          local.id,
+          docCollection.id,
+          this.cacheStorage
         );
 
         const blobList = await local.engine.blob.storage.list();

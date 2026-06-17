@@ -24,8 +24,26 @@ const StudyCardGenerationMetadataSchema = z
 
 const StudyConceptSlugSchema = z.string().min(2).max(40);
 
+function parseStudyRubricInput(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.map(item => String(item).trim()).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+const StudyRubricSchema = z
+  .union([z.string(), z.array(z.string())])
+  .transform(parseStudyRubricInput)
+  .pipe(z.array(z.string().min(5)).min(2).max(8));
+
 const StudyCardGraphMetadataSchema = z.object({
-  concepts: z.array(StudyConceptSlugSchema).min(1).max(3),
+  concepts: z.array(StudyConceptSlugSchema).min(1).max(7),
   prerequisites: z.array(StudyConceptSlugSchema).max(2).optional(),
 });
 
@@ -51,7 +69,7 @@ export const StudyCardsGenerateOutputSchema = z.object({
       z
         .object({
           question: z.string().min(20),
-          rubric: z.array(z.string().min(5)).min(2).max(8),
+          rubric: StudyRubricSchema,
           blockIds: z.array(z.string()).optional(),
           metadata: StudyCardGenerationMetadataSchema.optional(),
         })

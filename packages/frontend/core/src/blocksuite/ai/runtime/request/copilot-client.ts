@@ -46,6 +46,8 @@ export enum Endpoint {
   Images = 'images',
 }
 
+export const COPILOT_GQL_TIMEOUT = 60_000;
+
 type OptionsField<T extends GraphQLQuery> =
   RequestOptions<T>['variables'] extends { options: infer U } ? U : never;
 
@@ -102,11 +104,20 @@ export class CopilotClient {
     readonly realtime?: Pick<NbstoreService['realtime'], 'request'>
   ) {}
 
+  private request<Query extends GraphQLQuery>(
+    options: QueryOptions<Query>
+  ): Promise<QueryResponse<Query>> {
+    return this.gql({
+      ...options,
+      timeout: options.timeout ?? COPILOT_GQL_TIMEOUT,
+    });
+  }
+
   async createSession(
     options: OptionsField<typeof createCopilotSessionMutation>
   ) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: createCopilotSessionMutation,
         variables: {
           options,
@@ -122,7 +133,7 @@ export class CopilotClient {
     options: OptionsField<typeof createCopilotSessionWithHistoryMutation>
   ) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: createCopilotSessionWithHistoryMutation,
         variables: { options },
       });
@@ -136,7 +147,7 @@ export class CopilotClient {
     options: OptionsField<typeof updateCopilotSessionMutation>
   ) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: updateCopilotSessionMutation,
         variables: {
           options,
@@ -150,7 +161,7 @@ export class CopilotClient {
 
   async forkSession(options: OptionsField<typeof forkCopilotSessionMutation>) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: forkCopilotSessionMutation,
         variables: {
           options,
@@ -170,7 +181,7 @@ export class CopilotClient {
     >
   ) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: createCopilotMessageMutation,
         variables: {
           options,
@@ -186,7 +197,7 @@ export class CopilotClient {
 
   async getSession(workspaceId: string, sessionId: string) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: getCopilotSessionQuery,
         variables: { sessionId, workspaceId },
       });
@@ -206,7 +217,7 @@ export class CopilotClient {
     signal?: AbortSignal
   ) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: getCopilotSessionsQuery,
         variables: {
           workspaceId,
@@ -232,7 +243,7 @@ export class CopilotClient {
     offset?: number
   ) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: getCopilotRecentSessionsQuery,
         variables: {
           workspaceId,
@@ -259,7 +270,7 @@ export class CopilotClient {
     >['variables']['options']
   ) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: getCopilotHistoriesQuery,
         variables: {
           workspaceId,
@@ -288,7 +299,7 @@ export class CopilotClient {
     >['variables']['options']
   ) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: getCopilotHistoryIdsQuery,
         variables: {
           workspaceId,
@@ -314,7 +325,7 @@ export class CopilotClient {
     sessionIds: string[];
   }) {
     try {
-      const res = await this.gql({
+      const res = await this.request({
         query: cleanupCopilotSessionMutation,
         variables: {
           input,
@@ -327,7 +338,7 @@ export class CopilotClient {
   }
 
   async createContext(workspaceId: string, sessionId: string) {
-    const res = await this.gql({
+    const res = await this.request({
       query: createCopilotContextMutation,
       variables: {
         workspaceId,
@@ -338,7 +349,7 @@ export class CopilotClient {
   }
 
   async getContextId(workspaceId: string, sessionId: string) {
-    const res = await this.gql({
+    const res = await this.request({
       query: listContextQuery,
       variables: {
         workspaceId,
@@ -349,7 +360,7 @@ export class CopilotClient {
   }
 
   async addContextDoc(options: OptionsField<typeof addContextDocMutation>) {
-    const res = await this.gql({
+    const res = await this.request({
       query: addContextDocMutation,
       variables: {
         options,
@@ -361,7 +372,7 @@ export class CopilotClient {
   async removeContextDoc(
     options: OptionsField<typeof removeContextDocMutation>
   ) {
-    const res = await this.gql({
+    const res = await this.request({
       query: removeContextDocMutation,
       variables: {
         options,
@@ -374,7 +385,7 @@ export class CopilotClient {
     content: File,
     options: OptionsField<typeof addContextFileMutation>
   ) {
-    const res = await this.gql({
+    const res = await this.request({
       query: addContextFileMutation,
       variables: {
         content,
@@ -388,7 +399,7 @@ export class CopilotClient {
   async removeContextFile(
     options: OptionsField<typeof removeContextFileMutation>
   ) {
-    const res = await this.gql({
+    const res = await this.request({
       query: removeContextFileMutation,
       variables: {
         options,
@@ -400,7 +411,7 @@ export class CopilotClient {
   async addContextCategory(
     options: OptionsField<typeof addContextCategoryMutation>
   ) {
-    const res = await this.gql({
+    const res = await this.request({
       query: addContextCategoryMutation,
       variables: {
         options,
@@ -412,7 +423,7 @@ export class CopilotClient {
   async removeContextCategory(
     options: OptionsField<typeof removeContextCategoryMutation>
   ) {
-    const res = await this.gql({
+    const res = await this.request({
       query: removeContextCategoryMutation,
       variables: {
         options,
@@ -426,7 +437,7 @@ export class CopilotClient {
     sessionId: string,
     contextId: string
   ) {
-    const res = await this.gql({
+    const res = await this.request({
       query: listContextObjectQuery,
       variables: {
         workspaceId,
@@ -445,7 +456,7 @@ export class CopilotClient {
     scopedThreshold?: number,
     threshold?: number
   ) {
-    const res = await this.gql({
+    const res = await this.request({
       query: matchContextQuery,
       variables: {
         content,
@@ -559,7 +570,7 @@ export class CopilotClient {
   }
 
   addContextBlob(options: OptionsField<typeof addContextBlobMutation>) {
-    return this.gql({
+    return this.request({
       query: addContextBlobMutation,
       variables: {
         options,
@@ -568,7 +579,7 @@ export class CopilotClient {
   }
 
   removeContextBlob(options: OptionsField<typeof removeContextBlobMutation>) {
-    return this.gql({
+    return this.request({
       query: removeContextBlobMutation,
       variables: {
         options,

@@ -1,4 +1,19 @@
+import {
+  cloudPath,
+  cylinderPath,
+  flatTopHexagonPointsString,
+} from '@blocksuite/global/gfx';
 import { html } from 'lit';
+
+const ARCH_ICON_SIZE = 18;
+const ARCH_ICON_OFFSET = 1;
+const architectureHexagonPoints = flatTopHexagonPointsString(
+  ARCH_ICON_SIZE,
+  ARCH_ICON_SIZE
+);
+const architectureCylinderPath = cylinderPath(ARCH_ICON_SIZE, ARCH_ICON_SIZE);
+const architectureCloudPath = cloudPath(ARCH_ICON_SIZE, ARCH_ICON_SIZE);
+const draggableHexagonPoints = flatTopHexagonPointsString(52, 48);
 
 export const ScribbledSquareIcon = html`<svg
   width="20"
@@ -253,3 +268,105 @@ export const roundedSvg = html`<svg
     stroke="inherit"
   />
 </svg> `;
+
+export const GeneralHexagonIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <polygon
+    points="${architectureHexagonPoints}"
+    transform="translate(${ARCH_ICON_OFFSET}, ${ARCH_ICON_OFFSET})"
+  />
+</svg>`;
+
+export const ScribbledHexagonIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M5.2 3.8L14.8 3.6L18.3 10.1L14.9 16.4L5.1 16.6L1.7 9.9L5.2 3.8Z"
+    stroke="currentColor"
+    stroke-width="0.5"
+  />
+</svg>`;
+
+export const hexagonSvg = html`<svg
+  width="52"
+  height="48"
+  viewBox="0 0 52 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <polygon
+    points="${draggableHexagonPoints}"
+    fill="currentColor"
+    stroke="inherit"
+  />
+</svg> `;
+
+export const GeneralCylinderIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="${architectureCylinderPath}"
+    transform="translate(${ARCH_ICON_OFFSET}, ${ARCH_ICON_OFFSET})"
+  />
+</svg>`;
+
+export const ScribbledCylinderIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M3.2 6.1C3.2 4.7 6.2 3.6 10 3.6C13.8 3.6 16.8 4.7 16.8 6.1V13.9C16.8 15.3 13.8 16.4 10 16.4C6.2 16.4 3.2 15.3 3.2 13.9V6.1Z"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.4"
+  />
+  <path
+    d="M3.4 6.2C3.4 7.6 6.3 8.6 10 8.6C13.7 8.6 16.6 7.6 16.6 6.2"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.2"
+  />
+</svg>`;
+
+export const GeneralCloudIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="${architectureCloudPath}"
+    transform="translate(${ARCH_ICON_OFFSET}, ${ARCH_ICON_OFFSET})"
+  />
+</svg>`;
+
+export const ScribbledCloudIcon = html`<svg
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="currentColor"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M5.2 13.4H14.3C16.1 13.4 17.6 12.1 17.6 10.3C17.6 8.7 16.5 7.3 14.9 6.9C14.5 5.1 12.9 3.9 11.1 3.9C9.7 3.9 8.5 4.6 7.7 5.6C6.1 5.4 4.6 6.6 4.3 8.2C3 8.6 2 9.9 2 11.4C2 12.6 3.1 13.4 4.4 13.4H5.2Z"
+    stroke="currentColor"
+    stroke-width="0.5"
+  />
+</svg>`;

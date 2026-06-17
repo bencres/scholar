@@ -209,6 +209,10 @@ const toVariableName = name => {
       return pre + numberToWords(char - '0');
     }
 
+    if (char === '-') {
+      return `${pre} `;
+    }
+
     return pre + char;
   }, '');
 

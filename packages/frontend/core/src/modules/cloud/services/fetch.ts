@@ -44,7 +44,13 @@ export class FetchService extends Service {
     const timeoutId =
       timeout > 0
         ? setTimeout(() => {
-            abortController.abort(new Error('timeout after ' + timeout + 'ms'));
+            abortController.abort(
+              new Error(
+                BUILD_CONFIG.debug
+                  ? `timeout after ${timeout}ms (is \`yarn affine server dev\` running on port 3010?)`
+                  : `timeout after ${timeout}ms`
+              )
+            );
           }, timeout)
         : undefined;
 

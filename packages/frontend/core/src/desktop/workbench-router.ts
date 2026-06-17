@@ -101,6 +101,7 @@ export const workbenchRoutes = [
     path: '/study/dashboard',
     lazy: () => import('./pages/workspace/study/dashboard'),
   },
+
   {
     path: '/study/decks/:deckId',
     lazy: () => import('./pages/workspace/study/deck-detail'),

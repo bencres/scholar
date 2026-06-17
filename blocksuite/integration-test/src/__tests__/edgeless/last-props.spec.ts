@@ -96,6 +96,53 @@ describe('apply last props', () => {
       std.get(EditPropsStore).lastProps$.value['shape:roundedRect'].fillColor
     ).toBe(DefaultTheme.FillColorShortMap.Green);
 
+    // hexagon shape
+    const hexagonId = service.crud.addElement('shape', {
+      shapeType: ShapeType.Hexagon,
+    });
+    if (!hexagonId) {
+      throw new Error('hexagonId is not found');
+    }
+    const hexagonShape = service.crud.getElementById(
+      hexagonId
+    ) as ShapeElementModel;
+    expect(hexagonShape.fillColor).toBe(DefaultTheme.FillColorShortMap.Purple);
+    service.crud.updateElement(hexagonId, {
+      fillColor: DefaultTheme.FillColorShortMap.Purple,
+    });
+    expect(
+      std.get(EditPropsStore).lastProps$.value[`shape:${ShapeType.Hexagon}`]
+        .fillColor
+    ).toBe(DefaultTheme.FillColorShortMap.Purple);
+
+    const cylinderId = service.crud.addElement('shape', {
+      shapeType: ShapeType.Cylinder,
+    });
+    if (!cylinderId) {
+      throw new Error('cylinderId is not found');
+    }
+    service.crud.updateElement(cylinderId, {
+      fillColor: DefaultTheme.FillColorShortMap.Green,
+    });
+    expect(
+      std.get(EditPropsStore).lastProps$.value[`shape:${ShapeType.Cylinder}`]
+        .fillColor
+    ).toBe(DefaultTheme.FillColorShortMap.Green);
+
+    const cloudId = service.crud.addElement('shape', {
+      shapeType: ShapeType.Cloud,
+    });
+    if (!cloudId) {
+      throw new Error('cloudId is not found');
+    }
+    service.crud.updateElement(cloudId, {
+      fillColor: DefaultTheme.FillColorShortMap.Blue,
+    });
+    expect(
+      std.get(EditPropsStore).lastProps$.value[`shape:${ShapeType.Cloud}`]
+        .fillColor
+    ).toBe(DefaultTheme.FillColorShortMap.Blue);
+
     // apply last props
     const rectId2 = service.crud.addElement('shape', {
       shapeType: ShapeType.Rect,

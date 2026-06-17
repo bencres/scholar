@@ -1,4 +1,4 @@
-import { Button, Checkbox } from '@affine/component';
+import { Button } from '@affine/component';
 import { StudyService } from '@affine/core/modules/study';
 import {
   StudyPageBody,
@@ -11,7 +11,7 @@ import {
   ViewTitle,
 } from '@affine/core/modules/workbench';
 import { useI18n } from '@affine/i18n';
-import { useService } from '@toeverything/infra';
+import { useLiveData, useService } from '@toeverything/infra';
 import { useState } from 'react';
 
 import { useStudyModeCards } from './mode-shared';
@@ -26,10 +26,10 @@ const GRADES = [
 export const StudyFlashcardsPage = () => {
   const t = useI18n();
   const studyService = useService(StudyService);
+  const trackSchedule = useLiveData(studyService.flashcardsTrackSchedule$);
   const cards = useStudyModeCards();
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
-  const [trackProgress, setTrackProgress] = useState(false);
   const card = cards[index];
 
   const goNext = () => {
@@ -39,7 +39,7 @@ export const StudyFlashcardsPage = () => {
 
   const gradeCard = async (grade: 1 | 2 | 3 | 4) => {
     if (!card) return;
-    if (trackProgress) {
+    if (trackSchedule) {
       await studyService.gradeCard(card.id, grade);
     }
     goNext();
@@ -102,10 +102,6 @@ export const StudyFlashcardsPage = () => {
               </Button>
             ))
           )}
-        </div>
-        <div className={styles.modeOptionRow}>
-          <Checkbox checked={trackProgress} onChange={setTrackProgress} />
-          <span>{t['com.affine.study.flashcards.track-progress']()}</span>
         </div>
       </StudyPageBody>
     </>

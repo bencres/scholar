@@ -1,9 +1,16 @@
-import { Button, Checkbox, IconButton, Input, notify } from '@affine/component';
+import {
+  Button,
+  Checkbox,
+  IconButton,
+  Input,
+  notify,
+  Switch,
+} from '@affine/component';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { DocDisplayMetaService } from '@affine/core/modules/doc-display-meta';
 import { StudyService } from '@affine/core/modules/study';
-import { STUDY_GENERATE_MODELS } from '@affine/core/modules/study/constants/generate-models';
 import { StudyCardBrowseItem } from '@affine/core/modules/study/views/study-card-browse-item';
+import { StudyGenerationLoading } from '@affine/core/modules/study/views/study-generation-loading';
 import {
   StudyPageBody,
   StudyPageHeader,
@@ -50,10 +57,46 @@ export const StudyGeneratePage = () => {
   const workbench = useService(WorkbenchService).workbench;
   const workspaceDialogService = useService(WorkspaceDialogService);
   const generationState = useLiveData(studyService.generationState$);
-  const generateModelId = useLiveData(studyService.generateModelId$);
+  const defaultIncludeRecall = useLiveData(studyService.defaultIncludeRecall$);
+  const defaultIncludeSynthesis = useLiveData(
+    studyService.defaultIncludeSynthesis$
+  );
+  const defaultRecallCount = useLiveData(studyService.defaultRecallCount$);
+  const defaultSynthesisCount = useLiveData(
+    studyService.defaultSynthesisCount$
+  );
+  const defaultGenerationFocus = useLiveData(
+    studyService.defaultGenerationFocus$
+  );
   const [searchParams] = useSearchParams();
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
-  const [focus, setFocus] = useState('');
+  const [focus, setFocus] = useState(defaultGenerationFocus ?? '');
+  const [includeRecall, setIncludeRecall] = useState(defaultIncludeRecall);
+  const [includeSynthesis, setIncludeSynthesis] = useState(
+    defaultIncludeSynthesis
+  );
+  const [recallCount, setRecallCount] = useState(defaultRecallCount);
+  const [synthesisCount, setSynthesisCount] = useState(defaultSynthesisCount);
+
+  useEffect(() => {
+    setIncludeRecall(defaultIncludeRecall);
+  }, [defaultIncludeRecall]);
+
+  useEffect(() => {
+    setIncludeSynthesis(defaultIncludeSynthesis);
+  }, [defaultIncludeSynthesis]);
+
+  useEffect(() => {
+    setRecallCount(defaultRecallCount);
+  }, [defaultRecallCount]);
+
+  useEffect(() => {
+    setSynthesisCount(defaultSynthesisCount);
+  }, [defaultSynthesisCount]);
+
+  useEffect(() => {
+    setFocus(defaultGenerationFocus ?? '');
+  }, [defaultGenerationFocus]);
 
   useEffect(() => {
     const docId = searchParams.get('docId');
@@ -84,8 +127,14 @@ export const StudyGeneratePage = () => {
     try {
       await studyService.generateFromDocs(
         selectedDocIds,
-        focus.trim() || undefined,
-        generateModelId
+        (focus ?? '').trim() || undefined,
+        undefined,
+        {
+          targetRecallCount: recallCount,
+          targetSynthesisCount: synthesisCount,
+          includeRecall,
+          includeSynthesis,
+        }
       );
     } catch (error) {
       notify.error({
@@ -93,7 +142,16 @@ export const StudyGeneratePage = () => {
         message: error instanceof Error ? error.message : String(error),
       });
     }
-  }, [focus, generateModelId, selectedDocIds, studyService, t]);
+  }, [
+    focus,
+    includeRecall,
+    includeSynthesis,
+    recallCount,
+    selectedDocIds,
+    studyService,
+    synthesisCount,
+    t,
+  ]);
 
   const handleSave = useCallback(async () => {
     const deck = await studyService.savePreviewDeck();
@@ -147,7 +205,7 @@ export const StudyGeneratePage = () => {
               </div>
               <Input
                 value={focus}
-                onChange={event => setFocus(event.target.value)}
+                onChange={setFocus}
                 placeholder={t[
                   'com.affine.study.synthesize.focus.placeholder'
                 ]()}
@@ -155,20 +213,57 @@ export const StudyGeneratePage = () => {
             </div>
             <div className={styles.formCard}>
               <div className={styles.formTitle}>
-                {t['com.affine.study.synthesize.model.title']()}
+                {t['com.affine.study.synthesize.card-types.title']()}
               </div>
-              <select
-                value={generateModelId}
-                onChange={event =>
-                  studyService.setGenerateModel(event.target.value)
-                }
-              >
-                {STUDY_GENERATE_MODELS.map(model => (
-                  <option key={model.id} value={model.id}>
-                    {t[model.labelKey]()}
-                  </option>
-                ))}
-              </select>
+              <div className={styles.formGrid}>
+                <div className={styles.cardTypeRow}>
+                  <Switch checked={includeRecall} onChange={setIncludeRecall} />
+                  <span className={styles.cardTypeLabel}>
+                    {t['com.affine.study.synthesize.card-types.recall']()}
+                  </span>
+                  <input
+                    type="number"
+                    className={styles.countInput}
+                    min={1}
+                    max={30}
+                    value={recallCount}
+                    disabled={!includeRecall}
+                    onChange={e =>
+                      setRecallCount(
+                        Math.max(1, Math.min(30, Number(e.target.value)))
+                      )
+                    }
+                  />
+                  <span className={styles.cardTypeLabel}>
+                    {t['com.affine.study.synthesize.card-types.cards']()}
+                  </span>
+                </div>
+                <div className={styles.cardTypeRow}>
+                  <Switch
+                    checked={includeSynthesis}
+                    onChange={setIncludeSynthesis}
+                  />
+                  <span className={styles.cardTypeLabel}>
+                    {t['com.affine.study.synthesize.card-types.synthesis']()}
+                  </span>
+                  <input
+                    type="number"
+                    className={styles.countInput}
+                    min={1}
+                    max={30}
+                    value={synthesisCount}
+                    disabled={!includeSynthesis}
+                    onChange={e =>
+                      setSynthesisCount(
+                        Math.max(1, Math.min(30, Number(e.target.value)))
+                      )
+                    }
+                  />
+                  <span className={styles.cardTypeLabel}>
+                    {t['com.affine.study.synthesize.card-types.cards']()}
+                  </span>
+                </div>
+              </div>
             </div>
             <div className={styles.actionsRow}>
               <Button
@@ -190,9 +285,7 @@ export const StudyGeneratePage = () => {
         ) : null}
 
         {generationState.status === 'generating' ? (
-          <div className={styles.emptyState}>
-            {t['com.affine.study.synthesize.loading']()}
-          </div>
+          <StudyGenerationLoading state={generationState} />
         ) : null}
 
         {generationState.status === 'preview' ? (

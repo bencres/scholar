@@ -155,4 +155,72 @@ describe('Shape rendering with DOM renderer', () => {
     expectPxCloseTo(shapeElement!.style.width, 80 * zoom);
     expectPxCloseTo(shapeElement!.style.height, 60 * zoom);
   });
+
+  test('should correctly render hexagon shape', async () => {
+    const surfaceView = getSurface(window.doc, window.editor);
+    const surfaceModel = surfaceView.model;
+    const shapeProps = {
+      type: 'shape',
+      subType: 'hexagon',
+      xywh: '[150, 150, 80, 60]',
+      fillColor: '#ff0000',
+      strokeColor: '#000000',
+      filled: true,
+    };
+    const shapeId = surfaceModel.addElement(shapeProps);
+    const shapeElement = await waitForShapeElement(surfaceView, shapeId);
+
+    expect(shapeElement).not.toBeNull();
+    const zoom = surfaceView.renderer.viewport.zoom;
+    expectPxCloseTo(shapeElement!.style.width, 80 * zoom);
+    expectPxCloseTo(shapeElement!.style.height, 60 * zoom);
+
+    const polygon = shapeElement!.querySelector('polygon');
+    expect(polygon).not.toBeNull();
+    expect(polygon!.getAttribute('points')).toBe(
+      '23.25684219350085,1 56.74315780649915,1 73.4863156129983,30 56.74315780649915,59 23.25684219350085,59 6.513684387001703,30'
+    );
+  });
+
+  test('should correctly render cylinder shape', async () => {
+    const surfaceView = getSurface(window.doc, window.editor);
+    const surfaceModel = surfaceView.model;
+    const shapeProps = {
+      type: 'shape',
+      subType: 'cylinder',
+      xywh: '[150, 150, 80, 60]',
+      fillColor: '#ff0000',
+      strokeColor: '#000000',
+      filled: true,
+    };
+    const shapeId = surfaceModel.addElement(shapeProps);
+    const shapeElement = await waitForShapeElement(surfaceView, shapeId);
+
+    expect(shapeElement).not.toBeNull();
+    const path = shapeElement!.querySelector('path');
+    expect(path).not.toBeNull();
+    expect(path!.getAttribute('d')?.startsWith('M 1 ')).toBe(true);
+    expect(path!.getAttribute('d')?.endsWith('Z')).toBe(true);
+  });
+
+  test('should correctly render cloud shape', async () => {
+    const surfaceView = getSurface(window.doc, window.editor);
+    const surfaceModel = surfaceView.model;
+    const shapeProps = {
+      type: 'shape',
+      subType: 'cloud',
+      xywh: '[150, 150, 80, 60]',
+      fillColor: '#ff0000',
+      strokeColor: '#000000',
+      filled: true,
+    };
+    const shapeId = surfaceModel.addElement(shapeProps);
+    const shapeElement = await waitForShapeElement(surfaceView, shapeId);
+
+    expect(shapeElement).not.toBeNull();
+    const path = shapeElement!.querySelector('path');
+    expect(path).not.toBeNull();
+    expect(path!.getAttribute('d')?.startsWith('M ')).toBe(true);
+    expect(path!.getAttribute('d')?.endsWith('Z')).toBe(true);
+  });
 });

@@ -26,6 +26,15 @@ export const drawGeneralShape = (
     case 'diamond':
       shapeMethods.diamond.draw(ctx, bound);
       break;
+    case 'hexagon':
+      shapeMethods.hexagon.draw(ctx, bound);
+      break;
+    case 'cylinder':
+      shapeMethods.cylinder.draw(ctx, bound);
+      break;
+    case 'cloud':
+      shapeMethods.cloud.draw(ctx, bound);
+      break;
     case 'ellipse':
       shapeMethods.ellipse.draw(ctx, bound);
       break;

@@ -15,14 +15,9 @@ import { IsFavoriteIcon } from '@affine/core/components/pure/icons';
 import { useDetailPageHeaderResponsive } from '@affine/core/desktop/pages/workspace/detail-page/use-header-responsive';
 import { WorkspaceDialogService } from '@affine/core/modules/dialogs';
 import { EditorService } from '@affine/core/modules/editor';
-import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { OpenInAppService } from '@affine/core/modules/open-in-app/services';
 import { GuardService } from '@affine/core/modules/permissions';
 import { ShareMenuContent } from '@affine/core/modules/share-menu';
-import {
-  STUDY_GENERATE_MODELS,
-  StudyService,
-} from '@affine/core/modules/study';
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { ViewService } from '@affine/core/modules/workbench/services/view';
 import { WorkspaceService } from '@affine/core/modules/workspace';
@@ -180,9 +175,6 @@ const PageHeaderMenuItem = ({
   }, [openSidePanel]);
 
   const workspaceDialogService = useService(WorkspaceDialogService);
-  const studyService = useServiceOptional(StudyService);
-  const featureFlagService = useService(FeatureFlagService);
-  const enableStudy = useLiveData(featureFlagService.flags.enable_study.$);
   const openInfoModal = useCallback(() => {
     track.$.header.pageInfo.open();
     workspaceDialogService.open('doc-info', { docId: pageId });
@@ -302,32 +294,6 @@ const PageHeaderMenuItem = ({
     track.$.header.docOptions.toggleFavorite();
     toggleFavorite();
   }, [toggleFavorite]);
-
-  const handleGenerateStudyDeck = useCallback(
-    async (modelId: (typeof STUDY_GENERATE_MODELS)[number]['id']) => {
-      if (!studyService?.enabled) return;
-      try {
-        studyService.setGenerateModel(modelId);
-        await studyService.generateFromDoc(page, undefined, modelId);
-      } catch (error) {
-        console.warn('[study.cards.generate] menu handler caught error', error);
-        if (studyService.lastGenerationDebug) {
-          console.warn(
-            '[study.cards.generate] inspect window.__affineStudyGenerateDebug'
-          );
-        }
-        toast(
-          error instanceof Error
-            ? error.message
-            : t['com.affine.study.generate.failed'](),
-          { duration: 10000 }
-        );
-      } finally {
-        workbench.open(`/study/synthesize?docId=${pageId}`, { at: 'active' });
-      }
-    },
-    [page, pageId, studyService, t, workbench]
-  );
 
   const showResponsiveMenu = hideShare;
   const ResponsiveMenuItems = (
@@ -458,30 +424,6 @@ const PageHeaderMenuItem = ({
         {t['com.affine.history.view-history-version']()}
       </MenuItem>
       <MenuSeparator />
-      {enableStudy && studyService?.enabled && currentMode === 'page' ? (
-        <MenuSub
-          prefixIcon={<TocIcon />}
-          data-testid="editor-option-menu-generate-study-deck"
-          items={STUDY_GENERATE_MODELS.map(model => (
-            <MenuItem
-              key={model.id}
-              data-testid={`editor-option-menu-generate-study-deck-${model.id}`}
-              onSelect={() => {
-                handleGenerateStudyDeck(model.id).catch(error => {
-                  console.error(
-                    '[study.cards.generate] menu item failed',
-                    error
-                  );
-                });
-              }}
-            >
-              {t[model.labelKey]()}
-            </MenuItem>
-          ))}
-        >
-          {t['com.affine.study.generate.menu']()}
-        </MenuSub>
-      ) : null}
       {!isJournal && (
         <MenuItem
           prefixIcon={<DuplicateIcon />}
